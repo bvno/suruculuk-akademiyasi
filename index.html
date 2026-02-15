@@ -2,132 +2,209 @@
 <html lang="az">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Avtomobil Sürüş Simulyatoru</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>🚗 Sürüş Simulyatoru</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
+    * { margin:0; padding:0; box-sizing:border-box; touch-action: manipulation; }
     body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(to bottom, #e6f0fa, #ffffff);
-      color: #222;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(180deg, #0f2027, #203a43, #2c5364);
+      color: #e0f7fa;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
+
     header {
-      background: linear-gradient(to right, #2e7d32, #1976d2);
-      color: white;
-      padding: 12px 20px;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(6px);
+      padding: 10px 14px;
+      z-index: 100;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
+      font-size: 0.95rem;
     }
-    header h1 { font-size: 1.6rem; }
-    #user-info { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+
+    #username-display { font-weight: 600; color: #4fc3f7; }
+    #balance-display  { font-weight: bold; color: #ffca28; }
+
     main {
-      max-width: 900px;
-      margin: 20px auto;
-      padding: 20px;
+      padding: 70px 10px 140px;
     }
-    section { margin: 25px 0; }
+
+    section { margin: 20px 0; }
+
     .hidden { display: none !important; }
+
+    h2 { color: #80deea; margin-bottom: 12px; text-shadow: 0 1px 3px #000; }
+
     button {
-      background: #388e3c;
+      background: linear-gradient(145deg, #00b8d4, #0097a7);
       color: white;
       border: none;
-      padding: 10px 18px;
-      border-radius: 6px;
+      padding: 12px 22px;
+      margin: 6px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
       cursor: pointer;
-      font-size: 1rem;
-      transition: 0.25s;
+      box-shadow: 0 4px 0 #006064;
+      transition: transform 0.08s;
+      touch-action: manipulation;
     }
-    button:hover { background: #2e7d32; }
-    .deposit-btn { background: #0288d1; }
-    .deposit-btn:hover { background: #0277bd; }
-    input, button { margin: 8px 0; }
-    #game-canvas {
-      border: 2px solid #444;
-      background: #555;
-      display: block;
-      margin: 15px auto;
-      max-width: 100%;
+
+    button:active { transform: translateY(2px); box-shadow: 0 2px 0 #006064; }
+
+    .deposit-btn {
+      background: linear-gradient(145deg, #ffca28, #ffb300);
+      box-shadow: 0 4px 0 #ff8f00;
     }
-    #game-message { color: #d32f2f; font-weight: bold; margin: 10px 0; }
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .modal-content {
-      background: white;
-      padding: 25px;
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
       border-radius: 10px;
+      border: 2px solid #4fc3f7;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      font-size: 1.05rem;
+    }
+
+    #game-container {
+      position: relative;
+      margin: 0 auto;
+      max-width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #111;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    }
+
+    #game-canvas { width: 100%; height: 100%; display: block; }
+
+    #start-game-btn {
+      display: block;
+      margin: 16px auto;
+      padding: 16px 40px;
+      font-size: 1.3rem;
+      background: linear-gradient(145deg, #ff5252, #d32f2f);
+      box-shadow: 0 6px 0 #b71c1c;
+    }
+
+    #controls {
+      position: fixed;
+      bottom: 20px; left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      pointer-events: none;
+    }
+
+    .ctrl-btn {
+      width: 80px; height: 80px;
+      background: rgba(255,255,255,0.15);
+      border: 2px solid #4fc3f7;
+      border-radius: 50%;
+      font-size: 2.2rem;
+      color: #e0f7fa;
+      pointer-events: auto;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .ctrl-btn:active { background: rgba(255,255,255,0.3); }
+
+    #message {
+      text-align: center;
+      font-size: 1.1rem;
+      margin: 12px 0;
+      min-height: 1.4em;
+      color: #ff8a65;
+    }
+
+    .modal {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: #1e272e;
+      padding: 24px;
+      border-radius: 16px;
       max-width: 90%;
       max-height: 85vh;
       overflow-y: auto;
+      color: #e0f7fa;
     }
-    .close { float: right; font-size: 2rem; cursor: pointer; }
-    #chat-window {
-      border: 1px solid #aaa;
-      height: 180px;
-      overflow-y: auto;
-      padding: 10px;
-      background: #f9f9f9;
-      margin-bottom: 10px;
-      border-radius: 6px;
-    }
-    #chat-input { width: 70%; padding: 10px; }
-    .error { color: #d32f2f; }
 
-    @media (max-width: 600px) {
-      header { flex-direction: column; gap: 10px; text-align: center; }
-      main { padding: 15px; }
+    .close { float: right; font-size: 2.4rem; cursor: pointer; }
+
+    #chat-window {
+      background: rgba(0,0,0,0.4);
+      border-radius: 12px;
+      height: 160px;
+      overflow-y: auto;
+      padding: 12px;
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+    }
+
+    @media (min-width: 768px) {
+      main { max-width: 900px; margin: 80px auto 160px; }
+      #game-container { max-width: 720px; }
+      #controls { display: none; } /* PC-də klaviatura istifadə olunacaq */
     }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>Avtomobil Sürüş Simulyatoru</h1>
-  <div id="user-info">
-    <span id="username-display"></span>
-    <span id="balance-display">Balans: 0.00 ₼</span>
-    <button id="logout-btn" class="hidden">Çıxış</button>
-  </div>
+  <div id="username-display"></div>
+  <div id="balance-display">Balans: 0.00 ₼</div>
 </header>
 
 <main>
 
-  <!-- Giriş/Qeydiyyat -->
   <section id="auth-section">
-    <h2>Giriş və ya Qeydiyyat</h2>
-    <input type="text"    id="username"     placeholder="İstifadəçi adı" required />
-    <input type="password" id="password"     placeholder="Şifrə" required />
-    <label><input type="checkbox" id="remember-me"> Məni xatırla</label><br>
+    <h2>Giriş / Qeydiyyat</h2>
+    <input type="text" id="username" placeholder="Adın" autocomplete="off"/>
+    <input type="password" id="password" placeholder="Şifrə" autocomplete="new-password"/>
+    <label style="display:block; margin:10px 0;">
+      <input type="checkbox" id="remember-me"/> Məni xatırla
+    </label>
     <button id="login-btn">Giriş</button>
     <button id="register-btn">Qeydiyyat</button>
-    <p id="auth-error" class="error"></p>
+    <p id="auth-error" style="color:#ff8a65; min-height:1.3em;"></p>
   </section>
 
-  <!-- Balans artırma -->
-  <section id="deposit-section" class="hidden">
-    <h2>Balans artırmaq</h2>
-    <button class="deposit-btn" data-amount="5">+5 ₼</button>
-    <button class="deposit-btn" data-amount="10">+10 ₼</button>
-    <button class="deposit-btn" data-amount="20">+20 ₼</button>
-  </section>
-
-  <!-- Oyun -->
   <section id="game-section" class="hidden">
-    <h2>Oyuna başla!</h2>
-    <canvas id="game-canvas" width="800" height="600"></canvas>
-    <br>
-    <button id="start-game-btn">Oyuna başla (0.20 ₼)</button>
-    <p id="game-message"></p>
-    <p style="color:#555; font-size:0.9rem;">
-      Bu sadəcə simulyasiyadır. Əyləncə üçün oynayın və məsuliyyətlə davranın.
+    <div id="game-container">
+      <canvas id="game-canvas"></canvas>
+    </div>
+
+    <div id="controls">
+      <div class="ctrl-btn" id="btn-left">←</div>
+      <div style="display:flex; flex-direction:column; gap:30px;">
+        <div class="ctrl-btn" id="btn-up">↑</div>
+        <div class="ctrl-btn" id="btn-down">↓</div>
+      </div>
+      <div class="ctrl-btn" id="btn-right">→</div>
+    </div>
+
+    <button id="start-game-btn">OYUNA BAŞLA (0.20 ₼)</button>
+    <div id="message"></div>
+    <p style="text-align:center; font-size:0.85rem; color:#b0bec5; margin-top:8px;">
+      Simulyasiyadır • Əyləncə üçündür • Məsuliyyətlə oynayın
     </p>
   </section>
 
@@ -135,76 +212,38 @@
   <div id="rules-modal" class="modal hidden">
     <div class="modal-content">
       <span class="close">×</span>
-      <h2>Qaydalar</h2>
-
-      <h3>Azərbaycanca</h3>
-      <ul>
-        <li>İdarəetmə: Ox düymələri (sol/sağ → dönmə, yuxarı → qaz, aşağı → əyləc)</li>
-        <li>Qırmızı işıqda dayanmaq mütləqdir (cəza: -1 ₼)</li>
-        <li>Maneələrə dəymək qadağandır (-1 ₼)</li>
-        <li>Sürət həddi 60 km/saat (artıq sürət → cəza)</li>
-        <li>Uğurlu seqment → +0.50 ₼</li>
-        <li>Oyun qiyməti: 0.20 ₼ / sessiya</li>
-        <li>Sessiya: 60 saniyə və ya ciddi pozuntu ilə bitir</li>
-      </ul>
-
-      <h3>English</h3>
-      <ul>
-        <li>Controls: Arrow keys (left/right = steer, up = accelerate, down = brake)</li>
-        <li>Stop at red light (penalty -1 AZN)</li>
-        <li>Avoid obstacles (-1 AZN on collision)</li>
-        <li>Speed limit 60 km/h</li>
-        <li>Successful segment → +0.50 AZN</li>
-        <li>Cost per game: 0.20 AZN</li>
-        <li>Session: 60 seconds or major violation</li>
+      <h2>Qaydalar (qısa)</h2>
+      <ul style="line-height:1.6;">
+        <li>← → ↑ ↓   → dönmə / qaz / əyləc</li>
+        <li>Qırmızıda dayan (cəza –1 ₼)</li>
+        <li>Maneəyə toxunma (–1 ₼)</li>
+        <li>Sürət ≤ 60 km/s (artıq → cəza)</li>
+        <li>Hər uğurlu keçid +0.50 ₼</li>
+        <li>Oyun • 0.20 ₼ / cəhd • 60 saniyə</li>
       </ul>
     </div>
   </div>
-
-  <!-- Chat -->
-  <section id="chat-section" class="hidden">
-    <h2>Dəstək Çatı (Bot)</h2>
-    <div id="chat-window"></div>
-    <input type="text" id="chat-input" placeholder="Mesaj yaz..." />
-    <button id="chat-send">Göndər</button>
-  </section>
-
-  <footer style="text-align:center; margin:30px 0; color:#555;">
-    <button id="rules-btn">Qaydaları göstər</button>
-  </footer>
 
 </main>
 
 <script>
 // ──────────────────────────────────────────────
-//  LocalStorage ilə sadə user sistemi
+//  USER & BALANS (localStorage)
 // ──────────────────────────────────────────────
 
-function getUsers() {
-  return JSON.parse(localStorage.getItem('gameUsers') || '[]');
-}
+const ls = localStorage;
+function getUsers()     { return JSON.parse(ls.getItem('gameUsers')||'[]'); }
+function saveUsers(u)   { ls.setItem('gameUsers', JSON.stringify(u)); }
+function currentUser()  { return ls.getItem('currentGameUser'); }
+function setUser(n)     { ls.setItem('currentGameUser', n); }
 
-function saveUsers(users) {
-  localStorage.setItem('gameUsers', JSON.stringify(users));
-}
+function findUser(name) { return getUsers().find(u=>u.username===name); }
 
-function getCurrentUser() {
-  return localStorage.getItem('currentGameUser');
-}
-
-function setCurrentUser(name) {
-  localStorage.setItem('currentGameUser', name);
-}
-
-function findUser(name) {
-  return getUsers().find(u => u.username === name);
-}
-
-function login(name, pass, remember) {
-  const user = findUser(name);
-  if (user && user.password === pass) {
-    if (remember) setCurrentUser(name);
-    showLoggedInUI(user);
+function login(name, pass, rem) {
+  const u = findUser(name);
+  if (u && u.password === pass) {
+    if (rem) setUser(name);
+    showGame(u);
     return true;
   }
   return false;
@@ -212,290 +251,239 @@ function login(name, pass, remember) {
 
 function register(name, pass) {
   if (findUser(name)) return false;
-  const users = getUsers();
-  users.push({ username: name, password: pass, balance: 5.00 });
-  saveUsers(users);
+  const us = getUsers();
+  us.push({username:name, password:pass, balance:5.00});
+  saveUsers(us);
   return true;
 }
 
-function updateBalance(name, delta) {
-  const users = getUsers();
-  const user = users.find(u => u.username === name);
-  if (user) {
-    user.balance = Math.max(0, Number((user.balance + delta).toFixed(2)));
-    saveUsers(users);
-    document.getElementById('balance-display').textContent = `Balans: ${user.balance.toFixed(2)} ₼`;
+function chBal(delta) {
+  const name = currentUser();
+  if (!name) return;
+  const us = getUsers();
+  const u = us.find(x=>x.username===name);
+  if (u) {
+    u.balance = Math.max(0, Number((u.balance + delta).toFixed(2)));
+    saveUsers(us);
+    document.getElementById('balance-display').textContent = `Balans: ${u.balance.toFixed(2)} ₼`;
   }
 }
 
-function showLoggedInUI(user) {
+function showGame(user) {
   document.getElementById('auth-section').classList.add('hidden');
-  document.getElementById('deposit-section').classList.remove('hidden');
   document.getElementById('game-section').classList.remove('hidden');
-  document.getElementById('chat-section').classList.remove('hidden');
-  document.getElementById('username-display').textContent = `Xoş gəldin, ${user.username}`;
-  document.getElementById('logout-btn').classList.remove('hidden');
+  document.getElementById('username-display').textContent = user.username;
   document.getElementById('balance-display').textContent = `Balans: ${user.balance.toFixed(2)} ₼`;
 }
 
-function logout() {
-  localStorage.removeItem('currentGameUser');
-  location.reload();
-}
-
-// ──────────────────────────────────────────────
-//  Event Listeners – Auth
-// ──────────────────────────────────────────────
-
-document.getElementById('login-btn').onclick = () => {
-  const name = document.getElementById('username').value.trim();
-  const pass = document.getElementById('password').value;
-  const remember = document.getElementById('remember-me').checked;
-  const errEl = document.getElementById('auth-error');
-
-  if (!name || !pass) {
-    errEl.textContent = "Ad və şifrə daxil edin";
-    return;
-  }
-
-  if (login(name, pass, remember)) {
-    errEl.textContent = "";
-  } else {
-    errEl.textContent = "Yanlış ad və ya şifrə";
-  }
-};
-
-document.getElementById('register-btn').onclick = () => {
-  const name = document.getElementById('username').value.trim();
-  const pass = document.getElementById('password').value;
-  const errEl = document.getElementById('auth-error');
-
-  if (!name || !pass) {
-    errEl.textContent = "Ad və şifrə daxil edin";
-    return;
-  }
-
-  if (register(name, pass)) {
-    errEl.textContent = "Qeydiyyat uğurlu! İndi giriş edin.";
-  } else {
-    errEl.textContent = "Bu ad artıq mövcuddur";
-  }
-};
-
-document.getElementById('logout-btn').onclick = logout;
-
 // Auto-login
-window.addEventListener('load', () => {
-  const name = getCurrentUser();
-  if (name) {
-    const user = findUser(name);
-    if (user) showLoggedInUI(user);
+window.addEventListener('load', ()=>{
+  const n = currentUser();
+  if (n) {
+    const u = findUser(n);
+    if (u) showGame(u);
   }
 });
 
-// ──────────────────────────────────────────────
-//  Deposit
-// ──────────────────────────────────────────────
-
-document.querySelectorAll('.deposit-btn').forEach(btn => {
-  btn.onclick = () => {
-    const amt = Number(btn.dataset.amount);
-    const name = getCurrentUser();
-    if (name) updateBalance(name, amt);
-  };
-});
-
-// ──────────────────────────────────────────────
-//  Qaydalar modal
-// ──────────────────────────────────────────────
-
-const rulesModal = document.getElementById('rules-modal');
-document.getElementById('rules-btn').onclick = () => rulesModal.classList.remove('hidden');
-document.querySelector('.close').onclick = () => rulesModal.classList.add('hidden');
-rulesModal.onclick = e => { if (e.target === rulesModal) rulesModal.classList.add('hidden'); };
-
-// ──────────────────────────────────────────────
-//  Sadə motivasiya botu
-// ──────────────────────────────────────────────
-
-let chatTimer;
-const messages = [
-  "Hey, hazırlaşsan yaxşı olar – daha çox qazanmaq istəyirsən? 🚗💨",
-  "Çox gözəl sürürsən! Belə davam et, balans artacaq! 🔥",
-  "Qaydaları unutma – qırmızı işıqda dayanmağı sevirəm 😉"
-];
-
-function addChatMsg(from, text) {
-  const div = document.createElement('div');
-  div.innerHTML = `<strong>${from}:</strong> ${text}`;
-  document.getElementById('chat-window').appendChild(div);
-  div.scrollIntoView();
-}
-
-function botSay() {
-  const msg = messages[Math.floor(Math.random()*messages.length)];
-  addChatMsg("Bot", msg);
-}
-
-document.getElementById('chat-send').onclick = () => {
-  const input = document.getElementById('chat-input');
-  const txt = input.value.trim();
-  if (!txt) return;
-  addChatMsg("Sən", txt);
-  input.value = "";
-
-  setTimeout(() => {
-    addChatMsg("Bot", "Təşəkkür! Təhlükəsiz sürüşə davam et, qazancını artır 😊");
-  }, 1200);
-
-  clearTimeout(chatTimer);
-  chatTimer = setTimeout(botSay, 35000);
+// Auth buttons
+document.getElementById('login-btn').onclick = ()=>{
+  const n = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value;
+  const r = document.getElementById('remember-me').checked;
+  const e = document.getElementById('auth-error');
+  if (!n || !p) { e.textContent="Ad və şifrə yaz"; return; }
+  e.textContent = login(n,p,r) ? "" : "Yanlış ad/şifrə";
 };
 
-// İlk mesaj
-setTimeout(() => {
-  if (document.getElementById('chat-section').classList.contains('hidden') === false) {
-    botSay();
-  }
-}, 8000);
+document.getElementById('register-btn').onclick = ()=>{
+  const n = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value;
+  const e = document.getElementById('auth-error');
+  if (!n || !p) { e.textContent="Ad və şifrə yaz"; return; }
+  e.textContent = register(n,p) ? "Qeydiyyat tamam! Giriş et." : "Bu ad artıq var";
+};
 
 // ──────────────────────────────────────────────
-//  OYUN – Canvas
+//  OYUN MƏNTİQİ
 // ──────────────────────────────────────────────
 
-const canvas = document.getElementById('game-canvas');
-const ctx = canvas.getContext('2d');
-let gameActive = false;
-let car = { x: 400, y: 550, w: 36, h: 60, speed: 2, maxSpeed: 5 };
+const cvs = document.getElementById('game-canvas');
+const ctx = cvs.getContext('2d');
+let w, h;
+
+function resize() {
+  w = cvs.clientWidth;
+  h = cvs.clientHeight;
+  cvs.width = w;
+  cvs.height = h;
+}
+window.addEventListener('resize', resize);
+resize();
+
+let running = false;
+let car = {x:0, y:0, w:44, h:80, speed:1.8, angle:0};
 let keys = {};
 let obstacles = [];
-let light = { color: 'green', timer: 5000, y: 120 };
+let light = {color:'green', timer:5000, y:0};
 let timeLeft = 60000;
+let lastTime = 0;
 
-window.addEventListener('keydown', e => keys[e.key] = true);
-window.addEventListener('keyup',   e => keys[e.key] = false);
+const touch = {
+  left:false, right:false, up:false, down:false
+};
 
-function startGame() {
-  const name = getCurrentUser();
-  const bal = findUser(name)?.balance || 0;
+['left','right','up','down'].forEach(dir=>{
+  const btn = document.getElementById(`btn-${dir}`);
+  if (!btn) return;
+  btn.addEventListener('touchstart', e=>{ e.preventDefault(); touch[dir]=true; });
+  btn.addEventListener('touchend',   e=>{ e.preventDefault(); touch[dir]=false; });
+  // PC üçün də olsun
+  btn.addEventListener('mousedown', ()=> touch[dir]=true);
+  btn.addEventListener('mouseup',   ()=> touch[dir]=false);
+});
 
+window.addEventListener('keydown', e=> keys[e.key]=true);
+window.addEventListener('keyup',   e=> keys[e.key]=false);
+
+function start() {
+  const bal = findUser(currentUser())?.balance ?? 0;
   if (bal < 0.20) {
-    document.getElementById('game-message').textContent = "Balans kifayət qədər deyil. Zəhmət olmasa balans artırın.";
+    document.getElementById('message').textContent = "Balans azdır • Artırın";
     return;
   }
-
-  updateBalance(name, -0.20);
-  gameActive = true;
-  car.x = 400; car.y = 550; car.speed = 2;
+  chBal(-0.20);
+  running = true;
+  car.x = w/2; car.y = h-100; car.speed = 1.8; car.angle = 0;
   obstacles = [];
-  light.color = 'green'; light.timer = 5000;
+  light.color = 'green'; light.timer = 5000; light.y = h*0.25;
   timeLeft = 60000;
-  document.getElementById('game-message').textContent = "";
-  document.getElementById('start-game-btn').disabled = true;
-
-  setInterval(() => {
-    if (gameActive) {
-      obstacles.push({
-        x: Math.random() * (canvas.width - 40) + 20,
-        y: -40,
-        w: 40, h: 40
-      });
-    }
-  }, 1800);
-
-  loop();
+  document.getElementById('message').textContent = "";
+  document.getElementById('start-game-btn').textContent = "YENİ OYUN";
+  lastTime = performance.now();
+  requestAnimationFrame(loop);
 }
 
-function loop() {
-  if (!gameActive) return;
+function loop(now) {
+  if (!running) return;
+  const dt = now - lastTime;
+  lastTime = now;
 
-  ctx.fillStyle = "#444";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = "#0d1b2a";
+  ctx.fillRect(0,0,w,h);
 
-  // yol xətləri
-  ctx.fillStyle = "white";
-  for (let i = 0; i < canvas.height; i += 60) {
-    ctx.fillRect(canvas.width/2 - 6, i + (Date.now()/20 % 60), 12, 30);
+  // gradient yol
+  const gr = ctx.createLinearGradient(0,0,0,h);
+  gr.addColorStop(0,   "#1b263b");
+  gr.addColorStop(0.5, "#415a77");
+  gr.addColorStop(1,   "#1b263b");
+  ctx.fillStyle = gr;
+  ctx.fillRect(0,0,w,h);
+
+  // yol xətləri (hərəkət effekti)
+  ctx.fillStyle = "rgba(255,255,200,0.8)";
+  const offset = (now/8) % 80;
+  for (let i = -80; i < h+80; i += 80) {
+    ctx.fillRect(w/2-8, i+offset, 16, 40);
   }
 
   // idarəetmə
-  if (keys['ArrowLeft'])  car.x -= 3.5;
-  if (keys['ArrowRight']) car.x += 3.5;
-  if (keys['ArrowUp'])    car.speed = Math.min(car.speed + 0.08, car.maxSpeed);
-  if (keys['ArrowDown'])  car.speed = Math.max(car.speed - 0.12, 0.5);
+  if (keys['ArrowLeft']  || touch.left)  car.angle -= 0.06;
+  if (keys['ArrowRight'] || touch.right) car.angle += 0.06;
+  if (keys['ArrowUp']    || touch.up)    car.speed = Math.min(car.speed + 0.12*dt/16, 5.8);
+  if (keys['ArrowDown']  || touch.down)  car.speed = Math.max(car.speed - 0.18*dt/16, 0);
 
-  car.y -= car.speed;
-  if (car.y < -car.h) {
-    car.y = canvas.height;
-    updateBalance(getCurrentUser(), 0.50);
-    addChatMsg("Bot", "Əla seqment! +0.50 ₼ əlavə olundu 🚀");
+  car.x += Math.sin(car.angle) * car.speed * dt/5;
+  car.y -= Math.cos(car.angle) * car.speed * dt/5;
+
+  car.x = Math.max(30, Math.min(w-30, car.x));
+  if (car.y < -100) {
+    car.y = h + 50;
+    chBal(0.50);
+    document.getElementById('message').textContent = "+0.50 ₼ əlavə olundu!";
+    setTimeout(()=>document.getElementById('message').textContent="", 1800);
   }
 
-  car.x = Math.max(car.w/2, Math.min(canvas.width - car.w/2, car.x));
-
-  // maşın
-  ctx.fillStyle = "#e53935";
-  ctx.fillRect(car.x - car.w/2, car.y, car.w, car.h);
+  // maşın (sadə trapezium)
+  ctx.save();
+  ctx.translate(car.x, car.y);
+  ctx.rotate(car.angle);
+  ctx.fillStyle = "#ff1744";
+  ctx.beginPath();
+  ctx.moveTo(-22, -40);
+  ctx.lineTo( 22, -40);
+  ctx.lineTo( 28,  40);
+  ctx.lineTo(-28,  40);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 
   // işıqfor
-  light.timer -= 16.7;
+  light.timer -= dt;
   if (light.timer <= 0) {
-    if (light.color === 'green') light.color = 'yellow';
-    else if (light.color === 'yellow') light.color = light.prev === 'green' ? 'red' : 'green';
-    else light.color = 'yellow';
+    if      (light.color==='green')  light.color='yellow';
+    else if (light.color==='yellow') light.color = light.prev==='green'?'red':'green';
+    else                             light.color='yellow';
     light.prev = light.color;
-    light.timer = 5000;
+    light.timer = 4800 + Math.random()*800;
   }
 
   ctx.fillStyle = light.color;
-  ctx.fillRect(canvas.width/2 - 15, light.y, 30, 30);
+  ctx.fillRect(w/2-20, light.y-20, 40, 40);
 
   // qırmızı pozuntusu
-  if (light.color === 'red' && car.y < light.y + 80 && car.y + car.h > light.y - 20) {
-    penalty(1, "Qırmızı işıqda keçdin!");
+  if (light.color==='red' && Math.abs(car.y - light.y) < 100) {
+    penalty(1, "Qırmızı işıq pozuntusu!");
     return;
   }
 
   // maneələr
-  obstacles.forEach((o, i) => {
-    o.y += car.speed + 1.2;
-    ctx.fillStyle = "#000";
-    ctx.fillRect(o.x - o.w/2, o.y, o.w, o.h);
+  if (Math.random() < 0.025*dt/16) {
+    obstacles.push({x:30+Math.random()*(w-60), y:-60, size:48});
+  }
 
-    if (Math.abs(o.x - car.x) < (o.w + car.w)/2 &&
-        Math.abs(o.y - (car.y + car.h/2)) < (o.h + car.h)/2) {
+  obstacles = obstacles.filter(o=>{
+    o.y += car.speed*1.4 + 1.2;
+    ctx.fillStyle = "#212121";
+    ctx.fillRect(o.x-o.size/2, o.y-o.size/2, o.size, o.size);
+
+    const dx = o.x - car.x;
+    const dy = o.y - car.y;
+    if (Math.sqrt(dx*dx + dy*dy) < 60) {
       penalty(1, "Maneəyə dəydin!");
-      return;
+      return false;
     }
-
-    if (o.y > canvas.height + 50) obstacles.splice(i,1);
+    return o.y < h+100;
   });
 
   // sürət həddi
-  if (car.speed > 4.2) {
-    penalty(1, "Sürət həddini aşdın!");
+  if (car.speed > 5.4) {
+    penalty(1, "Çox sürət!");
     return;
   }
 
-  timeLeft -= 16.7;
+  timeLeft -= dt;
   if (timeLeft <= 0) {
-    gameActive = false;
-    document.getElementById('start-game-btn').disabled = false;
-    document.getElementById('game-message').textContent = "Vaxt bitdi! Yenidən cəhd et.";
+    running = false;
+    document.getElementById('message').textContent = "Vaxt bitdi • Yenidən cəhd et!";
   }
 
   requestAnimationFrame(loop);
 }
 
-function penalty(amt, msg) {
-  updateBalance(getCurrentUser(), -amt);
-  document.getElementById('game-message').textContent = `${msg} -${amt} ₼`;
-  gameActive = false;
-  document.getElementById('start-game-btn').disabled = false;
-  addChatMsg("Bot", "Diqqət! Pozuntu oldu. Daha diqqətli ol 😉");
+function penalty(amt, txt) {
+  chBal(-amt);
+  document.getElementById('message').textContent = `${txt}  –${amt} ₼`;
+  running = false;
+  setTimeout(()=>document.getElementById('message').textContent="", 3200);
 }
 
-document.getElementById('start-game-btn').onclick = startGame;
+document.getElementById('start-game-btn').onclick = start;
+
+// Qaydalar modal
+const mod = document.getElementById('rules-modal');
+document.getElementById('message').addEventListener('click', ()=>mod.classList.remove('hidden'));
+document.querySelector('.close').onclick = ()=>mod.classList.add('hidden');
+mod.onclick = e=> { if(e.target===mod) mod.classList.add('hidden'); };
 
 </script>
 </body>

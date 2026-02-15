@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sürücülük Akademiyası - Giriş</title>
+    <title>Sürücülük Akademiyası - Professional</title>
     <style>
-        /* Əvvəlki dizayn elementləri saxlanılır */
         body { background-color: #1a1a2e; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
         
-        /* Giriş Paneli (Auth Screen) */
+        /* Giriş Paneli */
         #auth-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #1a1a2e, #16213e);
@@ -19,26 +18,16 @@
             padding: 40px; border-radius: 20px; border: 1px solid #00ff88;
             width: 350px; text-align: center; box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
         }
-        .auth-container h2 { color: #00ff88; margin-bottom: 25px; }
-        .auth-input {
-            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px;
-            border: 1px solid #333; background: rgba(0,0,0,0.3); color: white; outline: none; box-sizing: border-box;
-        }
-        .auth-btn {
-            width: 100%; padding: 12px; background: #00ff88; color: #1a1a2e;
-            border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s;
-        }
-        .auth-btn:hover { background: #00cc6a; transform: translateY(-2px); }
-        .toggle-text { margin-top: 15px; font-size: 14px; color: #ccc; cursor: pointer; }
-        .toggle-text b { color: #00ff88; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #333; background: rgba(0,0,0,0.3); color: white; outline: none; box-sizing: border-box; }
+        .auth-btn { width: 100%; padding: 12px; background: #00ff88; color: #1a1a2e; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* Oyun Sahəsi (İlkin olaraq gizli) */
-        #game-interface { display: none; flex-direction: column; align-items: center; width: 100%; }
-        
-        /* Digər oyun dizaynların buraya gələcək (canvas, ui-panel və s.) */
-        canvas { background-color: #2c3e50; border-radius: 10px; border: 4px solid #111; margin-top: 20px;}
-        .top-bar { width: 90%; display: flex; justify-content: space-between; margin-top: 20px; }
-        .ui-panel { background: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px; border: 1px solid #00ff88; }
+        /* Oyun İnterfeysi */
+        #game-interface { display: none; flex-direction: column; align-items: center; width: 100%; position: relative;}
+        .top-bar { position: absolute; top: -60px; width: 500px; display: flex; justify-content: space-between; z-index: 10; }
+        .ui-panel { background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 10px; border: 1px solid #00ff88; }
+        canvas { background-color: #2ecc71; border-radius: 10px; border: 4px solid #111; box-shadow: 0 0 50px #000; }
+        .controls { margin-top: 20px; }
+        .brake-btn { background: red; color: white; padding: 15px 50px; border-radius: 50px; border: 2px solid white; font-weight: bold; cursor: pointer; font-size: 20px; }
     </style>
 </head>
 <body>
@@ -49,84 +38,122 @@
             <input type="text" id="username" class="auth-input" placeholder="İstifadəçi adı">
             <input type="password" id="password" class="auth-input" placeholder="Şifrə">
             <button class="auth-btn" onclick="handleAuth()" id="auth-submit">Hesab Yarat</button>
-            <p class="toggle-text" id="toggle-link" onclick="toggleAuth()">Artıq hesabın var? <b>Giriş et</b></p>
+            <p onclick="toggleAuth()" style="cursor:pointer; margin-top:15px; font-size:14px;">Artıq hesabın var? <b style="color:#00ff88">Giriş et</b></p>
         </div>
     </div>
 
     <div id="game-interface">
         <div class="top-bar">
             <div class="ui-panel">
-                <div style="font-size: 20px; font-weight: bold; color: #00ff88;">Bakiyə: <span id="balance">100</span> ₼</div>
-                <div id="user-display" style="font-size: 14px; color: #aaa;">Oyunçu: ...</div>
+                <div style="color:#00ff88; font-weight:bold;">Bakiyə: <span id="balance">100</span> ₼</div>
+                <div id="user-display" style="font-size:12px; color:#aaa;">Oyunçu: ...</div>
             </div>
-            <button onclick="logout()" style="background: #ff3333; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer;">Çıxış</button>
+            <button onclick="location.reload()" style="background:#ff3333; color:white; border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">Çıxış</button>
         </div>
-        
-        <canvas id="gameCanvas" width="450" height="500"></canvas>
-        <button id="brakeBtn" style="margin-top: 20px; padding: 20px 60px; background: red; color: white; font-weight: bold; border-radius: 50px; border: none; cursor: pointer;">TORMOZ VER!</button>
+        <canvas id="gameCanvas" width="500" height="500"></canvas>
+        <div class="controls">
+            <button class="brake-btn" id="brakeBtn">TORMOZ VER!</button>
+        </div>
     </div>
 
     <script>
+        // --- AUTH MƏNTİQİ ---
         let isLoginMode = false;
+        let currentUser = "";
 
         function toggleAuth() {
             isLoginMode = !isLoginMode;
             document.getElementById("auth-title").innerText = isLoginMode ? "Giriş" : "Qeydiyyat";
             document.getElementById("auth-submit").innerText = isLoginMode ? "Giriş Et" : "Hesab Yarat";
-            document.getElementById("toggle-link").innerHTML = isLoginMode ? "Hesabın yoxdur? <b>Qeydiyyatdan keç</b>" : "Artıq hesabın var? <b>Giriş et</b>";
         }
 
         function handleAuth() {
             const user = document.getElementById("username").value;
             const pass = document.getElementById("password").value;
+            if (user.length < 3) return alert("Ad çox qısadır!");
 
-            if (user.length < 3 || pass.length < 3) {
-                alert("İstifadəçi adı və şifrə ən az 3 hərfdən ibarət olmalıdır!");
-                return;
-            }
-
-            // Məlumat bazası hələ hazır olmadığı üçün LocalStorage simulyasiyası edirik
             if (isLoginMode) {
-                // Giriş yoxlanışı
-                const savedPass = localStorage.getItem("pass_" + user);
-                if (savedPass === pass) {
-                    enterGame(user);
-                } else {
-                    alert("Xətalı istifadəçi adı və ya şifrə!");
-                }
+                if (localStorage.getItem("pw_" + user) === pass) {
+                    currentUser = user;
+                    enterGame();
+                } else alert("Səhv şifrə!");
             } else {
-                // Qeydiyyat
-                if (localStorage.getItem("pass_" + user)) {
-                    alert("Bu istifadəçi adı artıq götürülüb!");
-                } else {
-                    localStorage.setItem("pass_" + user, pass);
-                    localStorage.setItem("bal_" + user, 100);
-                    alert("Hesab uğurla yaradıldı! İndi giriş edin.");
-                    toggleAuth();
-                }
+                localStorage.setItem("pw_" + user, pass);
+                localStorage.setItem("bal_" + user, 100);
+                alert("Qeydiyyat uğurlu! İndi giriş edin.");
+                toggleAuth();
             }
         }
 
-        function enterGame(user) {
+        function enterGame() {
             document.getElementById("auth-screen").style.display = "none";
             document.getElementById("game-interface").style.display = "flex";
-            document.getElementById("user-display").innerText = "Oyunçu: " + user;
-            
-            // Balansı yaddaşdan gətir
-            let savedBal = localStorage.getItem("bal_" + user);
-            document.getElementById("balance").innerText = savedBal;
-            
-            // Burada sənin əvvəlki oyun kodların (gameLoop və s.) işə düşəcək
-            startGame();
+            document.getElementById("user-display").innerText = "Oyunçu: " + currentUser;
+            document.getElementById("balance").innerText = localStorage.getItem("bal_" + currentUser);
+            initGame(); // Oyunu başlat
         }
 
-        function logout() {
-            location.reload(); // Səhifəni yeniləyib giriş ekranına qayıt
-        }
+        // --- OYUN KODLARI ---
+        function initGame() {
+            const canvas = document.getElementById("gameCanvas");
+            const ctx = canvas.getContext("2d");
+            const brakeBtn = document.getElementById("brakeBtn");
+            
+            let balance = parseInt(localStorage.getItem("bal_" + currentUser));
+            let isBraking = false;
+            let car = { x: 225, y: 400, color: "#3498db" };
+            let trafficLight = { state: "green", timer: 0 };
+            let linesOffset = 0;
 
-        function startGame() {
-            // Sənin əvvəlki oyun kodların bura inteqrasiya olunacaq...
-            console.log("Oyun başladı!");
+            brakeBtn.onmousedown = () => isBraking = true;
+            brakeBtn.onmouseup = () => isBraking = false;
+
+            function draw() {
+                // Yol
+                ctx.fillStyle = "#2ecc71"; ctx.fillRect(0,0,500,500);
+                ctx.fillStyle = "#34495e"; ctx.fillRect(100,0,300,500);
+                
+                // Xətlər
+                ctx.fillStyle = "white";
+                for(let i=0; i<10; i++) ctx.fillRect(247, i*100 + linesOffset - 100, 6, 40);
+                
+                // İşıqfor
+                ctx.fillStyle = "#111"; ctx.fillRect(420, 50, 40, 100);
+                ctx.fillStyle = trafficLight.state === "red" ? "red" : "#440000";
+                ctx.beginPath(); ctx.arc(440, 75, 12, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = trafficLight.state === "green" ? "#00ff88" : "#004400";
+                ctx.beginPath(); ctx.arc(440, 125, 12, 0, Math.PI*2); ctx.fill();
+
+                // Maşın
+                ctx.fillStyle = car.color; ctx.fillRect(car.x, car.y, 50, 90);
+                ctx.fillStyle = "yellow"; ctx.fillRect(car.x+5, car.y, 10, 5); ctx.fillRect(car.x+35, car.y, 10, 5);
+            }
+
+            function update() {
+                trafficLight.timer++;
+                if(trafficLight.timer > 200) trafficLight.state = "red";
+                if(trafficLight.timer > 350) { trafficLight.state = "green"; trafficLight.timer = 0; }
+
+                if(!isBraking) {
+                    linesOffset += 5; if(linesOffset > 100) linesOffset = 0;
+                    car.y -= 2;
+                }
+
+                if(car.y < -100) {
+                    if(trafficLight.state === "red") {
+                        balance -= 20;
+                        alert("Qırmızıda keçdin! -20 ₼");
+                    } else {
+                        balance += 10;
+                    }
+                    localStorage.setItem("bal_" + currentUser, balance);
+                    document.getElementById("balance").innerText = balance;
+                    car.y = 400;
+                }
+            }
+
+            function loop() { draw(); update(); requestAnimationFrame(loop); }
+            loop();
         }
     </script>
 </body>

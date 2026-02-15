@@ -1,482 +1,97 @@
-<!DOCTYPE html>
-<html lang="az">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Grand Drive | Premium Simulyator</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --gold: #d4af37;
-            --gold-light: #f9e29c;
-            --accent: #00e5ff;
-            --danger: #ff3333;
-            --bg-dark: #0a0a0b;
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
 
-        * { box-sizing: border-box; font-family: 'Rajdhani', sans-serif; margin: 0; padding: 0; }
-        body { background-color: var(--bg-dark); color: #fff; overflow: hidden; touch-action: manipulation; }
+import React, { useState, useEffect, useRef } from 'react';
+import { MOTIVATIONAL_MESSAGES } from '../constants';
 
-        /* --- Modern UI Background --- */
-        .overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #1a1a1d 0%, #000 100%);
-            z-index: -1;
-        }
+const SupportChat: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<{ text: string, sender: 'bot' | 'user' }[]>([
+    { text: "Salam! Ağıllı Sürücü 3D dəstək mərkəzinə xoş gəlmisiniz. Sizin üçün nə edə bilərəm?", sender: 'bot' }
+  ]);
+  const [inputText, setInputText] = useState('');
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
-        .screen {
-            position: fixed; inset: 0; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 100;
-            transition: opacity 0.5s ease; backdrop-filter: blur(10px);
-        }
-        .hidden { display: none !important; }
+  useEffect(() => {
+    // Automated motivational message every 30-60 seconds
+    const interval = setInterval(() => {
+      const msg = MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)];
+      setMessages(prev => [...prev, { text: msg, sender: 'bot' }]);
+    }, 45000);
+    return () => clearInterval(interval);
+  }, []);
 
-        /* --- Glassmorphism Cards --- */
-        .card {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            padding: 40px; border-radius: 24px;
-            width: 90%; max-width: 420px; text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isOpen]);
 
-        h1 { 
-            font-family: 'Orbitron', sans-serif; font-size: 2rem; margin-bottom: 25px;
-            background: linear-gradient(to right, var(--gold), #fff);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            letter-spacing: 2px;
-        }
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputText.trim()) return;
+    
+    setMessages(prev => [...prev, { text: inputText, sender: 'user' }]);
+    setInputText('');
 
-        input {
-            width: 100%; padding: 15px; margin: 12px 0; border-radius: 12px;
-            border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3);
-            color: #fff; font-size: 1rem; transition: 0.3s;
-        }
-        input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+    // Simulated AI response
+    setTimeout(() => {
+      setMessages(prev => [...prev, { 
+        text: "Sualınız qeydə alındı. Süni intellekt köməkçimiz tezliklə cavablandıracaq. Hələlik sürməyə davam edin!", 
+        sender: 'bot' 
+      }]);
+    }, 1500);
+  };
 
-        button {
-            width: 100%; padding: 16px; margin: 12px 0; border-radius: 12px; border: none;
-            background: linear-gradient(45deg, var(--gold), #8a6d3b);
-            color: #000; font-weight: 700; font-size: 1rem; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s;
-        }
-        button:hover { transform: scale(1.02); box-shadow: 0 5px 20px rgba(212, 175, 55, 0.4); }
-        button.secondary { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
+  return (
+    <>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-cyan-600 text-white rounded-full shadow-lg shadow-cyan-900/40 flex items-center justify-center text-2xl z-[100] active:scale-90 transition-transform"
+      >
+        {isOpen ? '✕' : '💬'}
+      </button>
 
-        /* --- Dashboard --- */
-        .stats-header {
-            position: absolute; top: 20px; width: 90%; max-width: 1000px;
-            display: flex; justify-content: space-between; gap: 15px;
-        }
-        .stat-box {
-            background: var(--glass); border: 1px solid var(--glass-border);
-            padding: 10px 20px; border-radius: 15px; flex: 1; text-align: center;
-        }
-        .stat-label { font-size: 0.8rem; color: #aaa; text-transform: uppercase; }
-        .stat-value { font-size: 1.3rem; font-weight: 700; color: var(--gold); }
-
-        /* --- Game View --- */
-        #game-view { position: relative; width: 100vw; height: 100vh; }
-        canvas { display: block; filter: contrast(1.1) brightness(1.1); }
-
-        #game-ui {
-            position: absolute; bottom: 30px; left: 30px; pointer-events: none;
-        }
-        .speedometer {
-            font-family: 'Orbitron', sans-serif; font-size: 3rem; color: var(--accent);
-            text-shadow: 0 0 15px var(--accent);
-        }
-
-        /* Traffic Light */
-        #tl-container {
-            position: absolute; top: 30px; right: 30px; width: 50px; padding: 10px;
-            background: #000; border-radius: 20px; border: 2px solid #222;
-        }
-        .light { width: 30px; height: 30px; border-radius: 50%; margin: 8px auto; background: #111; transition: 0.3s; }
-        .light.active-red { background: #ff0000; box-shadow: 0 0 20px #ff0000; }
-        .light.active-yellow { background: #ffaa00; box-shadow: 0 0 20px #ffaa00; }
-        .light.active-green { background: #00ff00; box-shadow: 0 0 20px #00ff00; }
-
-        /* --- Notifications --- */
-        #alert-box {
-            position: fixed; top: 100px; left: 50%; transform: translateX(-50%);
-            padding: 15px 40px; border-radius: 10px; z-index: 2000;
-            font-weight: 700; display: none; animation: slideDown 0.4s ease;
-        }
-        @keyframes slideDown { from { top: -50px; } to { top: 100px; } }
-
-        /* --- Chat System --- */
-        #chat-window {
-            position: fixed; bottom: 20px; right: 20px; width: 300px;
-            background: rgba(10, 10, 11, 0.95); border: 1px solid var(--gold);
-            border-radius: 15px; overflow: hidden; display: flex; flex-direction: column;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8); z-index: 1000;
-        }
-        #chat-header { background: var(--gold); color: #000; padding: 10px; font-weight: 700; cursor: pointer; }
-        #chat-msgs { height: 200px; overflow-y: auto; padding: 10px; font-size: 0.9rem; }
-        .msg { margin-bottom: 10px; padding: 8px 12px; border-radius: 10px; max-width: 80%; }
-        .msg.bot { background: #222; color: var(--gold-light); align-self: flex-start; }
-        .msg.user { background: var(--gold); color: #000; align-self: flex-end; margin-left: auto; }
-        #chat-input-wrap { display: flex; border-top: 1px solid #333; }
-        #chat-input-wrap input { border: none; border-radius: 0; margin: 0; }
-    </style>
-</head>
-<body>
-
-    <div class="overlay"></div>
-    <div id="alert-box"></div>
-
-    <div id="auth-screen" class="screen">
-        <div class="card">
-            <h1>GRAND DRIVE</h1>
-            <p style="color: #888; margin-bottom: 20px;">Premium Sürüş Simulyatoru</p>
-            <input type="text" id="username" placeholder="İstifadəçi adı">
-            <input type="password" id="password" placeholder="Şifrə">
-            <button onclick="handleAuth()">Daxil Ol / Qeydiyyat</button>
-        </div>
-    </div>
-
-    <div id="dashboard" class="screen hidden">
-        <div class="stats-header">
-            <div class="stat-box">
-                <div class="stat-label">Sürücü</div>
-                <div id="user-tag" class="stat-value">-</div>
+      {isOpen && (
+        <div className="fixed bottom-24 right-6 left-6 top-32 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl z-[90] flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+          <div className="bg-zinc-800 p-4 border-b border-zinc-700 flex items-center space-x-3">
+            <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-xs">🤖</div>
+            <div>
+              <h3 className="text-white text-xs font-bold uppercase">Canlı Dəstək</h3>
+              <span className="text-[10px] text-green-500 font-bold uppercase tracking-widest">Online</span>
             </div>
-            <div class="stat-box">
-                <div class="stat-label">Balans</div>
-                <div class="stat-value"><span id="bal-tag">0.00</span> AZN</div>
-            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.map((m, i) => (
+              <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] p-3 rounded-2xl text-xs leading-relaxed ${
+                  m.sender === 'user' 
+                    ? 'bg-cyan-600 text-white rounded-tr-none' 
+                    : 'bg-zinc-800 text-zinc-300 rounded-tl-none border border-zinc-700'
+                }`}>
+                  {m.text}
+                </div>
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+
+          <form onSubmit={handleSend} className="p-4 bg-zinc-900 border-t border-zinc-800 flex space-x-2">
+            <input 
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Mesaj yazın..."
+              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyan-500 transition-colors"
+            />
+            <button 
+              type="submit"
+              className="bg-cyan-600 px-4 rounded-xl text-white font-bold text-xs"
+            >
+              GÖNDƏR
+            </button>
+          </form>
         </div>
-        
-        <div class="card">
-            <h2 style="margin-bottom: 20px; color: var(--gold);">Əsas Menyu</h2>
-            <button onclick="startGame()">SÜRÜŞƏ BAŞLA (-0.20 AZN)</button>
-            <button class="secondary" onclick="showModal('balance-modal')">BALANSI ARTIR</button>
-            <button class="secondary" onclick="showModal('rules-modal')">QAYDALAR</button>
-            <button style="background: var(--danger); color: #fff; margin-top: 20px;" onclick="logout()">ÇIXIŞ</button>
-        </div>
-    </div>
+      )}
+    </>
+  );
+};
 
-    <div id="balance-modal" class="screen hidden" style="background: rgba(0,0,0,0.9);">
-        <div class="card">
-            <h2>Balans Artır</h2>
-            <p style="margin: 15px 0;">Minimum: 5 AZN</p>
-            <input type="number" id="dep-amount" placeholder="Məbləğ (AZN)">
-            <button onclick="deposit()">Təsdiqlə</button>
-            <button class="secondary" onclick="closeModals()">Geri</button>
-        </div>
-    </div>
-
-    <div id="rules-modal" class="screen hidden" style="background: rgba(0,0,0,0.9);">
-        <div class="card" style="text-align: left;">
-            <h2 style="color: var(--gold);">Qaydalar</h2>
-            <ul style="list-style: none; margin: 20px 0; line-height: 1.8;">
-                <li>🚦 Qırmızı işıqda keçmək: <b>-1.00 AZN</b></li>
-                <li>🚀 Sürət həddini aşmaq (80+): <b>-0.50 AZN</b></li>
-                <li>🛣️ Təhlükəsiz sürüş: <b>+0.30 AZN qazandırır</b></li>
-                <li>🏁 Hər oyun girişi: <b>0.20 AZN</b></li>
-            </ul>
-            <button onclick="closeModals()">Anladım</button>
-        </div>
-    </div>
-
-    <div id="game-view" class="hidden">
-        <div id="game-ui">
-            <div class="stat-label">Sürət (KM/H)</div>
-            <div id="speedo" class="speedometer">0</div>
-            <div style="margin-top: 10px;">Qazanc: <span id="session-earn" style="color: var(--gold);">0.00</span> AZN</div>
-        </div>
-
-        <div id="tl-container">
-            <div id="light-red" class="light"></div>
-            <div id="light-yellow" class="light"></div>
-            <div id="light-green" class="light"></div>
-        </div>
-
-        <canvas id="roadCanvas"></canvas>
-    </div>
-
-    <div id="chat-window">
-        <div id="chat-header" onclick="toggleChat()">Canlı Dəstək (Bot) ▾</div>
-        <div id="chat-msgs"></div>
-        <div id="chat-input-wrap">
-            <input type="text" id="chat-input" placeholder="Sual verin...">
-            <button onclick="sendMsg()" style="width: 60px; margin: 0; border-radius: 0;">✈</button>
-        </div>
-    </div>
-
-    <script>
-        let user = null;
-        let balance = 0;
-        let isPlaying = false;
-        let car = { x: 0, y: 0, angle: 0, speed: 0, acc: 0.2, friction: 0.06, maxS: 9 };
-        let keys = {};
-        let roadOffset = 0;
-        let currentLight = 'green';
-        let sessionEarned = 0;
-
-        const canvas = document.getElementById('roadCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // --- AUTH ---
-        window.onload = () => {
-            const saved = localStorage.getItem('grand_drive_user');
-            if(saved) login(saved);
-        };
-
-        function handleAuth() {
-            const u = document.getElementById('username').value.trim();
-            const p = document.getElementById('password').value.trim();
-            if(!u || !p) return alert("Məlumatları daxil edin!");
-
-            let stored = localStorage.getItem('db_' + u);
-            if(stored) {
-                let data = JSON.parse(stored);
-                if(data.pass === p) login(u);
-                else alert("Yanlış şifrə!");
-            } else {
-                localStorage.setItem('db_'+u, JSON.stringify({pass: p, bal: 0}));
-                login(u);
-            }
-        }
-
-        function login(u) {
-            user = u;
-            localStorage.setItem('grand_drive_user', u);
-            balance = JSON.parse(localStorage.getItem('db_'+u)).bal;
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-            syncUI();
-            botReply("Xoş gəldiniz! Bu gün neçə AZN qazanmaq istəyirsiniz?");
-        }
-
-        function logout() { localStorage.removeItem('grand_drive_user'); location.reload(); }
-
-        function syncUI() {
-            document.getElementById('user-tag').innerText = user;
-            document.getElementById('bal-tag').innerText = balance.toFixed(2);
-            if(user) {
-                let data = JSON.parse(localStorage.getItem('db_'+user));
-                data.bal = balance;
-                localStorage.setItem('db_'+user, JSON.stringify(data));
-            }
-        }
-
-        // --- BALANS ---
-        function deposit() {
-            const val = parseFloat(document.getElementById('dep-amount').value);
-            if(val >= 5) {
-                balance += val;
-                syncUI();
-                closeModals();
-                botReply(`Hesabınıza ${val} AZN əlavə edildi!`);
-            } else alert("Minimum 5 AZN daxil edin.");
-        }
-
-        function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModals() { 
-            document.getElementById('balance-modal').classList.add('hidden');
-            document.getElementById('rules-modal').classList.add('hidden');
-        }
-
-        // --- OYUN ---
-        function startGame() {
-            if(balance < 0.20) return alert("Balans yetərli deyil!");
-            balance -= 0.20;
-            syncUI();
-            
-            document.getElementById('dashboard').classList.add('hidden');
-            document.getElementById('game-view').classList.remove('hidden');
-            
-            isPlaying = true;
-            resize();
-            car.x = canvas.width / 2;
-            car.y = canvas.height * 0.8;
-            car.speed = 0;
-            sessionEarned = 0;
-            
-            requestAnimationFrame(loop);
-            trafficCycle();
-        }
-
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.onresize = resize;
-
-        window.onkeydown = e => keys[e.code] = true;
-        window.onkeyup = e => keys[e.code] = false;
-
-        function trafficCycle() {
-            if(!isPlaying) return;
-            const sequence = [
-                {l:'green', t: 10000}, {l:'yellow', t: 3000}, 
-                {l:'red', t: 10000}, {l:'yellow', t: 3000}
-            ];
-            let i = 0;
-            const run = () => {
-                if(!isPlaying) return;
-                currentLight = sequence[i].l;
-                document.querySelectorAll('.light').forEach(el => el.className = 'light');
-                document.getElementById('light-'+currentLight).classList.add('active-'+currentLight);
-                setTimeout(() => { i = (i+1)%sequence.length; run(); }, sequence[i].t);
-            };
-            run();
-        }
-
-        function loop() {
-            if(!isPlaying) return;
-
-            // Physics
-            if(keys['ArrowUp']) car.speed += car.acc;
-            if(keys['ArrowDown']) car.speed -= car.acc;
-            car.speed *= (1 - car.friction);
-            if(Math.abs(car.speed) < 0.1) car.speed = 0;
-            if(car.speed > car.maxS) car.speed = car.maxS;
-
-            if(Math.abs(car.speed) > 1) {
-                if(keys['ArrowLeft']) car.angle -= 0.04;
-                if(keys['ArrowRight']) car.angle += 0.04;
-            }
-
-            car.x += Math.sin(car.angle) * car.speed;
-            car.y -= Math.cos(car.angle) * car.speed;
-            roadOffset += car.speed;
-
-            // Boundary
-            if(car.x < 60) car.x = 60;
-            if(car.x > canvas.width - 60) car.x = canvas.width - 60;
-            if(car.y < 100) car.y = 100;
-            if(car.y > canvas.height - 100) car.y = canvas.height - 100;
-
-            // Rules
-            checkRules();
-
-            // Draw
-            draw();
-            requestAnimationFrame(loop);
-        }
-
-        function checkRules() {
-            // Speed limit
-            if(car.speed * 10 > 80 && Math.random() < 0.01) {
-                balance -= 0.05;
-                showAlert("Sürət həddi! -0.05 AZN", "var(--danger)");
-            }
-            // Red Light
-            if(currentLight === 'red' && car.speed > 2 && Math.random() < 0.02) {
-                balance -= 1.00;
-                showAlert("Qırmızı İşıq! -1.00 AZN", "var(--danger)");
-            }
-            // Bonus
-            if(car.speed > 3 && currentLight === 'green') {
-                sessionEarned += 0.001;
-                if(sessionEarned >= 0.3) {
-                    balance += 0.3;
-                    sessionEarned = 0;
-                    showAlert("Təhlükəsiz Sürüş Bonusu! +0.30 AZN", "var(--gold)");
-                }
-            }
-            
-            document.getElementById('speedo').innerText = Math.round(car.speed * 10);
-            document.getElementById('session-earn').innerText = (sessionEarned).toFixed(2);
-            syncUI();
-
-            if(balance <= 0) {
-                isPlaying = false;
-                alert("Balansınız bitdi!");
-                location.reload();
-            }
-        }
-
-        function draw() {
-            ctx.fillStyle = "#111";
-            ctx.fillRect(0,0,canvas.width, canvas.height);
-
-            // Yol
-            ctx.fillStyle = "#222";
-            ctx.fillRect(50, 0, canvas.width - 100, canvas.height);
-
-            // Nişanlama
-            ctx.strokeStyle = "rgba(212, 175, 55, 0.5)";
-            ctx.setLineDash([30, 30]);
-            ctx.lineDashOffset = -roadOffset * 5;
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(canvas.width/2, 0);
-            ctx.lineTo(canvas.width/2, canvas.height);
-            ctx.stroke();
-
-            // Maşın
-            ctx.save();
-            ctx.translate(car.x, car.y);
-            ctx.rotate(car.angle);
-            
-            // Kölgə
-            ctx.shadowBlur = 15; ctx.shadowColor = "rgba(0,0,0,0.5)";
-            
-            // Gövdə (Lüks Qara Maşın)
-            ctx.fillStyle = "#000";
-            ctx.roundRect(-20, -40, 40, 80, 5);
-            ctx.fill();
-            ctx.strokeStyle = varProp('--gold');
-            ctx.stroke();
-
-            // Şüşə
-            ctx.fillStyle = "#1a1a1a";
-            ctx.fillRect(-15, -15, 30, 20);
-            
-            // Faralar
-            ctx.fillStyle = car.speed > 0 ? "#fff" : "#444";
-            ctx.fillRect(-18, -38, 8, 4);
-            ctx.fillRect(10, -38, 8, 4);
-
-            ctx.restore();
-        }
-
-        function varProp(name) { return getComputedStyle(document.documentElement).getPropertyValue(name); }
-
-        function showAlert(msg, color) {
-            const b = document.getElementById('alert-box');
-            b.innerText = msg;
-            b.style.background = color;
-            b.style.display = 'block';
-            setTimeout(() => b.style.display = 'none', 2000);
-        }
-
-        // --- CHAT ---
-        function botReply(txt) {
-            const m = document.getElementById('chat-msgs');
-            m.innerHTML += `<div class="msg bot">${txt}</div>`;
-            m.scrollTop = m.scrollHeight;
-        }
-
-        function sendMsg() {
-            const i = document.getElementById('chat-input');
-            if(!i.value) return;
-            const m = document.getElementById('chat-msgs');
-            m.innerHTML += `<div class="msg user">${i.value}</div>`;
-            
-            const v = i.value.toLowerCase();
-            i.value = '';
-            
-            setTimeout(() => {
-                if(v.includes("balans")) botReply("Balans artırmaq üçün 'Balansı Artır' düyməsinə basın.");
-                else if(v.includes("oyun")) botReply("Sürüş zamanı qaydalara əməl etsəniz, balansınız artacaq!");
-                else botReply("Siz əla sürücüsünüz, Grand Drive-da uğurlar!");
-            }, 800);
-        }
-
-        function toggleChat() {
-            const c = document.getElementById('chat-window');
-            c.style.height = c.style.height === '40px' ? '300px' : '40px';
-        }
-        document.getElementById('chat-window').style.height = '40px';
-
-        // Auto motivational messages
-        setInterval(() => {
-            if(isPlaying) botReply("Diqqətli sürün, qırmızı işıq pulunuzu azalda bilər!");
-        }, 40000);
-    </script>
-</body>
-</html>
+export default SupportChat;

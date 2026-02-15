@@ -1,97 +1,454 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { MOTIVATIONAL_MESSAGES } from '../constants';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { TrafficLightState, Feedback, CarSkin, TrafficCar, Biome, SceneryObject, RoadObstacle } from './types';
+import { getDrivingAdvice } from './services/geminiService';
 
-const SupportChat: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<{ text: string, sender: 'bot' | 'user' }[]>([
-    { text: "Salam! Ağıllı Sürücü 3D dəstək mərkəzinə xoş gəlmisiniz. Sizin üçün nə edə bilərəm?", sender: 'bot' }
-  ]);
-  const [inputText, setInputText] = useState('');
-  const chatEndRef = useRef<HTMLDivElement>(null);
+// Logical constants for game math
+const LOGICAL_WIDTH = 400;
+const LOGICAL_HEIGHT = 600;
+const CAR_WIDTH = 50;
+const CAR_HEIGHT = 90;
+const BASE_SPEED = 5;
+const PLAYER_Y = LOGICAL_HEIGHT - 130;
+const LANES = [100, 200, 300]; // Lane centers
+
+const BIOMES: Biome[] = [
+  { name: "Bakı Küçələri", ground: "#334155", accent: "#475569" },
+  { name: "İsmayıllı Yolu", ground: "#14532d", accent: "#166534" },
+  { name: "Qobustan", ground: "#78350f", accent: "#92400e" }
+];
+
+const INITIAL_SKINS: CarSkin[] = [
+  { id: 'classic', name: 'Klassik Mavi', color: '#3b82f6', price: 0, owned: true },
+  { id: 'sport', name: 'Qırmızı Sport', color: '#ef4444', price: 2.5, owned: false },
+  { id: 'taxi', name: 'Sarı Taksi', color: '#eab308', price: 5, owned: false },
+  { id: 'noir', name: 'Qara Pantera', color: '#0f172a', price: 10, owned: false },
+];
+
+const App: React.FC = () => {
+  const [balance, setBalance] = useState(5.00);
+  const [score, setScore] = useState(0);
+  const [isBraking, setIsBraking] = useState(false);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [aiTip, setAiTip] = useState<string>("Akademiyaya xoş gəldiniz! Yola diqqət!");
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [showGarage, setShowGarage] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [skins, setSkins] = useState<CarSkin[]>(INITIAL_SKINS);
+  const [activeSkinId, setActiveSkinId] = useState('classic');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [biomeIdx, setBiomeIdx] = useState(0);
+  const [flashRed, setFlashRed] = useState(false);
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const gameStateRef = useRef({
+    carX: LANES[1] - CAR_WIDTH / 2,
+    targetX: LANES[1] - CAR_WIDTH / 2,
+    stopLineY: -200,
+    trafficLight: TrafficLightState.GREEN,
+    timer: 0,
+    linesOffset: 0,
+    isBraking: false,
+    traffic: [] as TrafficCar[],
+    obstacles: [] as RoadObstacle[],
+    scenery: [] as SceneryObject[],
+    totalDistance: 0,
+    idCounter: 0,
+    levelPassed: false
+  });
+
+  const requestRef = useRef<number>(0);
+
+  const triggerFeedback = (text: string, type: 'success' | 'warning' | 'error') => {
+    setFeedback({ text, type });
+    if (type === 'error') {
+      setFlashRed(true);
+      setTimeout(() => setFlashRed(false), 300);
+    }
+    setTimeout(() => setFeedback(null), 2000);
+  };
+
+  const askCoach = async (event?: string) => {
+    setChatLoading(true);
+    const advice = await getDrivingAdvice([], event);
+    setAiTip(advice);
+    setChatLoading(false);
+    if (!showChat && event) setShowChat(true);
+  };
+
+  const drawDetailedCar = (ctx: CanvasRenderingContext2D, x: number, y: number, color: string, isTraffic: boolean = false) => {
+    ctx.fillStyle = "#111";
+    ctx.fillRect(x - 3, y + 10, 5, 15);
+    ctx.fillRect(x + CAR_WIDTH - 2, y + 10, 5, 15);
+    ctx.fillRect(x - 3, y + 65, 5, 15);
+    ctx.fillRect(x + CAR_WIDTH - 2, y + 65, 5, 15);
+    
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(x, y, CAR_WIDTH, CAR_HEIGHT, 10);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.fillRect(x + 5, y + 15, CAR_WIDTH - 10, 20);
+    ctx.fillRect(x + 5, y + 60, CAR_WIDTH - 10, 10);
+
+    if (!isTraffic) {
+      ctx.fillStyle = "#fff7ed";
+      ctx.shadowBlur = 15; ctx.shadowColor = "#fef08a";
+      ctx.fillRect(x + 5, y - 2, 10, 4); ctx.fillRect(x + CAR_WIDTH - 15, y - 2, 10, 4);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = gameStateRef.current.isBraking ? "#ef4444" : "#7f1d1d";
+      ctx.fillRect(x + 5, y + CAR_HEIGHT - 4, 10, 4); ctx.fillRect(x + CAR_WIDTH - 15, y + CAR_HEIGHT - 4, 10, 4);
+    } else {
+      ctx.fillStyle = "#ef4444";
+      ctx.fillRect(x + 5, y + 4, 10, 4); ctx.fillRect(x + CAR_WIDTH - 15, y + 4, 10, 4);
+    }
+  };
+
+  const update = useCallback(() => {
+    if (showGarage || isGameOver) return;
+    const state = gameStateRef.current;
+    const currentSpeed = state.isBraking ? 0 : BASE_SPEED;
+    state.linesOffset = (state.linesOffset + currentSpeed) % 80;
+    state.totalDistance += currentSpeed;
+
+    if (state.totalDistance > 5000) {
+      state.totalDistance = 0;
+      setBiomeIdx(prev => (prev + 1) % BIOMES.length);
+    }
+
+    state.carX += (state.targetX - state.carX) * 0.15;
+
+    state.timer++;
+    if (state.timer < 300) state.trafficLight = TrafficLightState.GREEN;
+    else if (state.timer < 450) state.trafficLight = TrafficLightState.YELLOW;
+    else if (state.timer < 950) state.trafficLight = TrafficLightState.RED;
+    else state.timer = 0;
+
+    if (state.totalDistance % 3000 < currentSpeed) {
+      state.stopLineY = -150;
+      state.levelPassed = false;
+    }
+    if (state.stopLineY > -300) state.stopLineY += currentSpeed;
+
+    // RED LIGHT LOGIC: Immediate fine if moving when stopLine is near or crossed
+    if (state.trafficLight === TrafficLightState.RED) {
+      // If player is NOT braking (is moving) while the red stop line is at or past the intersection
+      if (!state.isBraking && state.stopLineY > PLAYER_Y - 60 && state.stopLineY < PLAYER_Y + 100 && !state.levelPassed) {
+        setBalance(prev => {
+          const nb = parseFloat((prev - 0.50).toFixed(2));
+          if (nb <= 0) setIsGameOver(true);
+          return nb;
+        });
+        triggerFeedback("CƏRİMƏ! Qırmızıda hərəkət! -0.50₼", 'error');
+        askCoach("Qırmızı işıqda hərəkət etmək qadağandır!");
+        state.levelPassed = true; // One fine per red light
+      }
+    }
+
+    // Normal pass logic (success reward)
+    if (state.stopLineY > PLAYER_Y && state.stopLineY < PLAYER_Y + 30 && !state.levelPassed) {
+      if (state.trafficLight === TrafficLightState.GREEN) {
+        setBalance(prev => parseFloat((prev + 0.15).toFixed(2)));
+        setScore(prev => prev + 1);
+        triggerFeedback("Əla Keçid! +0.15₼", 'success');
+        state.levelPassed = true;
+      }
+    }
+
+    if (Math.random() < 0.08 && !state.isBraking) {
+      const isLeft = Math.random() < 0.5;
+      state.scenery.push({
+        id: state.idCounter++,
+        x: isLeft ? Math.random() * 40 : LOGICAL_WIDTH - 40 - Math.random() * 40,
+        y: -100, size: 10 + Math.random() * 25, color: BIOMES[biomeIdx].accent
+      });
+    }
+    state.scenery.forEach(s => s.y += currentSpeed);
+    state.scenery = state.scenery.filter(s => s.y < LOGICAL_HEIGHT + 100);
+
+    if (Math.random() < 0.012 && !state.isBraking) {
+      const laneIdx = Math.floor(Math.random() * 3);
+      state.traffic.push({
+        id: state.idCounter++,
+        x: LANES[laneIdx] - CAR_WIDTH / 2, y: -200,
+        width: CAR_WIDTH, height: CAR_HEIGHT,
+        color: ['#94a3b8', '#64748b', '#475569'][Math.floor(Math.random() * 3)],
+        speed: 1 + Math.random() * 2
+      });
+    }
+    state.traffic.forEach(t => {
+      t.y += t.speed + (state.isBraking ? -BASE_SPEED : 0);
+      if (state.carX < t.x + t.width && state.carX + CAR_WIDTH > t.x && PLAYER_Y < t.y + t.height && PLAYER_Y + CAR_HEIGHT > t.y) {
+        setBalance(prev => {
+          const nb = parseFloat((prev - 0.40).toFixed(2));
+          if (nb <= 0) setIsGameOver(true);
+          return nb;
+        });
+        triggerFeedback("QƏZA! -0.40₼", 'error');
+        askCoach("Qəza etdin, diqqətli ol!");
+        state.traffic = state.traffic.filter(car => car.id !== t.id);
+      }
+    });
+    state.traffic = state.traffic.filter(t => t.y < LOGICAL_HEIGHT + 200 && t.y > -400);
+
+    if (Math.random() < 0.02 && !state.isBraking) {
+      const laneIdx = Math.floor(Math.random() * 3);
+      const rand = Math.random();
+      let type: RoadObstacle['type'] = 'cone';
+      if (rand > 0.90) type = 'barrier';
+      else if (rand > 0.75) type = 'pothole';
+      else if (rand > 0.60) type = 'oil';
+
+      state.obstacles.push({
+        id: state.idCounter++,
+        x: LANES[laneIdx] - (type === 'barrier' ? 40 : (type === 'pothole' || type === 'oil' ? 35 : 15)),
+        y: -150,
+        width: type === 'barrier' ? 80 : (type === 'pothole' || type === 'oil' ? 70 : 30),
+        height: type === 'barrier' ? 40 : (type === 'pothole' || type === 'oil' ? 50 : 30),
+        type
+      });
+    }
+    state.obstacles.forEach(o => {
+      o.y += currentSpeed;
+      if (state.carX < o.x + o.width && state.carX + CAR_WIDTH > o.x && PLAYER_Y < o.y + o.height && PLAYER_Y + CAR_HEIGHT > o.y) {
+        let penalty = 0.10;
+        let msg = "Konus!";
+        if (o.type === 'barrier') { penalty = 0.50; msg = "Barrikada!"; }
+        else if (o.type === 'pothole') { penalty = 0.15; msg = "Çuxur!"; }
+        else if (o.type === 'oil') { penalty = 0.20; msg = "Yağ Ləkəsi!"; }
+
+        setBalance(prev => {
+          const nb = parseFloat((prev - penalty).toFixed(2));
+          if (nb <= 0) setIsGameOver(true);
+          return nb;
+        });
+        triggerFeedback(`${msg} -${penalty.toFixed(2)}₼`, 'error');
+        state.obstacles = state.obstacles.filter(obs => obs.id !== o.id);
+      }
+    });
+    state.obstacles = state.obstacles.filter(o => o.y < LOGICAL_HEIGHT + 100);
+
+    gameStateRef.current = { ...state };
+  }, [showGarage, isGameOver, score, biomeIdx]);
+
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const { carX, trafficLight, linesOffset, traffic, scenery, stopLineY, obstacles } = gameStateRef.current;
+    const activeSkin = skins.find(s => s.id === activeSkinId) || skins[0];
+    const biome = BIOMES[biomeIdx];
+
+    ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+    ctx.fillStyle = biome.ground;
+    ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+    
+    scenery.forEach(s => {
+      ctx.fillStyle = s.color; ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2); ctx.fill();
+    });
+
+    ctx.fillStyle = '#1e293b'; ctx.fillRect(50, 0, LOGICAL_WIDTH - 100, LOGICAL_HEIGHT);
+    ctx.fillStyle = '#eab308'; ctx.fillRect(50, 0, 4, LOGICAL_HEIGHT); ctx.fillRect(LOGICAL_WIDTH - 54, 0, 4, LOGICAL_HEIGHT);
+
+    ctx.setLineDash([30, 50]); ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; ctx.lineWidth = 4;
+    ctx.lineDashOffset = -linesOffset;
+    ctx.beginPath();
+    ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT);
+    ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT);
+    ctx.stroke(); ctx.setLineDash([]);
+
+    if (stopLineY > -100) {
+      ctx.fillStyle = '#f8fafc'; ctx.fillRect(50, stopLineY, LOGICAL_WIDTH - 100, 20);
+      ctx.fillStyle = '#0f172a'; ctx.roundRect(LOGICAL_WIDTH - 45, 40, 40, 100, 8); ctx.fill();
+      const drawL = (y: number, color: string, act: boolean) => {
+        ctx.fillStyle = act ? color : '#334155';
+        ctx.shadowBlur = act ? 15 : 0; ctx.shadowColor = color;
+        ctx.beginPath(); ctx.arc(LOGICAL_WIDTH - 25, y, 12, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+      };
+      drawL(60, '#ef4444', trafficLight === TrafficLightState.RED);
+      drawL(90, '#eab308', trafficLight === TrafficLightState.YELLOW);
+      drawL(120, '#22c55e', trafficLight === TrafficLightState.GREEN);
+    }
+
+    obstacles.forEach(o => {
+      if (o.type === 'cone') {
+        ctx.fillStyle = '#f97316'; ctx.beginPath(); ctx.moveTo(o.x + 15, o.y); ctx.lineTo(o.x, o.y + 30); ctx.lineTo(o.x + 30, o.y + 30); ctx.fill();
+      } else if (o.type === 'barrier') {
+        ctx.fillStyle = '#991b1b'; ctx.fillRect(o.x, o.y, o.width, o.height);
+      } else if (o.type === 'pothole') {
+        ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.beginPath(); ctx.ellipse(o.x + 35, o.y + 25, 35, 20, 0, 0, Math.PI * 2); ctx.fill();
+      } else if (o.type === 'oil') {
+        ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.ellipse(o.x + 35, o.y + 25, 30, 25, 0, 0, Math.PI * 2); ctx.fill();
+      }
+    });
+
+    traffic.forEach(t => drawDetailedCar(ctx, t.x, t.y, t.color, true));
+    drawDetailedCar(ctx, carX, PLAYER_Y, activeSkin.color);
+  }, [activeSkinId, skins, biomeIdx, isBraking]);
+
+  const animate = useCallback(() => {
+    update(); draw(); requestRef.current = requestAnimationFrame(animate);
+  }, [update, draw]);
 
   useEffect(() => {
-    // Automated motivational message every 30-60 seconds
-    const interval = setInterval(() => {
-      const msg = MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)];
-      setMessages(prev => [...prev, { text: msg, sender: 'bot' }]);
-    }, 45000);
-    return () => clearInterval(interval);
+    requestRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(requestRef.current);
+  }, [animate]);
+
+  const switchLane = (dir: 'L' | 'R') => {
+    const state = gameStateRef.current;
+    let currentIdx = LANES.indexOf(LANES.find(l => Math.abs(l - CAR_WIDTH/2 - state.targetX) < 10) || LANES[1]);
+    currentIdx = dir === 'L' ? Math.max(0, currentIdx - 1) : Math.min(2, currentIdx + 1);
+    state.targetX = LANES[currentIdx] - CAR_WIDTH/2;
+  };
+
+  useEffect(() => {
+    const kd = (e: KeyboardEvent) => {
+      if (e.code === 'Space') { setIsBraking(true); gameStateRef.current.isBraking = true; }
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA') switchLane('L');
+      if (e.code === 'ArrowRight' || e.code === 'KeyD') switchLane('R');
+    };
+    const ku = (e: KeyboardEvent) => { if (e.code === 'Space') { setIsBraking(false); gameStateRef.current.isBraking = false; } };
+    window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
+    return () => { window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); };
   }, []);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isOpen]);
+  const buySkin = (id: string) => {
+    const skin = skins.find(s => s.id === id);
+    if (skin && !skin.owned && balance >= skin.price) {
+      setBalance(prev => parseFloat((prev - skin.price).toFixed(2)));
+      setSkins(prev => prev.map(s => s.id === id ? { ...s, owned: true } : s));
+      triggerFeedback(`${skin.name} Alındı!`, 'success');
+    }
+  };
 
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputText.trim()) return;
-    
-    setMessages(prev => [...prev, { text: inputText, sender: 'user' }]);
-    setInputText('');
+  const selectSkin = (id: string) => setActiveSkinId(id);
 
-    // Simulated AI response
-    setTimeout(() => {
-      setMessages(prev => [...prev, { 
-        text: "Sualınız qeydə alındı. Süni intellekt köməkçimiz tezliklə cavablandıracaq. Hələlik sürməyə davam edin!", 
-        sender: 'bot' 
-      }]);
-    }, 1500);
+  const resetGame = () => {
+    setBalance(5.00); setScore(0); setIsGameOver(false);
+    gameStateRef.current = { ...gameStateRef.current, carX: LANES[1] - CAR_WIDTH/2, targetX: LANES[1] - CAR_WIDTH/2, stopLineY: -200, trafficLight: TrafficLightState.GREEN, timer: 0, traffic: [], scenery: [], obstacles: [], totalDistance: 0 };
+    askCoach();
   };
 
   return (
-    <>
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-cyan-600 text-white rounded-full shadow-lg shadow-cyan-900/40 flex items-center justify-center text-2xl z-[100] active:scale-90 transition-transform"
-      >
-        {isOpen ? '✕' : '💬'}
-      </button>
+    <div className={`flex flex-col h-[100svh] bg-[#0f172a] text-slate-50 font-sans relative overflow-hidden transition-colors duration-300 ${flashRed ? 'bg-red-950' : ''}`}>
+      
+      {/* Mobile Top HUD */}
+      <div className="flex-none w-full max-w-[500px] mx-auto px-4 pt-4 flex items-start justify-between z-40">
+        <div className="bg-slate-900/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl shadow-xl flex flex-col min-w-[120px]">
+          <span className="text-[10px] font-black text-emerald-400 uppercase tracking-tighter">Balans</span>
+          <span className="text-2xl font-black text-white">{balance.toFixed(2)}₼</span>
+        </div>
+        
+        <div className="flex gap-2">
+          <button onClick={() => setShowGarage(true)} className="w-12 h-12 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-xl shadow-lg active:scale-90 transition-transform">🛒</button>
+          <button onClick={() => setShowChat(!showChat)} className="w-12 h-12 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-xl shadow-lg active:scale-90 transition-transform">💬</button>
+        </div>
+      </div>
 
-      {isOpen && (
-        <div className="fixed bottom-24 right-6 left-6 top-32 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl z-[90] flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
-          <div className="bg-zinc-800 p-4 border-b border-zinc-700 flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-xs">🤖</div>
-            <div>
-              <h3 className="text-white text-xs font-bold uppercase">Canlı Dəstək</h3>
-              <span className="text-[10px] text-green-500 font-bold uppercase tracking-widest">Online</span>
-            </div>
+      {/* Game Viewport Area - Fills remaining space */}
+      <div className="flex-1 min-h-0 flex items-center justify-center p-2 relative">
+        <div className="relative h-full w-full max-w-[450px] max-h-[85vh] overflow-hidden rounded-[30px] shadow-2xl border-2 border-slate-900 bg-slate-800">
+          <canvas 
+            ref={canvasRef} 
+            width={LOGICAL_WIDTH} 
+            height={LOGICAL_HEIGHT} 
+            className="w-full h-full object-contain"
+          />
+          
+          {/* Lane Change Touch Zones */}
+          <div className="absolute inset-0 flex">
+            <div className="flex-1 h-full active:bg-white/5 transition-colors" onClick={() => switchLane('L')} />
+            <div className="flex-1 h-full active:bg-white/5 transition-colors" onClick={() => switchLane('R')} />
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] p-3 rounded-2xl text-xs leading-relaxed ${
-                  m.sender === 'user' 
-                    ? 'bg-cyan-600 text-white rounded-tr-none' 
-                    : 'bg-zinc-800 text-zinc-300 rounded-tl-none border border-zinc-700'
-                }`}>
-                  {m.text}
-                </div>
+          {feedback && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50 text-center w-full px-4">
+              <div className={`inline-block px-6 py-3 rounded-2xl text-lg font-black shadow-2xl animate-pulse border-2 backdrop-blur-lg ${feedback.type === 'success' ? 'bg-emerald-500/30 border-emerald-400 text-emerald-100' : 'bg-rose-500/30 border-rose-400 text-rose-100'}`}>
+                {feedback.text}
               </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
+            </div>
+          )}
 
-          <form onSubmit={handleSend} className="p-4 bg-zinc-900 border-t border-zinc-800 flex space-x-2">
-            <input 
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="Mesaj yazın..."
-              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyan-500 transition-colors"
-            />
-            <button 
-              type="submit"
-              className="bg-cyan-600 px-4 rounded-xl text-white font-bold text-xs"
-            >
-              GÖNDƏR
-            </button>
-          </form>
+          {isGameOver && (
+            <div className="absolute inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 text-center">
+              <div className="text-5xl mb-4">🚫</div>
+              <h2 className="text-3xl font-black text-white italic mb-2">Müflis Oldunuz!</h2>
+              <p className="text-slate-400 mb-6 text-xs">Cərimələr balansınızı bitirdi.</p>
+              <button onClick={resetGame} className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-black text-lg tracking-wide shadow-xl active:scale-95 transition-transform">YENİDƏN BAŞLA (5.00₼)</button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Fixed Bottom Controls */}
+      <div className="flex-none w-full max-w-[500px] mx-auto px-4 pb-6">
+        <button
+          onMouseDown={() => { setIsBraking(true); gameStateRef.current.isBraking = true; }}
+          onMouseUp={() => { setIsBraking(false); gameStateRef.current.isBraking = false; }}
+          onTouchStart={(e) => { e.preventDefault(); setIsBraking(true); gameStateRef.current.isBraking = true; }}
+          onTouchEnd={(e) => { e.preventDefault(); setIsBraking(false); gameStateRef.current.isBraking = false; }}
+          className={`w-full py-6 rounded-2xl text-2xl font-black transition-all shadow-xl border-b-8 active:translate-y-1 active:border-b-0 ${isBraking ? 'bg-rose-700 border-rose-900' : 'bg-rose-600 border-rose-800'}`}
+        >
+          {isBraking ? 'DAYANIR...' : 'TORMOZ VER'}
+        </button>
+        <p className="mt-2 text-center text-[10px] text-slate-500 font-bold uppercase tracking-widest opacity-40">Sola/Sağa toxunaraq zolaq dəyiş</p>
+      </div>
+
+      {/* Modals */}
+      {showChat && (
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xl flex items-end sm:items-center justify-center p-4">
+          <div className="bg-slate-900 w-full max-w-[400px] rounded-3xl p-6 border border-white/10">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-[10px] font-black uppercase text-indigo-400 tracking-widest">Təlimatçı Rəyi</span>
+              <button onClick={() => setShowChat(false)} className="text-xl text-slate-500">✕</button>
+            </div>
+            <div className="bg-slate-800 p-5 rounded-2xl text-md italic text-indigo-100 mb-6 border-l-4 border-indigo-500">
+              {chatLoading ? "Gözləyin..." : `"${aiTip}"`}
+            </div>
+            <button onClick={() => askCoach()} className="w-full py-4 bg-indigo-600 rounded-xl text-white font-black active:scale-95 transition-transform">YENİ MƏSLƏHƏT</button>
+          </div>
         </div>
       )}
-    </>
+
+      {showGarage && (
+        <div className="fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex items-center justify-center p-4">
+          <div className="bg-slate-900 w-full max-w-[450px] max-h-[80vh] rounded-[40px] overflow-hidden flex flex-col border border-white/10">
+            <div className="p-6 flex justify-between items-center border-b border-white/5">
+              <h2 className="text-2xl font-black text-white italic tracking-tighter">QARAJ</h2>
+              <button onClick={() => setShowGarage(false)} className="text-3xl text-slate-600">✕</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {skins.map(skin => (
+                <div key={skin.id} className={`flex items-center justify-between p-4 rounded-3xl border-2 transition-all ${activeSkinId === skin.id ? 'bg-indigo-600/20 border-indigo-500' : 'bg-white/5 border-white/5'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-8 rounded-lg" style={{ backgroundColor: skin.color }} />
+                    <div>
+                      <div className="font-black text-sm text-white">{skin.name}</div>
+                      <div className="text-[9px] text-slate-400 font-bold">{skin.owned ? 'SİZİNDİR' : `${skin.price.toFixed(2)}₼`}</div>
+                    </div>
+                  </div>
+                  {skin.owned ? (
+                    <button onClick={() => selectSkin(skin.id)} className={`px-4 py-2 rounded-lg text-[10px] font-black ${activeSkinId === skin.id ? 'bg-indigo-600' : 'bg-white/10'}`}>
+                      {activeSkinId === skin.id ? 'SEÇİLİB' : 'SEÇ'}
+                    </button>
+                  ) : (
+                    <button onClick={() => buySkin(skin.id)} disabled={balance < skin.price} className="px-4 py-2 bg-emerald-600 disabled:opacity-30 rounded-lg text-[10px] font-black">AL</button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="p-6 bg-slate-950/40">
+              <button onClick={() => setShowGarage(false)} className="w-full py-4 bg-white/5 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest">GERİ QAYIT</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
-export default SupportChat;
+export default App;

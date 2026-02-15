@@ -1,263 +1,78 @@
-<!DOCTYPE html>
-<html lang="az">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sürücü Oyunu</title>
+Create a complete mobile-first web-based car driving game using HTML, CSS, and JavaScript in ONE single HTML file (all code combined together, not separated). The design must be modern, attractive, and professional.
 
-<style>
-body{
-margin:0;
-font-family:Arial;
-background:linear-gradient(#1a1a1a,#000);
-color:white;
-text-align:center;
-}
-.hidden{display:none;}
-input,button{
-padding:8px;
-margin:5px;
-border:none;
-border-radius:6px;
-}
-button{
-background:#00aa55;
-color:white;
-cursor:pointer;
-}
-button:hover{background:#00cc66;}
-.topbar{
-display:flex;
-justify-content:space-around;
-background:#111;
-padding:10px;
-font-size:14px;
-}
-canvas{
-background:#444;
-display:block;
-margin:15px auto;
-border:3px solid #00aa55;
-}
-#chatBox{
-width:320px;
-margin:10px auto;
-background:#222;
-padding:10px;
-border-radius:10px;
-}
-#chatMessages{
-height:120px;
-overflow-y:auto;
-text-align:left;
-font-size:12px;
-margin-bottom:5px;
-}
-</style>
-</head>
+IMPORTANT:
+- The entire interface language must be Azerbaijani.
+- Code must be clean and production-ready.
+- Mobile responsive design (optimized for phone screens).
+- Everything must be inside one single HTML file.
 
-<body>
+GAME CONCEPT:
 
-<div id="auth">
-<h2>Qeydiyyat / Giriş</h2>
-<input type="text" id="username" placeholder="İstifadəçi adı">
-<input type="password" id="password" placeholder="Şifrə">
-<br>
-<button onclick="register()">Qeydiyyat</button>
-<button onclick="login()">Giriş</button>
-</div>
+1) USER SYSTEM
+- User must register with username and password.
+- After first registration, user must not be required to register again.
+- Username must be remembered using localStorage.
+- If user returns, automatically login and allow instant start.
+- Show username on screen.
+- Add logout button.
 
-<div id="dashboard" class="hidden">
-<div class="topbar">
-<span id="welcome"></span>
-<span>Balans: <b id="balance">0</b> AZN</span>
-<span>Sürət: <b id="speed">0</b> km/h</span>
-<span>Məsafə: <b id="distance">0</b> m</span>
-<button onclick="logout()">Çıxış</button>
-</div>
+2) BALANCE SYSTEM
+- User must deposit balance to start the game.
+- Minimum balance: 5 AZN.
+- Each game round costs 0.20 AZN.
+- Balance must always be visible on screen.
+- Add “Balans artır” section (fake payment simulation button that increases balance).
+- If balance is below 5 AZN, game cannot start.
 
-<div>
-<button onclick="startGame()">Oyuna Başla (0.20 AZN)</button>
-<input type="number" id="addAmount" placeholder="Balans artır (min 5)">
-<button onclick="addBalance()">Balansı artır</button>
-</div>
+3) GAMEPLAY
+- Realistic car driving style (top-down road view).
+- Moving road animation.
+- Traffic lights system:
+  Red → Yellow → Green → Yellow → repeat
+- If player moves on Red light → deduct penalty.
+- Add obstacles (other cars, barriers, pedestrians).
+- If player crashes or breaks traffic rules → deduct money.
+- If player drives correctly → increase balance.
+- Show notifications for:
+  - "Qayda pozuldu! -0.50 AZN"
+  - "Əla sürüş! +0.30 AZN"
+- Speed control.
+- Score system.
 
-<canvas id="game" width="400" height="600"></canvas>
+4) GAME RULES PAGE
+- Add detailed “Oyun Qaydaları” section explaining:
+  - Traffic rules
+  - Balance system
+  - Penalty system
+  - Reward system
 
-<div id="chatBox">
-<div id="chatMessages"></div>
-<input type="text" id="chatInput" placeholder="Mesaj yaz...">
-<button onclick="sendMessage()">Göndər</button>
-</div>
-</div>
+5) LIVE SUPPORT CHAT
+- Add AI-style chat system like ChatGPT.
+- It must:
+   - Automatically send friendly motivational messages
+   - Respond automatically to user messages
+   - Encourage player to continue
+   - Use sweet and engaging Azerbaijani language
+- If user is inactive, bot should send random encouraging messages.
 
-<script>
-let currentUser=null;
-let balance=0;
-let speed=0;
-let distance=0;
-let gameInterval;
-let redLight=true;
-let redTimer=10;
+6) DESIGN
+- Modern UI
+- Animated buttons
+- Smooth transitions
+- Attractive colors
+- Professional gaming look
+- Clean dashboard style
 
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+7) EXTRA FEATURES (Add if missing)
+- Sound effects
+- Game over screen
+- Restart button
+- Daily bonus system
+- Achievement system
+- Leaderboard (local storage based)
+- Smooth animations
+- Touch controls for mobile
 
-let car={x:180,y:500,width:40,height:70};
-
-window.onload=function(){
-if(localStorage.getItem("activeUser")){
-currentUser=localStorage.getItem("activeUser");
-balance=parseFloat(localStorage.getItem(currentUser+"_balance"))||0;
-showDashboard();
-}
-}
-
-function register(){
-let u=username.value;
-let p=password.value;
-if(localStorage.getItem(u)){
-alert("Bu istifadəçi artıq mövcuddur!");
-return;
-}
-localStorage.setItem(u,p);
-localStorage.setItem(u+"_balance",0);
-alert("Qeydiyyat uğurlu!");
-}
-
-function login(){
-let u=username.value;
-let p=password.value;
-if(localStorage.getItem(u)===p){
-currentUser=u;
-localStorage.setItem("activeUser",u);
-balance=parseFloat(localStorage.getItem(u+"_balance"))||0;
-showDashboard();
-}else{
-alert("Yanlış məlumat!");
-}
-}
-
-function logout(){
-localStorage.removeItem("activeUser");
-location.reload();
-}
-
-function showDashboard(){
-auth.classList.add("hidden");
-dashboard.classList.remove("hidden");
-welcome.innerText="Xoş gəldin, "+currentUser;
-updateUI();
-}
-
-function addBalance(){
-let amount=parseFloat(addAmount.value);
-if(amount>=5){
-balance+=amount;
-saveBalance();
-}else{
-alert("Minimum 5 AZN artırmaq lazımdır!");
-}
-}
-
-function saveBalance(){
-localStorage.setItem(currentUser+"_balance",balance);
-updateUI();
-}
-
-function updateUI(){
-balanceElement=document.getElementById("balance");
-balanceElement.innerText=balance.toFixed(2);
-document.getElementById("speed").innerText=speed;
-document.getElementById("distance").innerText=Math.floor(distance);
-}
-
-function startGame(){
-if(balance<0.20){
-alert("Balans kifayət deyil!");
-return;
-}
-balance-=0.20;
-saveBalance();
-speed=0;
-distance=0;
-gameInterval=setInterval(gameLoop,100);
-}
-
-function gameLoop(){
-ctx.clearRect(0,0,400,600);
-
-speed+=2;
-if(speed>60){
-balance-=0.5;
-}
-
-distance+=speed/5;
-
-// Draw car
-ctx.fillStyle="white";
-ctx.fillRect(car.x,car.y,car.width,car.height);
-
-// Traffic light timer
-redTimer-=0.1;
-if(redTimer<=0){
-redLight=!redLight;
-redTimer=redLight?10:10;
-}
-
-if(redLight){
-ctx.fillStyle="red";
-}else{
-ctx.fillStyle="green";
-}
-ctx.fillRect(180,50,40,40);
-
-if(redLight && car.y<120){
-balance-=1;
-alert("Qırmızı işıqda keçdin! -1 AZN");
-car.y=500;
-}
-
-updateUI();
-
-if(balance<=0){
-clearInterval(gameInterval);
-alert("Oyun bitdi!");
-}
-}
-
-document.addEventListener("keydown",function(e){
-if(e.key==="ArrowLeft") car.x-=15;
-if(e.key==="ArrowRight") car.x+=15;
-if(e.key==="ArrowUp") car.y-=15;
-if(e.key==="ArrowDown") car.y+=15;
-});
-
-// CHAT SYSTEM
-function sendMessage(){
-let msg=chatInput.value.toLowerCase();
-addChat("Sən: "+msg);
-
-if(msg.includes("balans")){
-addChat("Bot: Balansı artır bölməsinə daxil olub minimum 5 AZN əlavə et.");
-}else if(msg.includes("qayda")){
-addChat("Bot: Qırmızı işıqda dayan və 60 km/saatdan sürətli getmə.");
-}else{
-addChat("Bot: Əla sürüş! Sən artıq peşəkar sürücüsən!");
-}
-chatInput.value="";
-}
-
-function addChat(text){
-let div=document.createElement("div");
-div.innerText=text;
-chatMessages.appendChild(div);
-}
-
-setInterval(()=>{
-addChat("Bot: Qırmızı işıqda dayanmağı unutma!");
-},30000);
-</script>
-
-</body>
-</html>
+Generate everything fully working inside ONE HTML file.
+No explanations.
+Only provide the complete code.

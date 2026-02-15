@@ -1,490 +1,501 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>🚗 Sürüş Simulyatoru</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; touch-action: manipulation; }
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: linear-gradient(180deg, #0f2027, #203a43, #2c5364);
-      color: #e0f7fa;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Drive & Earn - Traffic Simulator</title>
+    <style>
+        :root {
+            --primary: #00ff88;
+            --secondary: #2c3e50;
+            --danger: #ff4757;
+            --dark: #121212;
+            --glass: rgba(255, 255, 255, 0.1);
+        }
 
-    header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(6px);
-      padding: 10px 14px;
-      z-index: 100;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.95rem;
-    }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-    #username-display { font-weight: 600; color: #4fc3f7; }
-    #balance-display  { font-weight: bold; color: #ffca28; }
+        body {
+            background: var(--dark);
+            color: white;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-    main {
-      padding: 70px 10px 140px;
-    }
+        /* --- UI LAYERS --- */
+        #auth-screen, #dashboard, #game-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: 0.5s opacity;
+        }
 
-    section { margin: 20px 0; }
+        .hidden { display: none !important; }
 
-    .hidden { display: none !important; }
+        .card {
+            background: var(--secondary);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
 
-    h2 { color: #80deea; margin-bottom: 12px; text-shadow: 0 1px 3px #000; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+            background: #444;
+            color: white;
+        }
 
-    button {
-      background: linear-gradient(145deg, #00b8d4, #0097a7);
-      color: white;
-      border: none;
-      padding: 12px 22px;
-      margin: 6px;
-      border-radius: 12px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 0 #006064;
-      transition: transform 0.08s;
-      touch-action: manipulation;
-    }
+        button {
+            cursor: pointer;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            background: var(--primary);
+            color: black;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: 0.3s;
+            margin: 5px;
+        }
 
-    button:active { transform: translateY(2px); box-shadow: 0 2px 0 #006064; }
+        button:hover { transform: scale(1.05); filter: brightness(1.2); }
+        button:disabled { background: #555; cursor: not-allowed; }
 
-    .deposit-btn {
-      background: linear-gradient(145deg, #ffca28, #ffb300);
-      box-shadow: 0 4px 0 #ff8f00;
-    }
+        /* --- DASHBOARD --- */
+        .stats-bar {
+            position: absolute;
+            top: 10px;
+            display: flex;
+            gap: 20px;
+            background: var(--glass);
+            padding: 10px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+            z-index: 100;
+        }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 10px;
-      border: 2px solid #4fc3f7;
-      background: rgba(255,255,255,0.1);
-      color: white;
-      font-size: 1.05rem;
-    }
+        /* --- GAME CANVAS --- */
+        canvas {
+            background: #333;
+            display: block;
+            box-shadow: 0 0 50px rgba(0,0,0,1);
+        }
 
-    #game-container {
-      position: relative;
-      margin: 0 auto;
-      max-width: 100%;
-      aspect-ratio: 4 / 3;
-      background: #111;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-    }
+        /* --- CHAT BOX --- */
+        #chat-box {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 250px;
+            height: 300px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            font-size: 0.8rem;
+            z-index: 1000;
+        }
 
-    #game-canvas { width: 100%; height: 100%; display: block; }
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            color: #ccc;
+        }
 
-    #start-game-btn {
-      display: block;
-      margin: 16px auto;
-      padding: 16px 40px;
-      font-size: 1.3rem;
-      background: linear-gradient(145deg, #ff5252, #d32f2f);
-      box-shadow: 0 6px 0 #b71c1c;
-    }
+        #chat-input-area { display: flex; border-top: 1px solid #333; }
+        #chat-input { flex-grow: 1; background: transparent; border: none; padding: 5px; color: white; }
 
-    #controls {
-      position: fixed;
-      bottom: 20px; left: 0; right: 0;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 20px;
-      pointer-events: none;
-    }
+        /* --- MOBILE CONTROLS --- */
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            gap: 10px;
+            z-index: 1000;
+        }
+        .ctrl-btn { width: 50px; height: 50px; background: var(--glass); border-radius: 10px; display: flex; align-items: center; justify-content: center; user-select: none; }
 
-    .ctrl-btn {
-      width: 80px; height: 80px;
-      background: rgba(255,255,255,0.15);
-      border: 2px solid #4fc3f7;
-      border-radius: 50%;
-      font-size: 2.2rem;
-      color: #e0f7fa;
-      pointer-events: auto;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(4px);
-    }
-
-    .ctrl-btn:active { background: rgba(255,255,255,0.3); }
-
-    #message {
-      text-align: center;
-      font-size: 1.1rem;
-      margin: 12px 0;
-      min-height: 1.4em;
-      color: #ff8a65;
-    }
-
-    .modal {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.8);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 200;
-      padding: 20px;
-    }
-
-    .modal-content {
-      background: #1e272e;
-      padding: 24px;
-      border-radius: 16px;
-      max-width: 90%;
-      max-height: 85vh;
-      overflow-y: auto;
-      color: #e0f7fa;
-    }
-
-    .close { float: right; font-size: 2.4rem; cursor: pointer; }
-
-    #chat-window {
-      background: rgba(0,0,0,0.4);
-      border-radius: 12px;
-      height: 160px;
-      overflow-y: auto;
-      padding: 12px;
-      margin-bottom: 12px;
-      font-size: 0.95rem;
-    }
-
-    @media (min-width: 768px) {
-      main { max-width: 900px; margin: 80px auto 160px; }
-      #game-container { max-width: 720px; }
-      #controls { display: none; } /* PC-də klaviatura istifadə olunacaq */
-    }
-  </style>
+        /* --- TRAFFIC LIGHT --- */
+        #traffic-light-ui {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            width: 40px;
+            height: 100px;
+            background: #222;
+            border-radius: 10px;
+            padding: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .light { width: 25px; height: 25px; border-radius: 50%; background: #444; }
+        .light.red.active { background: #ff4757; box-shadow: 0 0 15px #ff4757; }
+        .light.yellow.active { background: #ffa502; box-shadow: 0 0 15px #ffa502; }
+        .light.green.active { background: #2ed573; box-shadow: 0 0 15px #2ed573; }
+    </style>
 </head>
 <body>
 
-<header>
-  <div id="username-display"></div>
-  <div id="balance-display">Balans: 0.00 ₼</div>
-</header>
-
-<main>
-
-  <section id="auth-section">
-    <h2>Giriş / Qeydiyyat</h2>
-    <input type="text" id="username" placeholder="Adın" autocomplete="off"/>
-    <input type="password" id="password" placeholder="Şifrə" autocomplete="new-password"/>
-    <label style="display:block; margin:10px 0;">
-      <input type="checkbox" id="remember-me"/> Məni xatırla
-    </label>
-    <button id="login-btn">Giriş</button>
-    <button id="register-btn">Qeydiyyat</button>
-    <p id="auth-error" style="color:#ff8a65; min-height:1.3em;"></p>
-  </section>
-
-  <section id="game-section" class="hidden">
-    <div id="game-container">
-      <canvas id="game-canvas"></canvas>
+    <div id="auth-screen">
+        <div class="card">
+            <h2 id="auth-title">Xoş gəlmisiniz! / Welcome!</h2>
+            <input type="text" id="username" placeholder="Username / İstifadəçi adı">
+            <input type="password" id="password" placeholder="Password / Şifrə">
+            <button onclick="handleAuth()">Giriş / Register & Login</button>
+            <p style="font-size: 12px; margin-top: 10px; opacity: 0.7;">Initial balance: 0.00 AZN</p>
+        </div>
     </div>
 
-    <div id="controls">
-      <div class="ctrl-btn" id="btn-left">←</div>
-      <div style="display:flex; flex-direction:column; gap:30px;">
-        <div class="ctrl-btn" id="btn-up">↑</div>
-        <div class="ctrl-btn" id="btn-down">↓</div>
-      </div>
-      <div class="ctrl-btn" id="btn-right">→</div>
+    <div id="dashboard" class="hidden">
+        <div class="stats-bar">
+            <span>User: <b id="display-user"></b></span>
+            <span>Balance: <b id="display-balance">0.00</b> AZN</span>
+        </div>
+        <div class="card">
+            <h3>Dashboard</h3>
+            <p>Min. Load: 5 AZN | Round Cost: 0.20 AZN</p>
+            <hr style="margin: 15px 0; opacity: 0.2;">
+            <input type="number" id="load-amount" placeholder="Amount (min 5 AZN)">
+            <button onclick="loadBalance()">Load Balance</button>
+            <br>
+            <button onclick="startGame()" id="start-btn">Start Driving</button>
+            <button onclick="toggleRules()" style="background: #555; color: white;">Rules / Qaydalar</button>
+            <button onclick="logout()" style="background: var(--danger); color: white;">Logout</button>
+        </div>
     </div>
 
-    <button id="start-game-btn">OYUNA BAŞLA (0.20 ₼)</button>
-    <div id="message"></div>
-    <p style="text-align:center; font-size:0.85rem; color:#b0bec5; margin-top:8px;">
-      Simulyasiyadır • Əyləncə üçündür • Məsuliyyətlə oynayın
-    </p>
-  </section>
+    <div id="game-container" class="hidden">
+        <div class="stats-bar">
+            <span>Speed: <span id="ui-speed">0</span> km/h</span>
+            <span>Balance: <span id="ui-balance">0.00</span> AZN</span>
+            <span id="ui-msg" style="color: var(--primary); font-weight: bold;"></span>
+        </div>
 
-  <!-- Qaydalar modal -->
-  <div id="rules-modal" class="modal hidden">
-    <div class="modal-content">
-      <span class="close">×</span>
-      <h2>Qaydalar (qısa)</h2>
-      <ul style="line-height:1.6;">
-        <li>← → ↑ ↓   → dönmə / qaz / əyləc</li>
-        <li>Qırmızıda dayan (cəza –1 ₼)</li>
-        <li>Maneəyə toxunma (–1 ₼)</li>
-        <li>Sürət ≤ 60 km/s (artıq → cəza)</li>
-        <li>Hər uğurlu keçid +0.50 ₼</li>
-        <li>Oyun • 0.20 ₼ / cəhd • 60 saniyə</li>
-      </ul>
+        <div id="traffic-light-ui">
+            <div id="l-red" class="light red"></div>
+            <div id="l-yellow" class="light yellow"></div>
+            <div id="l-green" class="light green"></div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div class="controls">
+            <div></div><div class="ctrl-btn" ontouchstart="keys.ArrowUp=true" ontouchend="keys.ArrowUp=false">↑</div><div></div>
+            <div class="ctrl-btn" ontouchstart="keys.ArrowLeft=true" ontouchend="keys.ArrowLeft=false">←</div>
+            <div class="ctrl-btn" ontouchstart="keys.ArrowDown=true" ontouchend="keys.ArrowDown=false">↓</div>
+            <div class="ctrl-btn" ontouchstart="keys.ArrowRight=true" ontouchend="keys.ArrowRight=false">→</div>
+        </div>
+        
+        <button onclick="quitGame()" style="position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.5);">Quit</button>
     </div>
-  </div>
 
-</main>
+    <div id="chat-box">
+        <div id="chat-messages"></div>
+        <div id="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Ask something...">
+            <button onclick="sendMsg()" style="padding: 5px;">></button>
+        </div>
+    </div>
 
-<script>
-// ──────────────────────────────────────────────
-//  USER & BALANS (localStorage)
-// ──────────────────────────────────────────────
+    <div id="rules-modal" class="hidden" style="position: fixed; z-index: 2000; background: rgba(0,0,0,0.9); width: 100%; height: 100%; padding: 40px; overflow-y: auto;">
+        <h2>Game Rules / Oyun Qaydaları</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: left; margin-top: 20px;">
+            <div>
+                <h4>English</h4>
+                <ul>
+                    <li>Round cost: 0.20 AZN.</li>
+                    <li>Red Light: -1.00 AZN penalty.</li>
+                    <li>Crash: -2.00 AZN penalty.</li>
+                    <li>Safe driving: +0.30 AZN periodically.</li>
+                    <li>Speed limit: 80 km/h. Don't speed!</li>
+                </ul>
+            </div>
+            <div>
+                <h4>Azərbaycan</h4>
+                <ul>
+                    <li>Hər oyun: 0.20 AZN.</li>
+                    <li>Qırmızı işıq: -1.00 AZN cərimə.</li>
+                    <li>Qəza: -2.00 AZN cərimə.</li>
+                    <li>Düzgün sürüş: Hər mərhələ +0.30 AZN.</li>
+                    <li>Sürət həddi: 80 km/h.</li>
+                </ul>
+            </div>
+        </div>
+        <button onclick="toggleRules()" style="margin-top: 30px;">Bağla / Close</button>
+    </div>
 
-const ls = localStorage;
-function getUsers()     { return JSON.parse(ls.getItem('gameUsers')||'[]'); }
-function saveUsers(u)   { ls.setItem('gameUsers', JSON.stringify(u)); }
-function currentUser()  { return ls.getItem('currentGameUser'); }
-function setUser(n)     { ls.setItem('currentGameUser', n); }
+    <script>
+        // --- CONSTANTS & STATE ---
+        let currentUser = null;
+        let balance = 0.00;
+        let gameActive = false;
+        let keys = {};
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Traffic Light State
+        let lightState = 'green'; // red, yellow, green
+        let lightTimer = 0;
 
-function findUser(name) { return getUsers().find(u=>u.username===name); }
+        // Game Objects
+        let player = { x: 0, y: 0, w: 40, h: 70, speed: 0, angle: 0, maxSpeed: 5 };
+        let obstacles = [];
+        let roadY = 0;
 
-function login(name, pass, rem) {
-  const u = findUser(name);
-  if (u && u.password === pass) {
-    if (rem) setUser(name);
-    showGame(u);
-    return true;
-  }
-  return false;
-}
+        // --- AUTH LOGIC ---
+        window.onload = () => {
+            const savedUser = localStorage.getItem('lastUser');
+            if(savedUser) {
+                currentUser = savedUser;
+                balance = parseFloat(localStorage.getItem(`bal_${currentUser}`)) || 0;
+                showDashboard();
+                addChatMessage("Sistem: Yenidən xoş gəldiniz, " + currentUser + "!");
+            }
+            resize();
+        };
 
-function register(name, pass) {
-  if (findUser(name)) return false;
-  const us = getUsers();
-  us.push({username:name, password:pass, balance:5.00});
-  saveUsers(us);
-  return true;
-}
+        function handleAuth() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value;
+            
+            if(user.length < 3) return alert("Username too short!");
+            
+            if(!localStorage.getItem(`pw_${user}`)) {
+                // Register
+                localStorage.setItem(`pw_${user}`, pass);
+                localStorage.setItem(`bal_${user}`, "0");
+                alert("Qeydiyyat tamamlandı! / Registered!");
+            } else {
+                // Login
+                if(localStorage.getItem(`pw_${user}`) !== pass) return alert("Wrong password!");
+            }
 
-function chBal(delta) {
-  const name = currentUser();
-  if (!name) return;
-  const us = getUsers();
-  const u = us.find(x=>x.username===name);
-  if (u) {
-    u.balance = Math.max(0, Number((u.balance + delta).toFixed(2)));
-    saveUsers(us);
-    document.getElementById('balance-display').textContent = `Balans: ${u.balance.toFixed(2)} ₼`;
-  }
-}
+            currentUser = user;
+            balance = parseFloat(localStorage.getItem(`bal_${currentUser}`)) || 0;
+            localStorage.setItem('lastUser', currentUser);
+            showDashboard();
+        }
 
-function showGame(user) {
-  document.getElementById('auth-section').classList.add('hidden');
-  document.getElementById('game-section').classList.remove('hidden');
-  document.getElementById('username-display').textContent = user.username;
-  document.getElementById('balance-display').textContent = `Balans: ${user.balance.toFixed(2)} ₼`;
-}
+        function showDashboard() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('display-user').innerText = currentUser;
+            updateBalanceUI();
+        }
 
-// Auto-login
-window.addEventListener('load', ()=>{
-  const n = currentUser();
-  if (n) {
-    const u = findUser(n);
-    if (u) showGame(u);
-  }
-});
+        function updateBalanceUI() {
+            document.getElementById('display-balance').innerText = balance.toFixed(2);
+            document.getElementById('ui-balance').innerText = balance.toFixed(2);
+            localStorage.setItem(`bal_${currentUser}`, balance.toString());
+        }
 
-// Auth buttons
-document.getElementById('login-btn').onclick = ()=>{
-  const n = document.getElementById('username').value.trim();
-  const p = document.getElementById('password').value;
-  const r = document.getElementById('remember-me').checked;
-  const e = document.getElementById('auth-error');
-  if (!n || !p) { e.textContent="Ad və şifrə yaz"; return; }
-  e.textContent = login(n,p,r) ? "" : "Yanlış ad/şifrə";
-};
+        function loadBalance() {
+            const amt = parseFloat(document.getElementById('load-amount').value);
+            if(amt >= 5) {
+                balance += amt;
+                updateBalanceUI();
+                addChatMessage("Sistem: Balans artırıldı. Uğurlu yollar!");
+                /* NOTE: In a real app, use Stripe/PayPal API here */
+            } else {
+                alert("Minimum 5 AZN!");
+            }
+        }
 
-document.getElementById('register-btn').onclick = ()=>{
-  const n = document.getElementById('username').value.trim();
-  const p = document.getElementById('password').value;
-  const e = document.getElementById('auth-error');
-  if (!n || !p) { e.textContent="Ad və şifrə yaz"; return; }
-  e.textContent = register(n,p) ? "Qeydiyyat tamam! Giriş et." : "Bu ad artıq var";
-};
+        function logout() {
+            localStorage.removeItem('lastUser');
+            location.reload();
+        }
 
-// ──────────────────────────────────────────────
-//  OYUN MƏNTİQİ
-// ──────────────────────────────────────────────
+        // --- GAME LOGIC ---
+        function resize() {
+            canvas.width = window.innerWidth > 500 ? 400 : window.innerWidth;
+            canvas.height = window.innerHeight;
+            player.x = canvas.width / 2 - 20;
+            player.y = canvas.height - 150;
+        }
 
-const cvs = document.getElementById('game-canvas');
-const ctx = cvs.getContext('2d');
-let w, h;
+        function startGame() {
+            if(balance < 0.20) return alert("Balans kifayət deyil! Minimum 0.20 AZN lazımdır.");
+            balance -= 0.20;
+            updateBalanceUI();
+            
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('game-container').classList.remove('hidden');
+            gameActive = true;
+            player.speed = 0;
+            obstacles = [];
+            requestAnimationFrame(gameLoop);
+        }
 
-function resize() {
-  w = cvs.clientWidth;
-  h = cvs.clientHeight;
-  cvs.width = w;
-  cvs.height = h;
-}
-window.addEventListener('resize', resize);
-resize();
+        function quitGame() {
+            gameActive = false;
+            document.getElementById('game-container').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+        }
 
-let running = false;
-let car = {x:0, y:0, w:44, h:80, speed:1.8, angle:0};
-let keys = {};
-let obstacles = [];
-let light = {color:'green', timer:5000, y:0};
-let timeLeft = 60000;
-let lastTime = 0;
+        // Handle Input
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
 
-const touch = {
-  left:false, right:false, up:false, down:false
-};
+        function updateTrafficLight() {
+            lightTimer++;
+            // Timers: Green(300 frames ~10s), Yellow(120 ~4s), Red(300 ~10s)
+            if(lightState === 'green' && lightTimer > 300) { lightState = 'yellow'; lightTimer = 0; }
+            else if(lightState === 'yellow' && lightTimer > 120) { lightState = 'red'; lightTimer = 0; }
+            else if(lightState === 'red' && lightTimer > 300) { lightState = 'green'; lightTimer = 0; }
 
-['left','right','up','down'].forEach(dir=>{
-  const btn = document.getElementById(`btn-${dir}`);
-  if (!btn) return;
-  btn.addEventListener('touchstart', e=>{ e.preventDefault(); touch[dir]=true; });
-  btn.addEventListener('touchend',   e=>{ e.preventDefault(); touch[dir]=false; });
-  // PC üçün də olsun
-  btn.addEventListener('mousedown', ()=> touch[dir]=true);
-  btn.addEventListener('mouseup',   ()=> touch[dir]=false);
-});
+            // UI Update
+            document.querySelectorAll('.light').forEach(l => l.classList.remove('active'));
+            document.getElementById(`l-${lightState}`).classList.add('active');
+        }
 
-window.addEventListener('keydown', e=> keys[e.key]=true);
-window.addEventListener('keyup',   e=> keys[e.key]=false);
+        function gameLoop() {
+            if(!gameActive) return;
+            ctx.clearRect(0,0,canvas.width, canvas.height);
 
-function start() {
-  const bal = findUser(currentUser())?.balance ?? 0;
-  if (bal < 0.20) {
-    document.getElementById('message').textContent = "Balans azdır • Artırın";
-    return;
-  }
-  chBal(-0.20);
-  running = true;
-  car.x = w/2; car.y = h-100; car.speed = 1.8; car.angle = 0;
-  obstacles = [];
-  light.color = 'green'; light.timer = 5000; light.y = h*0.25;
-  timeLeft = 60000;
-  document.getElementById('message').textContent = "";
-  document.getElementById('start-game-btn').textContent = "YENİ OYUN";
-  lastTime = performance.now();
-  requestAnimationFrame(loop);
-}
+            updateTrafficLight();
+            
+            // Movement Logic
+            if(keys['ArrowUp'] || keys['KeyW']) player.speed += 0.1;
+            if(keys['ArrowDown'] || keys['KeyS']) player.speed -= 0.1;
+            if(keys['ArrowLeft'] || keys['KeyA']) player.x -= 3;
+            if(keys['ArrowRight'] || keys['KeyD']) player.x += 3;
 
-function loop(now) {
-  if (!running) return;
-  const dt = now - lastTime;
-  lastTime = now;
+            player.speed *= 0.98; // friction
+            if(player.speed < 0) player.speed = 0;
+            if(player.speed > 8) {
+                 // Speeding penalty
+                 penalty("Sürət həddi! / Speed Limit!", 0.01);
+            }
 
-  ctx.fillStyle = "#0d1b2a";
-  ctx.fillRect(0,0,w,h);
+            // Draw Road
+            roadY += player.speed;
+            ctx.fillStyle = "#333";
+            ctx.fillRect(0,0, canvas.width, canvas.height);
+            ctx.strokeStyle = "#fff";
+            ctx.setLineDash([20, 20]);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2, 0);
+            ctx.lineTo(canvas.width/2, canvas.height);
+            ctx.lineDashOffset = -roadY;
+            ctx.stroke();
 
-  // gradient yol
-  const gr = ctx.createLinearGradient(0,0,0,h);
-  gr.addColorStop(0,   "#1b263b");
-  gr.addColorStop(0.5, "#415a77");
-  gr.addColorStop(1,   "#1b263b");
-  ctx.fillStyle = gr;
-  ctx.fillRect(0,0,w,h);
+            // Traffic Light Rule Check
+            if(lightState === 'red' && player.speed > 0.5) {
+                penalty("Qırmızı işıq! / Red Light!", 0.05);
+            } else if(lightState === 'green' && player.speed > 2) {
+                balance += 0.001; // Small reward for driving
+                updateBalanceUI();
+            }
 
-  // yol xətləri (hərəkət effekti)
-  ctx.fillStyle = "rgba(255,255,200,0.8)";
-  const offset = (now/8) % 80;
-  for (let i = -80; i < h+80; i += 80) {
-    ctx.fillRect(w/2-8, i+offset, 16, 40);
-  }
+            // Draw Player Car
+            ctx.fillStyle = "red";
+            ctx.save();
+            ctx.translate(player.x + player.w/2, player.y + player.h/2);
+            ctx.fillRect(-player.w/2, -player.h/2, player.w, player.h);
+            // Headlights
+            ctx.fillStyle = "yellow";
+            ctx.fillRect(-player.w/2, -player.h/2, 10, 5);
+            ctx.fillRect(player.w/2 - 10, -player.h/2, 10, 5);
+            ctx.restore();
 
-  // idarəetmə
-  if (keys['ArrowLeft']  || touch.left)  car.angle -= 0.06;
-  if (keys['ArrowRight'] || touch.right) car.angle += 0.06;
-  if (keys['ArrowUp']    || touch.up)    car.speed = Math.min(car.speed + 0.12*dt/16, 5.8);
-  if (keys['ArrowDown']  || touch.down)  car.speed = Math.max(car.speed - 0.18*dt/16, 0);
+            // Obstacle Logic (Simplified)
+            if(Math.random() < 0.01) {
+                obstacles.push({ x: Math.random()*(canvas.width-40), y: -100, w: 40, h: 70, color: 'blue' });
+            }
+            obstacles.forEach((obs, index) => {
+                obs.y += player.speed + 1;
+                ctx.fillStyle = obs.color;
+                ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
 
-  car.x += Math.sin(car.angle) * car.speed * dt/5;
-  car.y -= Math.cos(car.angle) * car.speed * dt/5;
+                // Collision
+                if(player.x < obs.x + obs.w && player.x + player.w > obs.x && player.y < obs.y + obs.h && player.y + player.h > obs.y) {
+                    penalty("Qəza! / Crash!", 2.00);
+                    obstacles.splice(index, 1);
+                }
+                if(obs.y > canvas.height) obstacles.splice(index, 1);
+            });
 
-  car.x = Math.max(30, Math.min(w-30, car.x));
-  if (car.y < -100) {
-    car.y = h + 50;
-    chBal(0.50);
-    document.getElementById('message').textContent = "+0.50 ₼ əlavə olundu!";
-    setTimeout(()=>document.getElementById('message').textContent="", 1800);
-  }
+            // UI Speed
+            document.getElementById('ui-speed').innerText = Math.floor(player.speed * 15);
+            
+            if(balance <= 0) {
+                alert("Balans bitdi!");
+                quitGame();
+            }
 
-  // maşın (sadə trapezium)
-  ctx.save();
-  ctx.translate(car.x, car.y);
-  ctx.rotate(car.angle);
-  ctx.fillStyle = "#ff1744";
-  ctx.beginPath();
-  ctx.moveTo(-22, -40);
-  ctx.lineTo( 22, -40);
-  ctx.lineTo( 28,  40);
-  ctx.lineTo(-28,  40);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
+            requestAnimationFrame(gameLoop);
+        }
 
-  // işıqfor
-  light.timer -= dt;
-  if (light.timer <= 0) {
-    if      (light.color==='green')  light.color='yellow';
-    else if (light.color==='yellow') light.color = light.prev==='green'?'red':'green';
-    else                             light.color='yellow';
-    light.prev = light.color;
-    light.timer = 4800 + Math.random()*800;
-  }
+        function penalty(msg, amt) {
+            balance -= amt;
+            updateBalanceUI();
+            const uiMsg = document.getElementById('ui-msg');
+            uiMsg.innerText = msg;
+            uiMsg.style.color = "red";
+            setTimeout(() => uiMsg.innerText = "", 2000);
+        }
 
-  ctx.fillStyle = light.color;
-  ctx.fillRect(w/2-20, light.y-20, 40, 40);
+        // --- CHAT SYSTEM ---
+        const messages = [
+            "You're a pro driver!",
+            "Qırmızı işığa diqqət et!",
+            "Remember to stop at red lights to avoid penalties!",
+            "Let's beat your high score!",
+            "Balansını artırmaq üçün düzgün sür!"
+        ];
 
-  // qırmızı pozuntusu
-  if (light.color==='red' && Math.abs(car.y - light.y) < 100) {
-    penalty(1, "Qırmızı işıq pozuntusu!");
-    return;
-  }
+        setInterval(() => {
+            if(currentUser) {
+                addChatMessage("Sürücü Köməkçisi: " + messages[Math.floor(Math.random()*messages.length)]);
+            }
+        }, 30000);
 
-  // maneələr
-  if (Math.random() < 0.025*dt/16) {
-    obstacles.push({x:30+Math.random()*(w-60), y:-60, size:48});
-  }
+        function addChatMessage(text) {
+            const box = document.getElementById('chat-messages');
+            box.innerHTML += `<div>${text}</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
 
-  obstacles = obstacles.filter(o=>{
-    o.y += car.speed*1.4 + 1.2;
-    ctx.fillStyle = "#212121";
-    ctx.fillRect(o.x-o.size/2, o.y-o.size/2, o.size, o.size);
+        function sendMsg() {
+            const input = document.getElementById('chat-input');
+            const val = input.value.toLowerCase();
+            if(!val) return;
+            addChatMessage("Sən: " + val);
+            
+            if(val.includes("balans") || val.includes("balance")) {
+                addChatMessage("AI: Load Balance bölməsinə keçib minimum 5 AZN yükləyin.");
+            } else {
+                addChatMessage("AI: Uğurlu yollar! Diqqətli sür.");
+            }
+            input.value = "";
+        }
 
-    const dx = o.x - car.x;
-    const dy = o.y - car.y;
-    if (Math.sqrt(dx*dx + dy*dy) < 60) {
-      penalty(1, "Maneəyə dəydin!");
-      return false;
-    }
-    return o.y < h+100;
-  });
+        function toggleRules() {
+            document.getElementById('rules-modal').classList.toggle('hidden');
+        }
 
-  // sürət həddi
-  if (car.speed > 5.4) {
-    penalty(1, "Çox sürət!");
-    return;
-  }
-
-  timeLeft -= dt;
-  if (timeLeft <= 0) {
-    running = false;
-    document.getElementById('message').textContent = "Vaxt bitdi • Yenidən cəhd et!";
-  }
-
-  requestAnimationFrame(loop);
-}
-
-function penalty(amt, txt) {
-  chBal(-amt);
-  document.getElementById('message').textContent = `${txt}  –${amt} ₼`;
-  running = false;
-  setTimeout(()=>document.getElementById('message').textContent="", 3200);
-}
-
-document.getElementById('start-game-btn').onclick = start;
-
-// Qaydalar modal
-const mod = document.getElementById('rules-modal');
-document.getElementById('message').addEventListener('click', ()=>mod.classList.remove('hidden'));
-document.querySelector('.close').onclick = ()=>mod.classList.add('hidden');
-mod.onclick = e=> { if(e.target===mod) mod.classList.add('hidden'); };
-
-</script>
+        window.onresize = resize;
+    </script>
 </body>
 </html>

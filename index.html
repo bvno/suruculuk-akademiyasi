@@ -3,288 +3,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sürücülük Akademiyası - Yekun Versiya</title>
+    <title>Sürücülük Akademiyası - SIFIRDAN YEKUN</title>
     <style>
-        body { background-color: #0f0f1e; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        body { background-color: #0b0b18; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
         
-        /* GİRİŞ EKRANI */
-        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a1a2e, #0f0f1e); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .auth-container { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); padding: 40px; border-radius: 20px; border: 1px solid #00ff88; width: 320px; text-align: center; box-shadow: 0 0 30px #00ff8833; }
-        .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: white; outline: none; box-sizing: border-box; }
-        .auth-btn { width: 100%; padding: 12px; background: #00ff88; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .auth-btn:hover { background: #00cc6a; }
+        /* AUTH SCREEN */
+        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a1a2e, #0b0b18); display: flex; justify-content: center; align-items: center; z-index: 5000; }
+        .auth-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); padding: 40px; border-radius: 25px; border: 1px solid #00ff88; width: 330px; text-align: center; box-shadow: 0 0 40px rgba(0, 255, 136, 0.15); }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #333; background: rgba(0,0,0,0.5); color: white; outline: none; box-sizing: border-box; }
+        .auth-btn { width: 100%; padding: 12px; background: #00ff88; color: #000; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .auth-btn:hover { background: #00cc6a; transform: translateY(-2px); }
 
-        /* OYUN ÜST PANEL */
+        /* GAME LAYOUT */
         #game-interface { display: none; flex-direction: column; align-items: center; width: 100%; position: relative; }
-        .top-bar { position: absolute; top: -90px; width: 500px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.85); padding: 15px; border-radius: 15px; border: 1px solid #00ff88; }
-        .balance-amount { color: #00ff88; font-size: 22px; font-weight: bold; }
-        .nav-btns button { background: #1a1a2e; color: #fff; border: 1px solid #00ff88; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; margin-left: 5px; font-weight: bold; }
+        .top-header { position: absolute; top: -100px; width: 520px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.8); padding: 15px 20px; border-radius: 20px; border: 1px solid #00ff88; box-sizing: border-box; }
+        .balance-val { color: #00ff88; font-size: 24px; font-weight: bold; }
+        .btn-group button { background: #16213e; color: #fff; border: 1px solid #00ff88; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; margin-left: 5px; font-weight: bold; }
 
-        /* OYUN SAHƏSİ */
-        canvas { background-color: #2ecc71; border: 4px solid #111; border-radius: 15px; box-shadow: 0 10px 40px #000; transition: background-color 2s ease; }
-        .controls { margin-top: 15px; }
-        .brake-btn { background: linear-gradient(to bottom, #ff416c, #ff4b2b); color: white; padding: 18px 70px; border-radius: 50px; border: 3px solid white; font-weight: bold; cursor: pointer; font-size: 22px; box-shadow: 0 5px 20px rgba(255,0,0,0.5); text-transform: uppercase; }
+        /* CANVAS AREA */
+        canvas { background-color: #2ecc71; border: 5px solid #1a1a2e; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); transition: background-color 2.5s ease; }
+        .game-controls { margin-top: 25px; }
+        .brake-trigger { background: linear-gradient(145deg, #ff4b2b, #ff416c); color: white; padding: 20px 80px; border-radius: 60px; border: 3px solid white; font-weight: bold; cursor: pointer; font-size: 24px; box-shadow: 0 8px 25px rgba(255,0,0,0.5); text-transform: uppercase; }
 
-        /* MODALLAR */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; }
-        .modal-content { background: #1a1a2e; border: 2px solid #00ff88; padding: 25px; border-radius: 20px; width: 380px; max-height: 80vh; overflow-y: auto; }
-        .close-btn { background: #ff4d4d; color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; cursor: pointer; margin-top: 15px; font-weight: bold; }
+        /* MODALS */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 6000; justify-content: center; align-items: center; }
+        .modal-body { background: #16213e; border: 2px solid #00ff88; padding: 30px; border-radius: 25px; width: 400px; max-height: 85vh; overflow-y: auto; }
+        .close-modal { background: #ff4d4d; color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; margin-top: 20px; font-weight: bold; }
 
-        /* QARAJ ELEMENTLƏRİ */
-        .garage-item { background: #0a0a1a; border: 1px solid #333; border-radius: 12px; padding: 15px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
-        .car-box { width: 50px; height: 80px; border-radius: 5px; position: relative; border: 1px solid #fff; }
-        .buy-btn { background: #00ff88; color: #000; border: none; padding: 8px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        /* GARAGE ITEMS */
+        .garage-card { background: #0f0f1e; border: 1px solid #333; border-radius: 15px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; }
+        .car-img { width: 50px; height: 90px; border-radius: 5px; border: 2px solid white; margin-right: 20px; }
+        .buy-action { background: #00ff88; color: #000; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-left: auto; }
 
         /* CHAT */
-        .chat-widget { position: fixed; bottom: 20px; right: 20px; z-index: 100; }
-        #chat-box { display: none; width: 280px; height: 350px; background: #1a1a2e; border: 1px solid #00ff88; border-radius: 15px; flex-direction: column; overflow: hidden; }
-        #chat-msgs { flex: 1; padding: 10px; overflow-y: auto; font-size: 13px; color: #eee; }
+        .chat-container { position: fixed; bottom: 25px; right: 25px; z-index: 100; }
+        #chat-window { display: none; width: 300px; height: 380px; background: #1a1a2e; border: 1px solid #00ff88; border-radius: 20px; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        #chat-logs { flex: 1; padding: 15px; overflow-y: auto; font-size: 14px; }
+        .bot-msg { color: #00ff88; margin-bottom: 10px; background: rgba(0,255,136,0.1); padding: 8px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
-        <div class="auth-container">
-            <h2 id="auth-title" style="color:#00ff88">GİRİŞ / QEYDİYYAT</h2>
-            <input type="text" id="username" class="auth-input" placeholder="İstifadəçi adı">
-            <input type="password" id="password" class="auth-input" placeholder="Şifrə">
-            <button class="auth-btn" onclick="handleAuth()" id="auth-submit">OYUNA DAXİL OL</button>
-            <p onclick="toggleAuth()" id="toggle-text" style="cursor:pointer; margin-top:15px; font-size:14px;">Hesabın var? <b style="color:#00ff88">Giriş et</b></p>
+        <div class="auth-card">
+            <h2 id="auth-header" style="color:#00ff88; margin-top:0;">QEYDİYYAT</h2>
+            <input type="text" id="user-in" class="auth-input" placeholder="İstifadəçi adı">
+            <input type="password" id="pass-in" class="auth-input" placeholder="Şifrə">
+            <button class="auth-btn" onclick="processAuth()" id="auth-main-btn">HESAB YARAT</button>
+            <p onclick="switchAuth()" id="switch-msg" style="cursor:pointer; margin-top:20px; font-size:14px; color:#aaa;">Hesabın var? <b style="color:#00ff88">Giriş et</b></p>
         </div>
     </div>
 
     <div id="game-interface">
-        <div class="top-bar">
+        <div class="top-header">
             <div>
-                <span style="font-size:12px; color:#aaa;">Oyunçu: <b id="user-display">...</b></span><br>
-                <span class="balance-amount"><span id="balance">100.00</span> ₼</span>
+                <span style="font-size:12px; color:#aaa;">Sürücü: <b id="active-user">...</b></span><br>
+                <span class="balance-val"><span id="user-bal">100.00</span> ₼</span>
             </div>
-            <div class="nav-btns">
-                <button onclick="openModal('garageModal')" style="color:orange; border-color:orange;">🛒 Qaraj</button>
-                <button onclick="openModal('depositModal')">💰 Bakiyə</button>
-                <button onclick="openModal('infoModal')">ℹ️ Haqqında</button>
-                <button onclick="location.reload()" style="color:red; border-color:red;">X</button>
+            <div class="btn-group">
+                <button onclick="manageModal('garageBox', true)" style="color:#f1c40f; border-color:#f1c40f;">🛒 QARAJ</button>
+                <button onclick="manageModal('depBox', true)">💰 BAKİYƏ</button>
+                <button onclick="manageModal('rulesBox', true)">ℹ️ HAQQINDA</button>
+                <button onclick="location.reload()" style="color:#ff4d4d; border-color:#ff4d4d;">X</button>
             </div>
         </div>
 
-        <canvas id="gameCanvas" width="500" height="500"></canvas>
-        <div id="game-msg" style="position:absolute; top:45%; font-size:30px; font-weight:bold; opacity:0; transition:0.4s; pointer-events:none;"></div>
+        <canvas id="mainCanvas" width="500" height="520"></canvas>
+        <div id="alert-msg" style="position:absolute; top:45%; font-size:32px; font-weight:bold; opacity:0; transition:0.4s; pointer-events:none;"></div>
         
-        <div class="controls">
-            <button class="brake-btn" id="brakeBtn">TORMOZ VER!</button>
+        <div class="game-controls">
+            <button class="brake-trigger" id="brakeKey">TORMOZ VER!</button>
         </div>
     </div>
 
-    <div id="infoModal" class="modal">
-        <div class="modal-content">
-            <h2 style="color:#00ff88;">📖 Oyunun Qaydaları</h2>
-            <p>1. Maşın avtomatik irəli gedir. Qırmızı işıqda dayanmaq üçün düyməni basıb saxlayın.</p>
-            <p>2. 🔴 <b>Qırmızıda keçmək:</b> -0.20 ₼ cərimə.</p>
-            <p>3. 🟢 <b>Yaşılda keçmək:</b> +0.10 ₼ mükafat.</p>
-            <p>4. <b>Mənzərə:</b> Yol getdikcə Meşə, Səhra və Qış mənzərələri dəyişəcək.</p>
-            <p>5. <b>Bakiyə:</b> Minimum yükləmə 5 AZN-dir.</p>
-            <button class="close-btn" onclick="closeModal('infoModal')">Anladım</button>
+    <div id="rulesBox" class="modal-overlay">
+        <div class="modal-body">
+            <h2 style="color:#00ff88; margin-top:0;">📖 Oyunun Şərtləri</h2>
+            <p>1. Maşın dayanmadan irəliləyir. İşıqfora mütləq riayət etməlisiniz.</p>
+            <p>2. 🔴 <b>Qırmızı İşıq:</b> Düyməni basıb saxlayaraq dayanın. Keçsəniz <b>-0.20 ₼</b> cərimə.</p>
+            <p>3. 🟢 <b>Yaşıl İşıq:</b> Uğurlu keçid zamanı <b>+0.10 ₼</b> balansınıza əlavə olunur.</p>
+            <p>4. <b>Mənzərə:</b> Meşədən Səhraya, Səhradan Qarlı yollara səyahət edəcəksiniz.</p>
+            <button class="close-modal" onclick="manageModal('rulesBox', false)">ANLADIM</button>
         </div>
     </div>
 
-    <div id="depositModal" class="modal">
-        <div class="modal-content" style="text-align:center;">
-            <h2 style="color:#00ff88;">💰 Bakiyə Artır</h2>
-            <p>Minimum yükləmə: 5.00 ₼</p>
-            <input type="number" id="depAmount" class="auth-input" placeholder="Məbləğ (məs: 10)" min="5" style="text-align:center; font-size:20px;">
-            <button class="auth-btn" onclick="processDeposit()">YÜKLƏ</button>
-            <button class="close-btn" onclick="closeModal('depositModal')">Ləğv et</button>
+    <div id="depBox" class="modal-overlay">
+        <div class="modal-body" style="text-align:center;">
+            <h2 style="color:#00ff88;">💰 Bakiyə Yüklə</h2>
+            <p>Minimum yükləmə məbləği: <b>5.00 ₼</b></p>
+            <input type="number" id="loadAmt" class="auth-input" placeholder="Məbləğ daxil edin" min="5" style="text-align:center; font-size:22px;">
+            <button class="auth-btn" onclick="execDeposit()">YÜKLƏMƏNİ TAMAMLA</button>
+            <button class="close-modal" onclick="manageModal('depBox', false)">LƏĞV ET</button>
         </div>
     </div>
 
-    <div id="garageModal" class="modal">
-        <div class="modal-content">
-            <h2 style="color:#00ff88;">🛒 Qaraj</h2>
-            <div id="garageList"></div>
-            <button class="close-btn" onclick="closeModal('garageModal')">Bağla</button>
+    <div id="garageBox" class="modal-overlay">
+        <div class="modal-body">
+            <h2 style="color:#00ff88; margin-top:0;">🛒 Professional Qaraj</h2>
+            <div id="carListUI"></div>
+            <button class="close-modal" onclick="manageModal('garageBox', false)">BAĞLA</button>
         </div>
     </div>
 
-    <div class="chat-widget">
-        <div id="chat-box">
-            <div style="background:#00ff88; color:#000; padding:10px; font-weight:bold;">Dəstək (Bot)</div>
-            <div id="chat-msgs"></div>
+    <div class="chat-container">
+        <div id="chat-window">
+            <div style="background:#00ff88; color:#000; padding:12px; font-weight:bold;">CANLI DƏSTƏK</div>
+            <div id="chat-logs"></div>
             <div style="display:flex; border-top:1px solid #333;">
-                <input type="text" id="chatInput" style="flex:1; background:none; border:none; color:white; padding:10px; outline:none;" placeholder="Yazın...">
-                <button onclick="sendChat()" style="background:#00ff88; border:none; padding:10px; font-weight:bold;">></button>
+                <input type="text" id="chatMsgIn" style="flex:1; background:none; border:none; color:white; padding:12px; outline:none;" placeholder="Mesajınız...">
+                <button onclick="pushChat()" style="background:#00ff88; border:none; padding:12px; font-weight:bold;">></button>
             </div>
         </div>
-        <button onclick="toggleChat()" style="width:50px; height:50px; background:#00ff88; border-radius:50%; border:none; font-size:24px; cursor:pointer;">💬</button>
+        <button onclick="toggleChatWindow()" style="width:55px; height:55px; background:#00ff88; border-radius:50%; border:none; font-size:26px; cursor:pointer; box-shadow: 0 5px 15px rgba(0,255,136,0.3);">💬</button>
     </div>
 
     <script>
-        let currentUser = "";
-        let balance = 100.00;
-        let carColor = "#3498db";
-        let isLoginMode = false;
-        let gamePaused = false;
-        let biomes = [{n:"Meşə", g:"#2ecc71", e:"#27ae60"}, {n:"Səhra", g:"#f39c12", e:"#d35400"}, {n:"Qış", g:"#ecf0f1", e:"#bdc3c7"}];
-        let currentBiome = 0;
+        let isLogin = false;
+        let activeUser = "";
+        let bal = 100.00;
+        let selectedCarColor = "#3498db";
+        let paused = false;
+        let biomeData = [
+            {label: "Yaşıl Meşə", bg: "#2ecc71", accent: "#27ae60"},
+            {label: "Sarı Səhra", bg: "#f39c12", accent: "#d35400"},
+            {label: "Qarlı Yol", bg: "#ecf0f1", accent: "#bdc3c7"}
+        ];
+        let currentBiomeIdx = 0;
 
-        // AUTH
-        function toggleAuth() {
-            isLoginMode = !isLoginMode;
-            document.getElementById("auth-title").innerText = isLoginMode ? "GİRİŞ" : "QEYDİYYAT";
-            document.getElementById("auth-submit").innerText = isLoginMode ? "GİRİŞ ET" : "HESAB YARAT";
-            document.getElementById("toggle-text").innerHTML = isLoginMode ? "Hesabın yoxdur? <b style='color:#00ff88'>Qeydiyyatdan keç</b>" : "Hesabın var? <b style='color:#00ff88'>Giriş et</b>";
+        // --- AUTH LOGIC ---
+        function switchAuth() {
+            isLogin = !isLogin;
+            document.getElementById("auth-header").innerText = isLogin ? "GİRİŞ" : "QEYDİYYAT";
+            document.getElementById("auth-main-btn").innerText = isLogin ? "DAXİL OL" : "HESAB YARAT";
+            document.getElementById("switch-msg").innerHTML = isLogin ? "Hesabın yoxdur? <b style='color:#00ff88'>Qeydiyyatdan keç</b>" : "Hesabın var? <b style='color:#00ff88'>Giriş et</b>";
         }
 
-        function handleAuth() {
-            const user = document.getElementById("username").value.trim();
-            const pass = document.getElementById("password").value;
-            if (user.length < 3) return alert("Ad çox qısadır!");
-            
-            if (isLoginMode) {
-                if (localStorage.getItem("pw_" + user) === pass) {
-                    currentUser = user;
-                    balance = parseFloat(localStorage.getItem("bal_" + user)) || 100.00;
-                    enterGame();
+        function processAuth() {
+            const u = document.getElementById("user-in").value.trim();
+            const p = document.getElementById("pass-in").value;
+            if(u.length < 3) return alert("İstifadəçi adı çox qısadır!");
+
+            if(isLogin) {
+                if(localStorage.getItem("p_" + u) === p) {
+                    activeUser = u;
+                    bal = parseFloat(localStorage.getItem("b_" + u)) || 100.00;
+                    launchGame();
                 } else alert("Məlumatlar yanlışdır!");
             } else {
-                if (localStorage.getItem("pw_" + user)) return alert("Bu ad artıq mövcuddur!");
-                localStorage.setItem("pw_" + user, pass);
-                localStorage.setItem("bal_" + user, 100.00);
-                alert("Qeydiyyat uğurlu! İndi giriş edin.");
-                toggleAuth();
+                if(localStorage.getItem("p_" + u)) return alert("Bu ad artıq istifadə olunub!");
+                localStorage.setItem("p_" + u, p);
+                localStorage.setItem("b_" + u, 100.00);
+                alert("Uğurla qeydiyyatdan keçdiniz! İndi giriş edin.");
+                switchAuth();
             }
         }
 
-        function enterGame() {
+        function launchGame() {
             document.getElementById("auth-screen").style.display = "none";
             document.getElementById("game-interface").style.display = "flex";
-            document.getElementById("user-display").innerText = currentUser;
-            updateBalanceUI();
-            initGame();
+            document.getElementById("active-user").innerText = activeUser;
+            refreshUI();
+            runCoreEngine();
         }
 
-        function updateBalanceUI() {
-            document.getElementById("balance").innerText = balance.toFixed(2);
-            localStorage.setItem("bal_" + currentUser, balance);
+        function refreshUI() {
+            document.getElementById("user-bal").innerText = bal.toFixed(2);
+            localStorage.setItem("b_" + activeUser, bal);
         }
 
-        function processDeposit() {
-            const val = parseFloat(document.getElementById("depAmount").value);
-            if(val >= 5) { balance += val; updateBalanceUI(); alert(val + " AZN yükləndi!"); closeModal('depositModal'); }
-            else alert("Minimum 5 AZN!");
+        function execDeposit() {
+            const a = parseFloat(document.getElementById("loadAmt").value);
+            if(a >= 5) { bal += a; refreshUI(); alert(a + " AZN yükləndi!"); manageModal('depBox', false); }
+            else alert("Minimum 5 AZN daxil edin!");
         }
 
-        // GAME
-        function initGame() {
-            const canvas = document.getElementById("gameCanvas");
+        // --- CORE GAME ENGINE ---
+        function runCoreEngine() {
+            const canvas = document.getElementById("mainCanvas");
             const ctx = canvas.getContext("2d");
-            const brakeBtn = document.getElementById("brakeBtn");
-            let isBraking = false;
-            let carY = 380;
-            let linesOffset = 0;
-            let dist = 0;
-            let trafficLight = { state: "green", timer: 0 };
-            let traffic = [];
-            let scenery = [];
+            const brakeKey = document.getElementById("brakeKey");
+            let isStopping = false;
+            let playerY = 400;
+            let offsetLines = 0;
+            let lightObj = { status: "green", count: 0 };
+            let roadTrafic = [];
+            let trees = [];
+            let totalKm = 0;
 
-            brakeBtn.onmousedown = () => isBraking = true;
-            brakeBtn.onmouseup = () => isBraking = false;
-            brakeBtn.ontouchstart = (e) => { e.preventDefault(); isBraking = true; };
-            brakeBtn.ontouchend = () => isBraking = false;
+            brakeKey.onmousedown = () => isStopping = true;
+            brakeKey.onmouseup = () => isStopping = false;
+            brakeKey.ontouchstart = (e) => { e.preventDefault(); isStopping = true; };
+            brakeKey.ontouchend = () => isStopping = false;
 
-            function drawCar(x, y, color, isPlayer = false) {
+            function renderVehicle(x, y, color, hero = false) {
                 ctx.fillStyle = "#111"; // Wheels
-                ctx.fillRect(x-4, y+10, 6, 15); ctx.fillRect(x+48, y+10, 6, 15);
-                ctx.fillRect(x-4, y+65, 6, 15); ctx.fillRect(x+48, y+65, 6, 15);
+                ctx.fillRect(x-4, y+10, 6, 18); ctx.fillRect(x+48, y+10, 6, 18);
+                ctx.fillRect(x-4, y+62, 6, 18); ctx.fillRect(x+48, y+62, 6, 18);
                 ctx.fillStyle = color; // Body
                 ctx.fillRect(x, y, 50, 90);
-                ctx.fillStyle = "#1e272e"; // Window
-                ctx.fillRect(x+5, y+20, 40, 20);
-                ctx.fillStyle = isPlayer ? "yellow" : "white"; // Lights
-                ctx.fillRect(x+5, y+2, 10, 5); ctx.fillRect(x+35, y+2, 10, 5);
+                ctx.fillStyle = "rgba(0,0,0,0.4)"; // Glass
+                ctx.fillRect(x+5, y+15, 40, 22);
+                ctx.fillStyle = hero ? "yellow" : "white"; // Front lights
+                ctx.fillRect(x+6, y+2, 12, 6); ctx.fillRect(x+32, y+2, 12, 6);
             }
 
-            function gameLoop() {
-                if(gamePaused) return requestAnimationFrame(gameLoop);
+            function cycle() {
+                if(paused) return requestAnimationFrame(cycle);
 
-                trafficLight.timer++;
-                if(trafficLight.timer > 150) trafficLight.state = "red";
-                if(trafficLight.timer > 320) { trafficLight.state = "green"; trafficLight.timer = 0; }
+                // LIGHT LOGIC
+                lightObj.count++;
+                if(lightObj.count > 160) lightObj.status = "red";
+                if(lightObj.count > 340) { lightObj.status = "green"; lightObj.count = 0; }
 
-                if(!isBraking) {
-                    linesOffset += 5; if(linesOffset > 100) linesOffset = 0;
-                    carY -= 4; dist++;
-                    traffic.forEach(t => t.y += 2.5);
-                    scenery.forEach(s => s.y += 5);
+                if(!isStopping) {
+                    offsetLines += 5.5; if(offsetLines > 100) offsetLines = 0;
+                    playerY -= 4; totalKm++;
+                    roadTrafic.forEach(t => t.y += 2.8);
+                    trees.forEach(tr => tr.y += 5.5);
                 }
 
-                if(Math.random() < 0.01) traffic.push({x: Math.random() < 0.5 ? 120 : 330, y: -150, c: "#e67e22"});
-                if(Math.random() < 0.05) scenery.push({x: Math.random() < 0.5 ? 30 : 440, y: -50, s: 15+Math.random()*20});
+                if(Math.random() < 0.012) roadTrafic.push({x: Math.random() < 0.5 ? 125 : 325, y: -120, c: "#d35400"});
+                if(Math.random() < 0.06) trees.push({x: Math.random() < 0.5 ? 35 : 445, y: -60, r: 15+Math.random()*20});
 
-                if(dist > 2000) { dist = 0; currentBiome = (currentBiome + 1) % biomes.length; }
+                if(totalKm > 2000) { totalKm = 0; currentBiomeIdx = (currentBiomeIdx + 1) % biomeData.length; }
 
-                if(carY < -100) {
-                    if(trafficLight.state === "red") { balance -= 0.20; showMsg("-0.20 ₼ Cərimə!", "red"); }
-                    else { balance += 0.10; showMsg("+0.10 ₼ Mükafat!", "#00ff88"); }
-                    updateBalanceUI(); carY = 380;
+                if(playerY < -100) {
+                    if(lightObj.status === "red") { bal -= 0.20; flashMsg("-0.20 ₼ Cərimə!", "#ff416c"); }
+                    else { bal += 0.10; flashMsg("+0.10 ₼ Qazanc!", "#00ff88"); }
+                    refreshUI(); playerY = 400;
                 }
 
-                // DRAW
-                canvas.style.backgroundColor = biomes[currentBiome].g;
-                ctx.clearRect(0,0,500,500);
-                ctx.fillStyle = "#34495e"; ctx.fillRect(100,0,300,500); // Road
+                // DRAWING
+                canvas.style.backgroundColor = biomeData[currentBiomeIdx].bg;
+                ctx.clearRect(0,0,500,520);
+                ctx.fillStyle = "#34495e"; ctx.fillRect(100,0,300,520); // Road
                 
-                scenery.forEach(s => { ctx.fillStyle = biomes[currentBiome].e; ctx.beginPath(); ctx.arc(s.x, s.y, s.s, 0, 7); ctx.fill(); });
+                trees.forEach(t => { ctx.fillStyle = biomeData[currentBiomeIdx].accent; ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, 7); ctx.fill(); });
 
-                ctx.fillStyle = "white"; // Lanes
-                for(let i=0; i<8; i++) {
-                    ctx.fillRect(195, i*100 + linesOffset - 100, 6, 40);
-                    ctx.fillRect(295, i*100 + linesOffset - 100, 6, 40);
+                ctx.fillStyle = "#fff"; // Lanes
+                for(let i=0; i<10; i++) {
+                    ctx.fillRect(196, i*100 + offsetLines - 100, 7, 45);
+                    ctx.fillRect(296, i*100 + offsetLines - 100, 7, 45);
                 }
-                ctx.fillStyle = "white"; ctx.fillRect(100, 150, 300, 10); // Stop line
+                ctx.fillStyle = "#fff"; ctx.fillRect(100, 150, 300, 10); // Stop line
 
-                // LIGHT
-                ctx.fillStyle = "#111"; ctx.fillRect(410, 50, 45, 100);
-                ctx.fillStyle = trafficLight.state === "red" ? "red" : "#300"; ctx.beginPath(); ctx.arc(432, 75, 12, 0, 7); ctx.fill();
-                ctx.fillStyle = trafficLight.state === "green" ? "#0f8" : "#030"; ctx.beginPath(); ctx.arc(432, 125, 12, 0, 7); ctx.fill();
+                // TRAFFIC LIGHT
+                ctx.fillStyle = "#111"; ctx.fillRect(415, 60, 50, 110);
+                ctx.fillStyle = lightObj.status === "red" ? "#ff0000" : "#400"; ctx.beginPath(); ctx.arc(440, 90, 14, 0, 7); ctx.fill();
+                ctx.fillStyle = lightObj.status === "green" ? "#00ff00" : "#040"; ctx.beginPath(); ctx.arc(440, 140, 14, 0, 7); ctx.fill();
 
-                traffic.forEach(t => drawCar(t.x, t.y, t.c));
-                drawCar(225, carY, carColor, true);
+                roadTrafic.forEach(t => renderVehicle(t.x, t.y, t.c));
+                renderVehicle(225, playerY, selectedCarColor, true);
 
-                traffic = traffic.filter(t => t.y < 600);
-                scenery = scenery.filter(s => s.y < 600);
+                roadTrafic = roadTrafic.filter(t => t.y < 650);
+                trees = trees.filter(tr => tr.y < 650);
 
-                requestAnimationFrame(gameLoop);
+                requestAnimationFrame(cycle);
             }
-            gameLoop();
+            cycle();
         }
 
-        // GARAGE
-        let cars = [{n:"Klassik Mavi", c:"#3498db", p:0}, {n:"Qırmızı Sport", c:"red", p:15}, {n:"Sarı VIP", c:"yellow", p:30}, {n:"Qara Pantera", c:"#222", p:50}];
-        function openModal(id) { 
-            document.getElementById(id).style.display = "flex"; gamePaused = true;
-            if(id === 'garageModal') {
+        // --- GARAGE & MODALS ---
+        let carCollection = [
+            {n: "Mavi Şahin", c: "#3498db", p: 0},
+            {n: "Qırmızı Canavar", c: "red", p: 20},
+            {n: "Sarı Fırtına", c: "yellow", p: 40},
+            {n: "Qara Cəngavər", c: "#111", p: 60}
+        ];
+        function manageModal(id, open) { 
+            document.getElementById(id).style.display = open ? "flex" : "none"; paused = open;
+            if(id === 'garageBox' && open) {
                 let h = "";
-                cars.forEach((c, i) => {
-                    h += `<div class="garage-item">
-                        <div class="car-box" style="background:${c.c}"></div>
-                        <div style="flex:1; margin-left:15px"><b>${c.n}</b><br><small>${c.p} ₼</small></div>
-                        <button class="buy-btn" onclick="buyCar(${i})">Seç/Al</button>
+                carCollection.forEach((c, i) => {
+                    h += `<div class="garage-card">
+                        <div class="car-img" style="background:${c.c}"></div>
+                        <div style="flex:1"><b>${c.n}</b><br><small>${c.p} ₼</small></div>
+                        <button class="buy-action" onclick="purchaseCar(${i})">SEÇ/AL</button>
                     </div>`;
                 });
-                document.getElementById("garageList").innerHTML = h;
+                document.getElementById("carListUI").innerHTML = h;
             }
         }
-        function closeModal(id) { document.getElementById(id).style.display = "none"; gamePaused = false; }
-        function buyCar(i) {
-            let c = cars[i];
-            if(balance >= c.p) { carColor = c.c; closeModal('garageModal'); }
-            else alert("Balans çatmır!");
+        function purchaseCar(i) {
+            let car = carCollection[i];
+            if(bal >= car.p) { selectedCarColor = car.c; manageModal('garageBox', false); }
+            else alert("Kifayət qədər balansınız yoxdur!");
         }
 
-        function showMsg(t, c) {
-            const m = document.getElementById("game-msg"); m.innerText = t; m.style.color = c; m.style.opacity = 1;
+        function flashMsg(t, c) {
+            const m = document.getElementById("alert-msg"); m.innerText = t; m.style.color = c; m.style.opacity = 1;
             setTimeout(() => m.style.opacity = 0, 1500);
         }
 
-        // CHAT
-        function toggleChat() { const b = document.getElementById("chat-box"); b.style.display = b.style.display === "flex" ? "none"
+        function toggleChatWindow() { const w = document.getElementById("chat-window"); w.style.display = w.style.display === "flex" ? "none" : "flex"; }
+        function pushChat() {
+            const i = document.getElementById("chatMsgIn"); if(!i.value) return;
+            const l = document.getElementById("chat-logs");
+            l.innerHTML += `<div style="text-align:right; margin-bottom:10px;">${i.value}</div>`;
+            setTimeout(() => { l.innerHTML += `<div class="bot-msg"><b>Dəstək:</b> Salam! Bakiyə artırmaq üçün yuxarıdakı "BAKİYƏ" düyməsinə basın (min. 5 ₼).</div>`; l.scrollTop = l.scrollHeight; }, 600);
+            i.value = "";
+        }
+    </script>
+</body>
+</html>

@@ -3,157 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sürücülük Akademiyası - Tam Sistem</title>
+    <title>Sürücülük Akademiyası - VIP</title>
     <style>
-        body { background-color: #1a1a2e; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        body { background-color: #0f0f1e; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
         
         /* GİRİŞ EKRANI */
-        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a2e; display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .auth-container { background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 15px; border: 1px solid #00ff88; width: 300px; text-align: center; }
-        .auth-input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; }
-        .auth-btn { width: 100%; padding: 10px; background: #00ff88; color: #000; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f0f1e; display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .auth-container { background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 20px; border: 1px solid #00ff88; width: 320px; text-align: center; box-shadow: 0 0 20px #00ff8833; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; }
+        .auth-btn { width: 100%; padding: 12px; background: #00ff88; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* OYUN İNTERFEYSİ (Düzəliş edilmiş hissə) */
-        #game-interface { display: none; flex-direction: column; align-items: center; width: 100%; padding-top: 20px; }
+        /* OYUN ÜST PANEL */
+        #game-interface { display: none; flex-direction: column; align-items: center; width: 100%; padding-top: 10px; }
+        .top-bar { width: 480px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.85); padding: 12px; border-radius: 12px; border: 1px solid #00ff88; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .balance-box { text-align: left; }
+        .balance-amount { color: #00ff88; font-size: 22px; font-weight: bold; display: block; }
         
-        .top-bar { 
-            width: 500px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: rgba(0,0,0,0.8); 
-            padding: 10px 15px; 
-            border-radius: 10px; 
-            border: 1px solid #00ff88;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-        }
+        .nav-btns button { background: #1a1a2e; color: #fff; border: 1px solid #00ff88; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.3s; }
+        .nav-btns button:hover { background: #00ff88; color: #000; }
 
-        .ui-panel { text-align: left; }
-        .balance-text { color: #00ff88; font-weight: bold; font-size: 18px; margin: 0; }
-        
-        .action-buttons button { background: #222; color: #fff; border: 1px solid #00ff88; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-left: 5px; }
-
-        canvas { background-color: #2ecc71; border: 3px solid #111; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        
+        /* OYUN SAHƏSİ */
+        canvas { background-color: #2ecc71; border: 4px solid #111; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); }
         .controls { margin-top: 15px; }
-        .brake-btn { background: #ff3333; color: white; padding: 15px 40px; border-radius: 40px; border: 2px solid white; font-weight: bold; cursor: pointer; font-size: 18px; }
+        .brake-btn { background: linear-gradient(to bottom, #ff416c, #ff4b2b); color: white; padding: 18px 60px; border-radius: 50px; border: 3px solid white; font-weight: bold; cursor: pointer; font-size: 20px; box-shadow: 0 5px 15px rgba(255,0,0,0.4); }
 
-        /* Modallar və Chat */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: #1a1a2e; border: 1px solid #00ff88; padding: 20px; border-radius: 10px; width: 320px; }
-        
-        .chat-widget { position: fixed; bottom: 15px; right: 15px; z-index: 100; }
-        .chat-box { display: none; width: 250px; height: 300px; background: #1a1a2e; border: 1px solid #00ff88; border-radius: 10px; flex-direction: column; }
-        #chat-msgs { flex: 1; padding: 10px; overflow-y: auto; font-size: 12px; }
+        /* MODAL (PƏNCƏRƏ) DİZAYNLARI */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: #1a1a2e; border: 2px solid #00ff88; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; max-height: 80vh; overflow-y: auto; position: relative; }
+        .close-x { position: absolute; top: 10px; right: 15px; font-size: 25px; cursor: pointer; color: #ff4d4d; }
+
+        /* QARAJDA MAŞINLARIN GÖRÜNÜŞÜ */
+        .garage-item { background: #0f0f1e; border: 1px solid #333; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+        .car-preview { width: 60px; height: 100px; border-radius: 5px; position: relative; border: 1px solid #555; }
+        .car-buy-btn { background: #00ff88; color: #000; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+
+        /* BAKİYƏ YÜKLƏMƏ */
+        .deposit-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #00ff88; background: #000; color: white; font-size: 18px; text-align: center; }
+
+        /* ÇAT WİDGET */
+        .chat-btn { position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px; background: #00ff88; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 25px; cursor: pointer; z-index: 100; border: none; }
+        #chat-box { display: none; position: fixed; bottom: 85px; right: 20px; width: 280px; height: 350px; background: #1a1a2e; border: 1px solid #00ff88; border-radius: 15px; flex-direction: column; z-index: 100; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
         <div class="auth-container">
-            <h2 id="auth-title" style="color:#00ff88">Giriş / Qeydiyyat</h2>
+            <h2 id="auth-title" style="color:#00ff88; margin-top:0;">XOŞ GƏLDİNİZ</h2>
             <input type="text" id="username" class="auth-input" placeholder="İstifadəçi adı">
             <input type="password" id="password" class="auth-input" placeholder="Şifrə">
-            <button class="auth-btn" onclick="handleAuth()" id="auth-submit">Daxil Ol / Yarat</button>
-            <p style="font-size:12px; margin-top:10px; color:#aaa;">Həm qeydiyyat, həm giriş üçün istifadə edin.</p>
+            <button class="auth-btn" onclick="handleAuth()">DAXİL OL / QEYDİYYAT</button>
+            <p style="font-size:11px; color:#888; margin-top:15px;">Məlumatlar brauzer yaddaşında saxlanılır.</p>
         </div>
     </div>
 
     <div id="game-interface">
         <div class="top-bar">
-            <div class="ui-panel">
-                <p class="balance-text">Balans: <span id="balance">100</span> ₼</p>
-                <div id="user-display" style="font-size:11px; color:#aaa;">Oyunçu: ...</div>
+            <div class="balance-box">
+                <span style="font-size:12px; color:#aaa;">Cari Bakiyə:</span>
+                <span class="balance-amount"><span id="balance">100.00</span> ₼</span>
             </div>
-            <div class="action-buttons">
-                <button onclick="openGarage()" style="color:orange; border-color:orange;">🛒 Qaraj</button>
-                <button onclick="showRules()">❓ Qaydalar</button>
-                <button onclick="location.reload()" style="border-color:red;">X</button>
+            <div class="nav-btns">
+                <button onclick="openModal('garageModal')">🛒 Qaraj</button>
+                <button onclick="openModal('depositModal')">💰 Bakiyə</button>
+                <button onclick="openModal('infoModal')">ℹ️ Haqqında</button>
             </div>
         </div>
 
-        <canvas id="gameCanvas" width="450" height="450"></canvas>
+        <canvas id="gameCanvas" width="450" height="480"></canvas>
         
-        <div id="message" style="position:absolute; top:50%; font-size:25px; font-weight:bold; pointer-events:none; opacity:0; transition:0.3s; z-index:50;"></div>
+        <div id="game-msg" style="position:absolute; top:45%; font-size:28px; font-weight:bold; opacity:0; transition:0.3s; z-index:50;"></div>
         
         <div class="controls">
             <button class="brake-btn" id="brakeBtn">TORMOZ VER!</button>
         </div>
     </div>
 
-    <div id="rulesModal" class="modal">
+    <div id="infoModal" class="modal">
         <div class="modal-content">
-            <h2 style="color:#00ff88">Oyun Qaydaları</h2>
-            <p>🔴 Qırmızıda keçmək: -20 ₼</p>
-            <p>🟢 Yaşılda keçmək: +10 ₼</p>
-            <button onclick="closeRules()" style="width:100%; padding:10px; background:#00ff88; border:none; border-radius:5px; cursor:pointer;">Anladım</button>
+            <span class="close-x" onclick="closeModal('infoModal')">&times;</span>
+            <h2 style="color:#00ff88;">📖 Oyun Haqqında</h2>
+            <p><b>Oyunun Şərtləri:</b> Maşın avtomatik irəliləyir. Məqsədiniz işıqfora tabe olmaqdır.</p>
+            <p>🔴 <b>Qırmızı İşıq:</b> Mütləq "Tormoz" düyməsini basıb saxlayaraq dayanmalısınız. Əks halda <b>-0.20 ₼</b> cərimə olunacaqsınız.</p>
+            <p>🟢 <b>Yaşıl İşıq:</b> Uğurlu keçid etdikdə balansınıza <b>+0.10 ₼</b> əlavə olunur.</p>
+            <hr style="border:0.5px solid #333;">
+            <h3 style="color:#00ff88;">💳 Bakiyə Yükləmə:</h3>
+            <p>Bakiyə bölməsinə daxil olaraq məbləği yazıb "Yüklə" düyməsinə basın.</p>
+            <ul>
+                <li>Minimum yükləmə: <b>5.00 AZN</b></li>
+                <li>Minimum mərc/cərimə: <b>0.20 AZN</b></li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="depositModal" class="modal">
+        <div class="modal-content" style="text-align:center;">
+            <span class="close-x" onclick="closeModal('depositModal')">&times;</span>
+            <h2 style="color:#00ff88;">💰 Bakiyə Artır</h2>
+            <p style="font-size:13px; color:#ccc;">Minimum artım: 5.00 ₼</p>
+            <input type="number" id="depAmount" class="deposit-input" placeholder="0.00" min="5">
+            <button class="auth-btn" onclick="processDeposit()">YÜKLƏMƏNİ TAMAMLA</button>
         </div>
     </div>
 
     <div id="garageModal" class="modal">
         <div class="modal-content">
-            <h2 style="color:#00ff88">🛒 Qaraj</h2>
+            <span class="close-x" onclick="closeModal('garageModal')">&times;</span>
+            <h2 style="color:#00ff88;">🛒 Professional Qaraj</h2>
             <div id="garageList">
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <span>Qırmızı Sport (150₼)</span>
-                    <button onclick="buyCar('red', 150)">Al</button>
+                <div class="garage-item">
+                    <div class="car-preview" style="background:#e74c3c;"><div style="background:#111; width:80%; height:20%; margin:10% auto;"></div></div>
+                    <div><b>Sport Red</b><br><small>Qiymət: 15.00 ₼</small></div>
+                    <button class="car-buy-btn" onclick="buyCar('#e74c3c', 15)">AL</button>
                 </div>
-                <div style="display:flex; justify-content:space-between;">
-                    <span>Sarı Taksi (300₼)</span>
-                    <button onclick="buyCar('yellow', 300)">Al</button>
+                <div class="garage-item">
+                    <div class="car-preview" style="background:#f1c40f;"><div style="background:#111; width:80%; height:20%; margin:10% auto;"></div></div>
+                    <div><b>Yellow VIP</b><br><small>Qiymət: 30.00 ₼</small></div>
+                    <button class="car-buy-btn" onclick="buyCar('#f1c40f', 30)">AL</button>
                 </div>
             </div>
-            <button onclick="closeGarage()" style="width:100%; margin-top:15px; padding:10px; background:red; color:white; border:none; border-radius:5px;">Bağla</button>
         </div>
     </div>
 
     <div class="chat-widget">
-        <div class="chat-box" id="chatBox">
-            <div style="background:#00ff88; color:#000; padding:8px; font-weight:bold; font-size:12px;">Dəstək</div>
-            <div id="chat-msgs"></div>
-            <div style="display:flex; border-top:1px solid #444;">
-                <input type="text" id="chatInput" style="flex:1; background:none; border:none; color:white; padding:8px; font-size:12px; outline:none;" placeholder="Yazın...">
-                <button onclick="sendChat()" style="background:#00ff88; border:none; padding:8px;">></button>
+        <div id="chat-box">
+            <div style="background:#00ff88; color:#000; padding:12px; font-weight:bold; border-radius:15px 15px 0 0;">Dəstək (AI)</div>
+            <div id="chat-content" style="flex:1; padding:10px; overflow-y:auto; font-size:13px; color:#eee;"></div>
+            <div style="display:flex; padding:10px; border-top:1px solid #333;">
+                <input type="text" id="chatInput" style="flex:1; background:none; border:none; color:white; outline:none;" placeholder="Yazın...">
+                <button onclick="sendChat()" style="background:none; border:none; color:#00ff88; font-weight:bold; cursor:pointer;">Göndər</button>
             </div>
         </div>
-        <button onclick="toggleChat()" style="width:45px; height:45px; border-radius:50%; background:#00ff88; border:none; font-size:20px; cursor:pointer;">💬</button>
+        <button class="chat-btn" onclick="toggleChat()">💬</button>
     </div>
 
     <script>
         let currentUser = "";
-        let balance = 100;
+        let balance = 100.00;
         let carColor = "#3498db";
+        let isBraking = false;
 
-        // GİRİŞ MƏNTİQİ
+        // AUTH
         function handleAuth() {
             const user = document.getElementById("username").value.trim();
             const pass = document.getElementById("password").value;
-            if (user.length < 3) return alert("Ad çox qısadır!");
-
+            if (user.length < 3) return alert("İstifadəçi adı çox qısadır!");
+            
             if (!localStorage.getItem("pw_" + user)) {
                 localStorage.setItem("pw_" + user, pass);
-                localStorage.setItem("bal_" + user, 100);
+                localStorage.setItem("bal_" + user, 100.00);
             } else if (localStorage.getItem("pw_" + user) !== pass) {
                 return alert("Səhv şifrə!");
             }
 
             currentUser = user;
-            balance = parseInt(localStorage.getItem("bal_" + user));
+            balance = parseFloat(localStorage.getItem("bal_" + user));
             document.getElementById("auth-screen").style.display = "none";
             document.getElementById("game-interface").style.display = "flex";
-            document.getElementById("user-display").innerText = "Oyunçu: " + user;
-            document.getElementById("balance").innerText = balance;
+            updateBalanceUI();
             initGame();
         }
 
-        // OYUN MƏNTİQİ
+        function updateBalanceUI() {
+            document.getElementById("balance").innerText = balance.toFixed(2);
+            localStorage.setItem("bal_" + currentUser, balance);
+        }
+
+        // DEPOSİT
+        function processDeposit() {
+            const amount = parseFloat(document.getElementById("depAmount").value);
+            if (isNaN(amount) || amount < 5) return alert("Minimum yükləmə məbləği 5.00 AZN-dir!");
+            balance += amount;
+            updateBalanceUI();
+            alert(amount + " AZN uğurla yükləndi!");
+            closeModal('depositModal');
+        }
+
+        // GAME LOGIC
         function initGame() {
             const canvas = document.getElementById("gameCanvas");
             const ctx = canvas.getContext("2d");
             const brakeBtn = document.getElementById("brakeBtn");
-            let isBraking = false;
-            let carY = 380;
+            let carY = 360;
             let linesOffset = 0;
             let trafficLight = { state: "green", timer: 0 };
 
@@ -164,65 +195,77 @@
 
             function gameLoop() {
                 trafficLight.timer++;
-                if(trafficLight.timer > 150) trafficLight.state = "red";
-                if(trafficLight.timer > 300) { trafficLight.state = "green"; trafficLight.timer = 0; }
+                if(trafficLight.timer > 160) trafficLight.state = "red";
+                if(trafficLight.timer > 340) { trafficLight.state = "green"; trafficLight.timer = 0; }
 
                 if(!isBraking) {
                     linesOffset += 5; if(linesOffset > 100) linesOffset = 0;
-                    carY -= 3;
+                    carY -= 3.5;
                 }
 
                 if(carY < -100) {
                     if(trafficLight.state === "red") {
-                        balance -= 20; showMsg("-20 ₼ Cərimə!", "red");
+                        balance -= 0.20; 
+                        showMsg("-0.20 ₼ CƏRİMƏ!", "#ff4d4d");
                     } else {
-                        balance += 10; showMsg("+10 ₼ Uğurlu!", "#00ff88");
+                        balance += 0.10; 
+                        showMsg("+0.10 ₼ QAZANC!", "#00ff88");
                     }
-                    localStorage.setItem("bal_" + currentUser, balance);
-                    document.getElementById("balance").innerText = balance;
-                    carY = 380;
+                    updateBalanceUI();
+                    carY = 360;
                 }
 
-                ctx.fillStyle = "#2ecc71"; ctx.fillRect(0,0,500,500); // Ot
-                ctx.fillStyle = "#34495e"; ctx.fillRect(100,0,300,500); // Yol
+                // DRAW
+                ctx.fillStyle = "#2ecc71"; ctx.fillRect(0,0,500,500); // Grass
+                ctx.fillStyle = "#34495e"; ctx.fillRect(75,0,300,500); // Road
                 ctx.fillStyle = "white"; 
-                for(let i=0; i<8; i++) ctx.fillRect(247, i*100 + linesOffset-100, 6, 40); // Xətt
-                ctx.fillStyle = "white"; ctx.fillRect(100, 120, 300, 8); // Stop xətti
+                for(let i=0; i<10; i++) ctx.fillRect(222, i*100 + linesOffset-100, 6, 40); // Lines
+                ctx.fillStyle = "white"; ctx.fillRect(75, 120, 300, 10); // Stop line
 
-                ctx.fillStyle = "#111"; ctx.fillRect(410, 30, 30, 80);
-                ctx.fillStyle = trafficLight.state === "red" ? "red" : "#300"; ctx.beginPath(); ctx.arc(425, 50, 10, 0, 7); ctx.fill();
-                ctx.fillStyle = trafficLight.state === "green" ? "#0f8" : "#030"; ctx.beginPath(); ctx.arc(425, 90, 10, 0, 7); ctx.fill();
+                // Light
+                ctx.fillStyle = "#111"; ctx.fillRect(390, 40, 40, 100);
+                ctx.fillStyle = trafficLight.state === "red" ? "#ff0000" : "#300"; ctx.beginPath(); ctx.arc(410, 65, 12, 0, 7); ctx.fill();
+                ctx.fillStyle = trafficLight.state === "green" ? "#00ff88" : "#030"; ctx.beginPath(); ctx.arc(410, 115, 12, 0, 7); ctx.fill();
 
-                ctx.fillStyle = carColor; ctx.fillRect(225, carY, 50, 85); // Maşın
-                ctx.fillStyle = "yellow"; ctx.fillRect(230, carY, 10, 5); ctx.fillRect(260, carY, 10, 5); // Fara
+                // Car
+                ctx.fillStyle = carColor; ctx.fillRect(200, carY, 50, 95); // Body
+                ctx.fillStyle = "#111"; ctx.fillRect(205, carY+20, 40, 25); // Window
+                ctx.fillStyle = "yellow"; ctx.fillRect(205, carY+2, 10, 6); ctx.fillRect(235, carY+2, 10, 6); // Lights
 
                 requestAnimationFrame(gameLoop);
             }
             gameLoop();
         }
 
-        // DİGƏR FUNKSİYALAR
+        // MODALS
+        function openModal(id) { document.getElementById(id).style.display = "flex"; }
+        function closeModal(id) { document.getElementById(id).style.display = "none"; }
         function showMsg(t, c) {
-            const m = document.getElementById("message");
+            const m = document.getElementById("game-msg");
             m.innerText = t; m.style.color = c; m.style.opacity = 1;
             setTimeout(() => m.style.opacity = 0, 1500);
         }
-        function openGarage() { document.getElementById("garageModal").style.display = "flex"; }
-        function closeGarage() { document.getElementById("garageModal").style.display = "none"; }
-        function buyCar(c, p) {
-            if(balance >= p) { carColor = c; closeGarage(); } else alert("Balans çatmır!");
+        function buyCar(color, price) {
+            if (balance >= price) {
+                balance -= price; updateBalanceUI();
+                carColor = color; alert("Təbrik edirik! Yeni maşın aktiv edildi.");
+                closeModal('garageModal');
+            } else alert("Balansınız kifayət deyil!");
         }
-        function showRules() { document.getElementById("rulesModal").style.display = "flex"; }
-        function closeRules() { document.getElementById("rulesModal").style.display = "none"; }
-        function toggleChat() { 
-            const b = document.getElementById("chatBox");
-            b.style.display = b.style.display === "flex" ? "none" : "flex"; 
+
+        // CHAT
+        function toggleChat() {
+            const c = document.getElementById("chat-box");
+            c.style.display = c.style.display === "flex" ? "none" : "flex";
         }
         function sendChat() {
             const i = document.getElementById("chatInput"); if(!i.value) return;
-            const m = document.getElementById("chat-msgs");
-            m.innerHTML += `<div style="text-align:right; margin-bottom:5px; color:#00ff88;">${i.value}</div>`;
-            setTimeout(() => { m.innerHTML += `<div style="margin-bottom:5px; color:#ccc;">Salam! Sənə kömək edə bilərəm?</div>`; m.scrollTop = m.scrollHeight; }, 600);
+            const content = document.getElementById("chat-content");
+            content.innerHTML += `<p><b>Siz:</b> ${i.value}</p>`;
+            setTimeout(() => {
+                content.innerHTML += `<p style="color:#00ff88"><b>Dəstək:</b> Salam! Bakiyə yükləmək üçün yuxarıdakı 'Bakiyə' düyməsindən istifadə edin. Minimum 5 AZN yükləyə bilərsiniz.</p>`;
+                content.scrollTop = content.scrollHeight;
+            }, 600);
             i.value = "";
         }
     </script>

@@ -1,145 +1,60 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-// =====================================================================
-// 1. TİPLƏR VƏ İNTERFEYSLƏR (Oyunun işləməsi üçün lazım olan məlumat strukturları)
-// =====================================================================
-enum TrafficLightState {
-  GREEN, YELLOW, RED
-}
+// ENUM və TİPLƏR
+const TrafficLightState = { GREEN: 'green', YELLOW: 'yellow', RED: 'red' };
 
-interface Feedback {
-  text: string;
-  type: 'success' | 'warning' | 'error';
-}
-
-interface CarSkin {
-  id: string;
-  name: string;
-  color: string;
-  price: number;
-  owned: boolean;
-}
-
-interface TrafficCar {
-  id: number;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  color: string;
-  speed: number;
-  crashed?: boolean;
-}
-
-interface Biome {
-  name: string;
-  ground: string;
-  accent: string;
-}
-
-interface SceneryObject {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  color: string;
-}
-
-// =====================================================================
-// 2. SÜNİ İNTELLEKT (GEMİNİ) XİDMƏTLƏRİ (GitHub üçün təhlükəsiz versiya)
-// =====================================================================
-// DİQQƏT: API açarını heç vaxt buraya birbaşa yazmayın! Layihənizin 
-// əsas qovluğunda .env faylı yaradıb içinə VITE_GEMINI_API_KEY=sizin_açar yazın.
-const getApiKey = () => {
-  try {
-    return (import.meta as any).env?.VITE_GEMINI_API_KEY || "";
-  } catch (e) {
-    return "";
-  }
-};
-
-const getDrivingAdvice = async (lang: string, history: any[], eventKey?: string) => {
-  if (!getApiKey()) {
-    console.warn("API Açarınız .env faylında tapılmadı.");
-    return "Diqqətli sürün!";
-  }
-  return "Diqqətli sürün!"; 
-};
-
-const getSpeechData = async (text: string) => {
-  return null; 
-};
-
-const startLiveMotivator = async (lang: string, onSpeak: (speaking: boolean) => void) => {
-  if (!getApiKey()) {
-    console.warn("API Açarınız yoxdur. Canlı Motivator funksiyası aktiv deyil.");
-    return { close: () => {} };
-  }
-  return { close: () => {} };
-};
-
-// =====================================================================
-// 3. ƏSAS OYUN KODU (SİMULYATOR)
-// =====================================================================
+// Constants
 const LOGICAL_WIDTH = 400;
 const LOGICAL_HEIGHT = 600;
 const CAR_WIDTH = 48;
 const CAR_HEIGHT = 86;
 const PLAYER_Y = LOGICAL_HEIGHT - 130;
 const LANES = [100, 200, 300];
-
 const PAYMENT_URL = "https://buymeacoffee.com/surwin";
 
-const MOTIVATIONAL_PHRASES: Record<string, string[]> = {
+// Motivational phrases
+const MOTIVATIONAL_PHRASES = {
   az: ["Möhtəşəm!", "Sən bir peşəkarsan!", "Yola davam!", "Əla sürürsən!", "Belə davam et!", "Diqqətli ol!", "Sükan arxasında kalsan!"],
   en: ["Awesome!", "You're a pro!", "Keep going!", "Great driving!", "Stay focused!", "Master of the road!", "You got this!"],
 };
 
-const BIOMES: Biome[] = [
+// Biomes
+const BIOMES = [
   { name: "City Streets", ground: "#0f172a", accent: "#334155" },
   { name: "Forest Road", ground: "#064e3b", accent: "#166534" },
   { name: "Canyon", ground: "#451a03", accent: "#92400e" }
 ];
 
-const INITIAL_SKINS: CarSkin[] = [
+// Car skins
+const INITIAL_SKINS = [
   { id: 'classic', name: 'Classic Blue', color: '#3b82f6', price: 0, owned: true },
   { id: 'sport', name: 'Sport Red', color: '#ef4444', price: 5.0, owned: false },
   { id: 'taxi', name: 'Yellow Taxi', color: '#fbbf24', price: 8.0, owned: false },
   { id: 'noir', name: 'Premium Black', color: '#1e293b', price: 15.0, owned: false },
 ];
 
+// Languages
 const LANGUAGES = [
   { code: 'az', name: 'Azərbaycan', flag: '🇦🇿', currency: 'AZN', rate: 1 },
   { code: 'en', name: 'English', flag: '🇬🇧', currency: 'USD', rate: 0.59 },
-  { code: 'ru', name: 'Русский', flag: '🇷🇺', currency: 'RUB', rate: 54.4 },
-  { code: 'uk', name: 'Українська', flag: '🇺🇦', currency: 'UAH', rate: 24.5 },
-  { code: 'fr', name: 'Français', flag: '🇫🇷', currency: 'EUR', rate: 0.54 },
-  { code: 'tr', name: 'Türkçe', flag: '🇹🇷', currency: 'TRY', rate: 20.3 },
-  { code: 'ro', name: 'Română', flag: '🇷🇴', currency: 'RON', rate: 2.72 },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪', currency: 'EUR', rate: 0.54 },
-  { code: 'ar', name: 'العربية', flag: '🇸🇦', currency: 'SAR', rate: 2.21 },
-  { code: 'es', name: 'Español', flag: '🇪🇸', currency: 'EUR', rate: 0.54 },
-  { code: 'be', name: 'Беларуская', flag: '🇧🇾', currency: 'BYN', rate: 1.93 },
-  { code: 'mo', name: 'Moldovenească', flag: '🇲🇩', currency: 'MDL', rate: 10.5 },
-  { code: 'kk', name: 'Қазақша', flag: '🇰🇿', currency: 'KZT', rate: 265.5 },
-  { code: 'uz', name: 'O‘zbekcha', flag: '🇺🇿', currency: 'UZS', rate: 7500 },
-  { code: 'tg', name: 'Тоҷикӣ', flag: '🇹🇯', currency: 'TJS', rate: 6.3 },
-  { code: 'ka', name: 'ქართული', flag: '🇬🇪', currency: 'GEL', rate: 1.58 },
 ];
 
-const TRANSLATIONS: Record<string, any> = {
-  az: { login: "Giriş", register: "Qeydiyyat", username: "İstifadəçi adı", password: "Şifrə", remember: "Yadda saxla", noAcc: "Hesab yoxdur?", hasAcc: "Hesab var?", balance: "Balans", brake: "TORMOZ", braking: "DAYANIR...", garage: "QARAJ", topup: "ARTIR", gameOver: "OYUN BİTDİ", balanceFinished: "Davam etmək üçün balans artırın.", restart: "YENİDƏN", topUpHeading: "BALANSIN ARTIR", topUpText: "Təhlükəsiz ödəniş üçün aşağıdakı düyməyə keçid edin.", payStripe: "Balansı Artır (☕)", fine: "CƏRİMƏ!", reward: "MÜKAFAT!", crash: "QƏZA!", langHeading: "DİL SEÇİN", companion: "AI YOLDAŞ" },
-  en: { login: "Login", register: "Register", username: "Username", password: "Password", remember: "Remember", noAcc: "No account?", hasAcc: "Have account?", balance: "Balance", brake: "BRAKE", braking: "BRAKING...", garage: "GARAGE", topup: "ADD", gameOver: "GAME OVER", balanceFinished: "Top up to continue.", restart: "RESTART", topUpHeading: "RECHARGE BALANCE", topUpText: "Follow the link below for secure payment.", payStripe: "Top Up Now (☕)", fine: "FINE!", reward: "REWARD!", crash: "CRASH!", langHeading: "LANGUAGE", companion: "AI COACH" },
+// Translations
+const TRANSLATIONS = {
+  az: { login: "Giriş", register: "Qeydiyyat", username: "İstifadəçi adı", password: "Şifrə", remember: "Yadda saxla", noAcc: "Hesab yoxdur?", hasAcc: "Hesab var?", balance: "Balans", brake: "TORMOZ", braking: "DAYANIR...", garage: "QARAJ", topup: "ARTIR", gameOver: "OYUN BİTDİ", balanceFinished: "Davam etmək üçün balans artırın.", restart: "YENİDƏN", topUpHeading: "BALANSIN ARTIR", topUpText: "Təhlükəsiz ödəniş üçün aşağıdakı düyməyə keçid edin.", payStripe: "Balansı Artır (☕)", fine: "CƏRİMƏ!", reward: "MÜKAFAT!", crash: "QƏZA!", langHeading: "DİL SEÇİN", adminMode: "Admin Rejimi" },
+  en: { login: "Login", register: "Register", username: "Username", password: "Password", remember: "Remember", noAcc: "No account?", hasAcc: "Have account?", balance: "Balance", brake: "BRAKE", braking: "BRAKING...", garage: "GARAGE", topup: "ADD", gameOver: "GAME OVER", balanceFinished: "Top up to continue.", restart: "RESTART", topUpHeading: "RECHARGE BALANCE", topUpText: "Follow the link below for secure payment.", payStripe: "Top Up Now (☕)", fine: "FINE!", reward: "REWARD!", crash: "CRASH!", langHeading: "LANGUAGE", adminMode: "Admin Mode" },
 };
 
-const decodeBase64 = (base64: string) => {
+// Base64 decode
+const decodeBase64 = (base64) => {
   const binaryString = atob(base64);
   const bytes = new Uint8Array(binaryString.length);
   for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
   return bytes;
 };
 
-const decodeAudioData = async (data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> => {
+// Audio decode
+const decodeAudioData = async (data, ctx, sampleRate, numChannels) => {
   const dataInt16 = new Int16Array(data.buffer);
   const frameCount = dataInt16.length / numChannels;
   const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
@@ -150,43 +65,42 @@ const decodeAudioData = async (data: Uint8Array, ctx: AudioContext, sampleRate: 
   return buffer;
 };
 
-const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<string | null>(() => localStorage.getItem("activeUser"));
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+// Main App
+const App = () => {
+  const [currentUser, setCurrentUser] = useState(() => localStorage.getItem("activeUser"));
+  const [authMode, setAuthMode] = useState('login');
   const [authForm, setAuthForm] = useState({ username: '', password: '' });
-  const [balance, setBalance] = useState<number>(() => parseFloat(localStorage.getItem("balance") || "0.30"));
+  const [balance, setBalance] = useState(() => parseFloat(localStorage.getItem("balance") || "0.30"));
   const [level, setLevel] = useState(1);
   const [lang, setLang] = useState(() => localStorage.getItem("gameLang") || 'az');
   const [isBraking, setIsBraking] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [feedback, setFeedback] = useState(null);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showGarage, setShowGarage] = useState(false);
   const [showTopUp, setShowTopUp] = useState(false);
   const [showLang, setShowLang] = useState(false);
-  const [skins, setSkins] = useState<CarSkin[]>(INITIAL_SKINS);
+  const [skins, setSkins] = useState(INITIAL_SKINS);
   const [activeSkinId, setActiveSkinId] = useState('classic');
   const [biomeIdx, setBiomeIdx] = useState(0);
   const [flashRed, setFlashRed] = useState(false);
-
-  // AI Companion States
-  const [isCompanionActive, setIsCompanionActive] = useState(false);
-  const [isAISpeaking, setIsAISpeaking] = useState(false);
-  const liveSessionRef = useRef<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const t = TRANSLATIONS[lang] || TRANSLATIONS['en'];
   const currentLangData = LANGUAGES.find(l => l.code === lang) || LANGUAGES[0];
-  
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const engineOscRef = useRef<OscillatorNode | null>(null);
-  const engineGainRef = useRef<GainNode | null>(null);
+
+  const audioCtxRef = useRef(null);
+  const engineOscRef = useRef(null);
+  const engineGainRef = useRef(null);
   const balanceRef = useRef(balance);
+  const isAdminRef = useRef(isAdmin);
 
   useEffect(() => { balanceRef.current = balance; localStorage.setItem("balance", balance.toFixed(2)); }, [balance]);
   useEffect(() => { localStorage.setItem("gameLang", lang); }, [lang]);
+  useEffect(() => { isAdminRef.current = isAdmin; }, [isAdmin]);
 
   const initAudio = () => {
     if (audioCtxRef.current) return;
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
     audioCtxRef.current = ctx;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -201,369 +115,69 @@ const App: React.FC = () => {
     engineOscRef.current = osc; engineGainRef.current = gain;
   };
 
-  const playSound = (type: 'crash' | 'point' | 'fine') => {
+  const playSound = (type) => {
     const ctx = audioCtxRef.current; if (!ctx) return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    if (type === 'crash') {
-      osc.type = 'triangle'; osc.frequency.setValueAtTime(150, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.3, ctx.currentTime); gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-    } else {
-      osc.type = 'sine'; osc.frequency.setValueAtTime(type === 'point' ? 600 : 200, ctx.currentTime);
-      gain.gain.setValueAtTime(0.1, ctx.currentTime); gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.2);
-    }
-    osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.4);
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    if(type==='crash'){osc.type='triangle'; osc.frequency.setValueAtTime(150, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime+0.3); gain.gain.setValueAtTime(0.3, ctx.currentTime); gain.gain.linearRampToValueAtTime(0, ctx.currentTime+0.4);}
+    else {osc.type='sine'; osc.frequency.setValueAtTime(type==='point'?600:200, ctx.currentTime); gain.gain.setValueAtTime(0.1, ctx.currentTime); gain.gain.linearRampToValueAtTime(0, ctx.currentTime+0.2);}
+    osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime+0.4);
   };
 
-  const toggleCompanion = async () => {
-    initAudio();
-    if (isCompanionActive) {
-      if (liveSessionRef.current) {
-        liveSessionRef.current.close();
-        liveSessionRef.current = null;
-      }
-      setIsCompanionActive(false);
-      setIsAISpeaking(false);
-    } else {
-      setIsCompanionActive(true);
-      try {
-        const session = await startLiveMotivator(lang, (speaking) => setIsAISpeaking(speaking));
-        liveSessionRef.current = session;
-      } catch (err) {
-        console.error(err);
-        setIsCompanionActive(false);
-      }
-    }
-  };
-
-  const triggerFeedback = async (text: string, type: 'success' | 'warning' | 'error', eventKey?: string) => {
+  const triggerFeedback = (text, type) => {
     setFeedback({ text, type });
-    if (type === 'error') { setFlashRed(true); setTimeout(() => setFlashRed(false), 200); playSound('fine'); }
-    else if (type === 'success') playSound('point');
-    
-    if (eventKey && !isCompanionActive) {
-      try {
-        const advice = await getDrivingAdvice(lang, [], eventKey);
-        const audio = await getSpeechData(advice);
-        if (audio && audioCtxRef.current) {
-          const buffer = await decodeAudioData(decodeBase64(audio as any), audioCtxRef.current, 24000, 1);
-          const source = audioCtxRef.current.createBufferSource();
-          source.buffer = buffer; source.connect(audioCtxRef.current.destination); source.start();
-        }
-      } catch (e) { console.error(e); }
-    }
-    setTimeout(() => setFeedback(null), 3000);
+    if(type==='error'){setFlashRed(true); setTimeout(()=>setFlashRed(false),200); playSound('crash');}
+    else if(type==='success') playSound('point');
+    setTimeout(()=>setFeedback(null),3000);
   };
 
-  useEffect(() => {
-    if (!currentUser || isGameOver) return;
-    const interval = setInterval(() => {
-      if (Math.random() < 0.4) {
-        const phrases = MOTIVATIONAL_PHRASES[lang] || MOTIVATIONAL_PHRASES['en'];
-        const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-        triggerFeedback(randomPhrase, 'success');
-      }
-    }, 20000);
-    return () => clearInterval(interval);
-  }, [currentUser, isGameOver, lang]);
+  const canvasRef = useRef(null);
+  const gameStateRef = useRef({ carX: LANES[1]-CAR_WIDTH/2, targetX: LANES[1]-CAR_WIDTH/2, stopLineY: -200, trafficLight: TrafficLightState.GREEN, timer: 0, linesOffset:0, isBraking:false, traffic:[], scenery:[], totalDistance:0, idCounter:0, levelPassed:false, fineTimer:0 });
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameStateRef = useRef({
-    carX: LANES[1] - CAR_WIDTH / 2, targetX: LANES[1] - CAR_WIDTH / 2,
-    stopLineY: -200, trafficLight: TrafficLightState.GREEN, timer: 0,
-    linesOffset: 0, isBraking: false, traffic: [] as (TrafficCar & { crashed?: boolean })[],
-    scenery: [] as SceneryObject[],
-    totalDistance: 0, idCounter: 0, levelPassed: false, fineTimer: 0
-  });
-
-  const update = useCallback(() => {
-    if (!currentUser || showGarage || showTopUp || showLang || isGameOver) return;
+  const update = useCallback(()=>{
+    if(!currentUser || showGarage || showTopUp || showLang || isGameOver) return;
     const state = gameStateRef.current;
-    if (balanceRef.current <= 0) { setIsGameOver(true); return; }
+    if(!isAdminRef.current && balanceRef.current<=0){setIsGameOver(true); return;}
+    const speed = 4+(level*0.5); const currentMoveSpeed = state.isBraking?0:speed;
+    state.linesOffset=(state.linesOffset+currentMoveSpeed)%80; state.totalDistance+=currentMoveSpeed;
+    state.carX += (state.targetX-state.carX)*0.15;
+    state.timer++; if(state.timer<300) state.trafficLight=TrafficLightState.GREEN;
+    else if(state.timer<450) state.trafficLight=TrafficLightState.YELLOW;
+    else if(state.timer<950) state.trafficLight=TrafficLightState.RED;
+    else state.timer=0;
+  }, [currentUser, showGarage, showTopUp, showLang, isGameOver, level]);
 
-    const speed = 4 + (level * 0.5);
-    const currentMoveSpeed = state.isBraking ? 0 : speed;
-    state.linesOffset = (state.linesOffset + currentMoveSpeed) % 80;
-    state.totalDistance += currentMoveSpeed;
-    if (state.totalDistance > 5000) { state.totalDistance = 0; setBiomeIdx(p => (p + 1) % BIOMES.length); }
-    state.carX += (state.targetX - state.carX) * 0.15;
-    state.timer++;
+  const drawCar=(ctx,x,y,color,braking)=>{ctx.save(); ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(x+CAR_WIDTH/2,y+CAR_HEIGHT/2+4,CAR_WIDTH/2+2,CAR_HEIGHT/2+2,0,0,Math.PI*2); ctx.fill(); ctx.fillStyle=color; ctx.beginPath(); ctx.fillRect(x,y,CAR_WIDTH,CAR_HEIGHT); ctx.fillStyle=braking?'#ef4444':'#7f1d1d'; ctx.fillRect(x+6,y+CAR_HEIGHT-6,10,4); ctx.fillRect(x+CAR_WIDTH-16,y+CAR_HEIGHT-6,10,4); ctx.restore(); };
 
-    if (state.timer < 300) state.trafficLight = TrafficLightState.GREEN;
-    else if (state.timer < 450) state.trafficLight = TrafficLightState.YELLOW;
-    else if (state.timer < 950) state.trafficLight = TrafficLightState.RED;
-    else state.timer = 0;
+  const draw = useCallback(()=>{
+    if(!currentUser) return;
+    const canvas=canvasRef.current; if(!canvas) return; const ctx=canvas.getContext('2d'); if(!ctx) return;
+    const state=gameStateRef.current; const biome=BIOMES[biomeIdx];
+    ctx.clearRect(0,0,LOGICAL_WIDTH,LOGICAL_HEIGHT);
+    ctx.fillStyle=biome.ground; ctx.fillRect(0,0,LOGICAL_WIDTH,LOGICAL_HEIGHT);
+    drawCar(ctx,state.carX,PLAYER_Y,skins.find(s=>s.id===activeSkinId).color,isBraking);
+  },[currentUser, activeSkinId, skins, biomeIdx,isBraking]);
 
-    if (state.totalDistance % 3000 < currentMoveSpeed) { state.stopLineY = -150; state.levelPassed = false; state.fineTimer = 0; }
-    if (state.stopLineY > -300) state.stopLineY += currentMoveSpeed;
+  useEffect(()=>{let frame; const loop=()=>{update(); draw(); frame=requestAnimationFrame(loop);}; frame=requestAnimationFrame(loop); return ()=>cancelAnimationFrame(frame);},[update,draw]);
 
-    if (state.trafficLight === TrafficLightState.RED && state.stopLineY > PLAYER_Y - 50 && state.stopLineY < PLAYER_Y + 100 && !state.levelPassed) {
-      if (!state.isBraking) {
-        state.fineTimer++;
-        if (state.fineTimer > 60) {
-          setBalance(b => Math.max(0, b - 0.2)); triggerFeedback(t.fine + " -0.20", 'error', "Traffic rule violation");
-          state.levelPassed = true;
-        }
-      }
-    }
+  const handleAuth=()=>{if(!authForm.username||!authForm.password) return; initAudio(); localStorage.setItem("u_"+authForm.username,authForm.password); localStorage.setItem("activeUser",authForm.username); setCurrentUser(authForm.username);};
+  const reset=()=>{setLevel(1); setIsGameOver(false); gameStateRef.current.traffic=[]; gameStateRef.current.stopLineY=-200; initAudio();};
 
-    if (state.stopLineY > PLAYER_Y && state.stopLineY < PLAYER_Y + 20 && !state.levelPassed && state.trafficLight === TrafficLightState.GREEN) {
-      setBalance(b => b + 0.5); triggerFeedback(t.reward + " +0.50", 'success');
-      state.levelPassed = true;
-    }
-
-    if (Math.random() < 0.01 && !state.isBraking) {
-      const lIdx = Math.floor(Math.random() * 3);
-      const colors = ['#e11d48', '#2563eb', '#16a34a', '#ca8a04', '#ffffff', '#000000'];
-      state.traffic.push({ id: state.idCounter++, x: LANES[lIdx] - CAR_WIDTH/2, y: -200, width: CAR_WIDTH, height: CAR_HEIGHT, color: colors[Math.floor(Math.random()*colors.length)], speed: 2 + Math.random() * 2 });
-    }
-
-    state.traffic.forEach(car => {
-      car.y += car.speed + (state.isBraking ? -speed : 0);
-      if (!car.crashed && state.carX < car.x + CAR_WIDTH && state.carX + CAR_WIDTH > car.x && PLAYER_Y < car.y + CAR_HEIGHT && PLAYER_Y + CAR_HEIGHT > car.y) {
-        car.crashed = true; playSound('crash'); setBalance(b => Math.max(0, b - 1.0));
-        triggerFeedback(t.crash + " -1.00", 'error', "Accident occurred");
-      }
-    });
-    state.traffic = state.traffic.filter(c => c.y < LOGICAL_HEIGHT + 200);
-
-    if (Math.random() < 0.05 && !state.isBraking) {
-      state.scenery.push({ id: state.idCounter++, x: Math.random() > 0.5 ? Math.random()*50 : LOGICAL_WIDTH-50-Math.random()*50, y: -50, size: 10+Math.random()*20, color: BIOMES[biomeIdx].accent });
-    }
-    state.scenery.forEach(s => s.y += currentMoveSpeed);
-    state.scenery = state.scenery.filter(s => s.y < LOGICAL_HEIGHT + 50);
-
-    if (engineGainRef.current) {
-      engineGainRef.current.gain.setTargetAtTime(state.isBraking ? 0.05 : 0.12, audioCtxRef.current!.currentTime, 0.1);
-      engineOscRef.current!.frequency.setTargetAtTime(35 + currentMoveSpeed * 3, audioCtxRef.current!.currentTime, 0.1);
-    }
-  }, [currentUser, showGarage, showTopUp, showLang, isGameOver, level, t, lang]);
-
-  const drawCar = (ctx: CanvasRenderingContext2D, x: number, y: number, color: string, braking: boolean) => {
-    ctx.save();
-    ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(x+CAR_WIDTH/2, y+CAR_HEIGHT/2+4, CAR_WIDTH/2+2, CAR_HEIGHT/2+2, 0, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect(x, y, CAR_WIDTH, CAR_HEIGHT, 12); ctx.fill();
-    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(x+6, y+14, CAR_WIDTH-12, 18); ctx.fillRect(x+6, y+60, CAR_WIDTH-12, 14);
-    ctx.fillStyle = '#fef08a'; ctx.fillRect(x+6, y+2, 10, 4); ctx.fillRect(x+CAR_WIDTH-16, y+2, 10, 4);
-    ctx.fillStyle = braking ? '#ef4444' : '#7f1d1d'; ctx.fillRect(x+6, y+CAR_HEIGHT-6, 10, 4); ctx.fillRect(x+CAR_WIDTH-16, y+CAR_HEIGHT-6, 10, 4);
-    ctx.restore();
-  };
-
-  const draw = useCallback(() => {
-    if (!currentUser) return;
-    const canvas = canvasRef.current; if (!canvas) return;
-    const ctx = canvas.getContext('2d'); if (!ctx) return;
-    const state = gameStateRef.current;
-    const biome = BIOMES[biomeIdx];
-    ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-    ctx.fillStyle = biome.ground; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-    ctx.fillStyle = biome.accent + '44';
-    for(let i=0; i<LOGICAL_HEIGHT; i+=50) {
-      ctx.fillRect(0, (i+state.linesOffset)%LOGICAL_HEIGHT, 60, 25);
-      ctx.fillRect(LOGICAL_WIDTH-60, (i+state.linesOffset)%LOGICAL_HEIGHT, 60, 25);
-    }
-    state.scenery.forEach(s => { ctx.fillStyle = s.color; ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill(); });
-    ctx.fillStyle = '#1e293b'; ctx.fillRect(60, 0, LOGICAL_WIDTH-120, LOGICAL_HEIGHT);
-    ctx.fillStyle = '#334155'; ctx.fillRect(60, 0, 4, LOGICAL_HEIGHT); ctx.fillRect(LOGICAL_WIDTH-64, 0, 4, LOGICAL_HEIGHT);
-    ctx.setLineDash([30, 50]); ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 2;
-    ctx.lineDashOffset = -state.linesOffset; ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); ctx.stroke(); ctx.setLineDash([]);
-    if (state.stopLineY > -50) {
-      ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillRect(60, state.stopLineY, LOGICAL_WIDTH-120, 15);
-      ctx.fillStyle = '#0f172a'; ctx.roundRect(LOGICAL_WIDTH-45, 40, 25, 70, 6); ctx.fill();
-      const drawL = (y: number, c: string, a: boolean) => {
-        ctx.fillStyle = a ? c : '#334155'; if(a){ctx.shadowBlur=12; ctx.shadowColor=c;}
-        ctx.beginPath(); ctx.arc(LOGICAL_WIDTH-32.5, y, 8, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
-      };
-      drawL(55, '#ef4444', state.trafficLight === TrafficLightState.RED);
-      drawL(75, '#eab308', state.trafficLight === TrafficLightState.YELLOW);
-      drawL(95, '#22c55e', state.trafficLight === TrafficLightState.GREEN);
-    }
-    state.traffic.forEach(c => drawCar(ctx, c.x, c.y, c.color, false));
-    drawCar(ctx, state.carX, PLAYER_Y, skins.find(s=>s.id===activeSkinId)!.color, isBraking);
-  }, [currentUser, activeSkinId, skins, biomeIdx, isBraking]);
-
-  useEffect(() => {
-    let frame: number;
-    const loop = () => { update(); draw(); frame = requestAnimationFrame(loop); };
-    frame = requestAnimationFrame(loop); return () => cancelAnimationFrame(frame);
-  }, [update, draw]);
-
-  const switchLane = (dir: 'L' | 'R') => {
-    const s = gameStateRef.current;
-    let idx = LANES.indexOf(LANES.find(l => Math.abs(l - CAR_WIDTH/2 - s.targetX) < 10) || LANES[1]);
-    idx = dir === 'L' ? Math.max(0, idx - 1) : Math.min(2, idx + 1);
-    s.targetX = LANES[idx] - CAR_WIDTH/2; playSound('point');
-  };
-
-  const handleAuth = () => {
-    if(!authForm.username || !authForm.password) return;
-    initAudio();
-    localStorage.setItem("u_"+authForm.username, authForm.password);
-    localStorage.setItem("activeUser", authForm.username);
-    setCurrentUser(authForm.username);
-  };
-
-  const reset = () => { 
-    if (balanceRef.current <= 0) {
-      setShowTopUp(true);
-      return;
-    }
-    setLevel(1); 
-    setIsGameOver(false); 
-    gameStateRef.current.traffic = []; 
-    gameStateRef.current.stopLineY = -200; 
-    initAudio(); 
-  };
-
-  const formatBalance = (val: number) => {
-    const converted = val * currentLangData.rate;
-    return `${converted.toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currentLangData.currency}`;
-  };
-
-  if (!currentUser) return (
-    <div className="flex h-[100dvh] bg-[#0f172a] items-center justify-center p-8" onMouseDown={initAudio}>
-      <div className="w-full max-w-sm bg-slate-800 border border-white/5 rounded-3xl p-10 shadow-2xl">
-        <h2 className="text-3xl font-black text-white italic mb-8 uppercase text-center">{authMode === 'login' ? t.login : t.register}</h2>
+  if(!currentUser) return (
+    <div className="flex h-[100vh] bg-[#0f172a] items-center justify-center p-8" onMouseDown={initAudio}>
+      <div className="w-full max-w-sm bg-slate-800 border border-white/5 rounded-3xl p-10 shadow-2xl overflow-hidden">
+        <h2 className="text-3xl font-black text-white italic mb-8 uppercase text-center">{authMode==='login'?t.login:t.register}</h2>
         <div className="space-y-4">
-          <input type="text" placeholder={t.username} className="w-full bg-slate-900 border border-white/5 p-4 rounded-xl text-white outline-none" onChange={e=>setAuthForm({...authForm, username: e.target.value})} />
-          <input type="password" placeholder={t.password} className="w-full bg-slate-900 border border-white/5 p-4 rounded-xl text-white outline-none" onChange={e=>setAuthForm({...authForm, password: e.target.value})} />
-          <button onClick={handleAuth} className="w-full py-4 bg-cyan-600 rounded-xl text-white font-black uppercase tracking-widest">{authMode === 'login' ? t.login : t.register}</button>
-          <button onClick={()=>setAuthMode(authMode==='login'?'register':'login')} className="w-full text-xs text-slate-500 font-bold uppercase tracking-wider">{authMode === 'login' ? t.noAcc : t.hasAcc}</button>
+          <input type="text" placeholder={t.username} className="w-full bg-slate-900 border border-white/5 p-4 rounded-xl text-white outline-none" onChange={e=>setAuthForm({...authForm,username:e.target.value})} />
+          <input type="password" placeholder={t.password} className="w-full bg-slate-900 border border-white/5 p-4 rounded-xl text-white outline-none" onChange={e=>setAuthForm({...authForm,password:e.target.value})} />
+          <button onClick={handleAuth} className="w-full py-4 bg-cyan-600 rounded-xl text-white font-black uppercase tracking-widest">{authMode==='login'?t.login:t.register}</button>
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className={`flex flex-col h-[100dvh] bg-[#0f172a] text-white overflow-hidden transition-colors ${flashRed?'bg-rose-950':''}`} onMouseDown={initAudio}>
-      <div className="flex-none p-4 flex justify-between items-center z-50 max-w-lg mx-auto w-full">
-        <div className="bg-slate-900/80 backdrop-blur-xl p-3 rounded-2xl shadow-xl min-w-[140px]">
-          <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-0.5 block">{t.balance}</span>
-          <span className="text-xl font-black whitespace-nowrap">{formatBalance(balance)}</span>
-        </div>
-        <div className="flex gap-2">
-          <button 
-            onClick={toggleCompanion} 
-            className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg shadow-xl transition-all ${isCompanionActive ? 'bg-indigo-600 ring-2 ring-indigo-400 animate-pulse' : 'bg-slate-800 opacity-60'}`}
-            title={t.companion}
-          >
-            {isCompanionActive ? '💬' : '🎤'}
-          </button>
-          <button onClick={()=>setShowTopUp(true)} className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center text-lg shadow-xl">💳</button>
-          <button onClick={()=>setShowGarage(true)} className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-lg shadow-xl">🛒</button>
-          <button onClick={()=>setShowLang(true)} className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-lg shadow-xl">{currentLangData.flag}</button>
-          <button onClick={()=>{localStorage.removeItem("activeUser"); setCurrentUser(null);}} className="w-10 h-10 bg-rose-600 rounded-lg flex items-center justify-center text-lg shadow-xl">🚪</button>
-        </div>
-      </div>
-
-      <div className="flex-1 flex items-center justify-center p-2 relative min-h-0 overflow-hidden">
-        <div className="relative w-full h-full max-w-[420px] max-h-[700px] overflow-hidden rounded-[32px] shadow-2xl border-4 border-slate-800 bg-slate-900">
-          <canvas ref={canvasRef} width={LOGICAL_WIDTH} height={LOGICAL_HEIGHT} className="w-full h-full object-contain" />
-          
-          {isCompanionActive && (
-            <div className="absolute top-4 left-4 z-50 bg-slate-900/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-indigo-400/30 flex items-center gap-2">
-               <div className={`w-2 h-2 rounded-full ${isAISpeaking ? 'bg-cyan-400 scale-125 transition-transform duration-75' : 'bg-slate-400'}`} />
-               <span className="text-[10px] font-black uppercase tracking-widest text-indigo-100">AI Coach</span>
-            </div>
-          )}
-
-          <div className="absolute inset-0 flex">
-            <div className="flex-1 active:bg-white/5" onClick={() => switchLane('L')} />
-            <div className="flex-1 active:bg-white/5" onClick={() => switchLane('R')} />
-          </div>
-          {feedback && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[110]"><div className={`px-6 py-3 rounded-2xl text-lg font-black shadow-2xl border-2 backdrop-blur-xl ${feedback.type==='success'?'bg-emerald-500/30 border-emerald-400/50 text-emerald-100':'bg-rose-500/30 border-rose-400/50 text-rose-100'}`}>{feedback.text}</div></div>}
-          {isGameOver && (
-            <div className="absolute inset-0 z-[100] bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center">
-              <h2 className="text-2xl font-black italic mb-3 uppercase text-rose-500">{t.gameOver}</h2>
-              <p className="text-slate-300 mb-6 text-xs leading-relaxed">{t.balanceFinished}</p>
-              <button onClick={()=>setShowTopUp(true)} className="w-full py-4 bg-cyan-600 rounded-xl font-black text-base mb-3 uppercase tracking-widest">BALANS</button>
-              <button onClick={reset} className={`w-full py-4 rounded-xl font-black text-base uppercase tracking-widest ${balance <= 0 ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-slate-800 text-white'}`}>
-                {t.restart}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex-none px-6 pb-8 pt-4 max-w-lg mx-auto w-full z-50">
-        <button 
-          onMouseDown={()=>{setIsBraking(true); gameStateRef.current.isBraking=true; initAudio();}} 
-          onMouseUp={()=>{setIsBraking(false); gameStateRef.current.isBraking=false;}} 
-          onTouchStart={(e)=>{e.preventDefault(); setIsBraking(true); gameStateRef.current.isBraking=true; initAudio();}} 
-          onTouchEnd={(e)=>{e.preventDefault(); setIsBraking(false); gameStateRef.current.isBraking=false;}}
-          className={`w-full py-6 rounded-[24px] text-2xl font-black shadow-xl border-b-[8px] active:translate-y-1.5 active:border-b-0 transition-all ${isBraking?'bg-rose-700 border-rose-950':'bg-rose-600 border-rose-800'}`}
-        >
-          {isBraking ? t.braking : t.brake}
-        </button>
-      </div>
-
-      {showLang && (
-        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="bg-slate-900 w-full max-w-sm rounded-[32px] p-6 border border-white/10 text-center flex flex-col max-h-[80vh]">
-            <h2 className="text-xl font-black mb-6 uppercase italic flex-none">{t.langHeading}</h2>
-            <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar">
-              {LANGUAGES.map(l => (
-                <button key={l.code} onClick={() => { setLang(l.code); setShowLang(false); }} className={`w-full py-4 rounded-xl font-black flex items-center justify-start px-6 gap-4 transition-all ${lang === l.code ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}>
-                  <span className="text-2xl">{l.flag}</span>
-                  <div className="flex flex-col items-start">
-                    <span className="uppercase tracking-widest text-sm">{l.name}</span>
-                    <span className="text-[10px] text-slate-500 font-bold">{l.currency}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <button onClick={()=>setShowLang(false)} className="mt-6 text-slate-500 text-[10px] font-bold uppercase tracking-widest flex-none">Bağla</button>
-          </div>
-        </div>
-      )}
-
-      {showTopUp && (
-        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="bg-slate-900 w-full max-w-sm rounded-[32px] p-8 border border-white/10 text-center shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-            <h2 className="text-3xl font-black mb-4 uppercase italic bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent animate-pulse tracking-tighter">
-              {t.topUpHeading}
-            </h2>
-            <div className="w-16 h-1 bg-gradient-to-r from-cyan-500 to-emerald-500 mx-auto mb-6 rounded-full" />
-            <p className="text-xs text-slate-300 mb-8 leading-relaxed font-medium">
-              {t.topUpText}
-            </p>
-            <button 
-              onClick={() => window.open(PAYMENT_URL, '_blank')} 
-              className="group relative w-full py-5 bg-[#FFDD00] rounded-2xl text-slate-900 font-black text-lg mb-4 flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(255,221,0,0.3)] hover:scale-[1.03] active:scale-95 transition-all overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12" />
-              <span className="text-2xl">⚡</span> {t.payStripe}
-            </button>
-            <button 
-              onClick={() => setShowTopUp(false)} 
-              className="mt-4 text-slate-500 text-[11px] font-bold uppercase tracking-[0.2em] hover:text-white transition-colors"
-            >
-              Bağla
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showGarage && (
-        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="bg-slate-900 w-full max-w-sm max-h-[70vh] rounded-[32px] border border-white/10 flex flex-col overflow-hidden">
-            <div className="p-6 border-b border-white/5 flex justify-between items-center">
-              <h2 className="text-xl font-black italic uppercase">{t.garage}</h2>
-              <button onClick={()=>setShowGarage(false)} className="text-2xl text-slate-500">✕</button>
-            </div>
-            <div className="p-4 space-y-3 overflow-y-auto">
-              {skins.map(s => (
-                <div key={s.id} className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${activeSkinId===s.id?'bg-cyan-500/10 border-cyan-500/50':'bg-slate-800 border-white/5'}`}>
-                  <div className="w-10 h-6 rounded shadow-sm" style={{backgroundColor:s.color}} />
-                  <span className="font-bold text-xs uppercase">{s.name}</span>
-                  <button onClick={()=>{ if(s.owned) setActiveSkinId(s.id); else if(balance>=s.price){setBalance(b=>b-s.price); setSkins(prev=>prev.map(item=>item.id===s.id?{...item,owned:true}:item)); setActiveSkinId(s.id);} }} className="px-3 py-1.5 bg-cyan-600 rounded-lg text-[9px] font-black uppercase">{s.owned ? (activeSkinId===s.id?'SEÇİLİB':'SEÇ') : `${formatBalance(s.price)}`}</button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+    <div className={`flex flex-col h-[100vh] bg-[#0f172a] text-white overflow-hidden transition-colors ${flashRed?'bg-rose-950':''}`} onMouseDown={initAudio}>
+      <canvas ref={canvasRef} width={LOGICAL_WIDTH} height={LOGICAL_HEIGHT} className="w-full h-full object-contain" />
     </div>
   );
 };

@@ -1,631 +1,569 @@
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { TrafficLightState, Feedback, CarSkin, TrafficCar, Biome, SceneryObject } from './types';
-import { getDrivingAdvice, getSpeechData } from './services/geminiService';
-import { 
-  LOGICAL_WIDTH, LOGICAL_HEIGHT, CAR_WIDTH, CAR_HEIGHT, PLAYER_Y, LANES, 
-  PAYMENT_URL, MOTIVATIONAL_PHRASES, BIOMES, INITIAL_SKINS, LANGUAGES, TRANSLATIONS 
-} from './constants';
-
-const decodeBase64 = (base64: string) => {
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-  return bytes;
-};
-
-const decodeAudioData = async (data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> => {
-  const dataInt16 = new Int16Array(data.buffer);
-  const frameCount = dataInt16.length / numChannels;
-  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
-  for (let channel = 0; channel < numChannels; channel++) {
-    const channelData = buffer.getChannelData(channel);
-    for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
-    }
-  }
-  return buffer;
-};
-
-const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<string | null>(() => localStorage.getItem("activeUser"));
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [authForm, setAuthForm] = useState({ username: '', password: '' });
-  const [balance, setBalance] = useState<number>(() => parseFloat(localStorage.getItem("balance") || "0.30"));
-  const [level, setLevel] = useState(1);
-  const [lang, setLang] = useState(() => localStorage.getItem("gameLang") || 'az');
-  const [isBraking, setIsBraking] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [showGarage, setShowGarage] = useState(false);
-  const [showTopUp, setShowTopUp] = useState(false);
-  const [showLang, setShowLang] = useState(false);
-  const [skins, setSkins] = useState<CarSkin[]>(INITIAL_SKINS);
-  const [activeSkinId, setActiveSkinId] = useState('classic');
-  const [biomeIdx, setBiomeIdx] = useState(0);
-  const [flashRed, setFlashRed] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  const t = TRANSLATIONS[lang] || TRANSLATIONS['en'];
-  const currentLangData = LANGUAGES.find(l => l.code === lang) || LANGUAGES[0];
-
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const engineOscRef = useRef<OscillatorNode | null>(null);
-  const engineGainRef = useRef<GainNode | null>(null);
-  const balanceRef = useRef(balance);
-  const isAdminRef = useRef(isAdmin);
-
-  useEffect(() => {
-    balanceRef.current = balance;
-    localStorage.setItem("balance", balance.toFixed(2));
-  }, [balance]);
-
-  useEffect(() => {
-    localStorage.setItem("gameLang", lang);
-  }, [lang]);
-
-  useEffect(() => {
-    isAdminRef.current = isAdmin;
-  }, [isAdmin]);
-
-  const initAudio = useCallback(() => {
-    if (audioCtxRef.current) return;
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    audioCtxRef.current = ctx;
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(40, ctx.currentTime);
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(150, ctx.currentTime);
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-
-    engineOscRef.current = osc;
-    engineGainRef.current = gain;
-  }, []);
-
-  const playSound = (type: 'crash' | 'point' | 'fine') => {
-    const ctx = audioCtxRef.current;
-    if (!ctx) return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    if (type === 'crash') {
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(150, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-    } else {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(type === 'point' ? 600 : 200, ctx.currentTime);
-      gain.gain.setValueAtTime(0.1, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.2);
-    }
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.4);
-  };
-
-  const triggerFeedback = async (text: string, type: 'success' | 'warning' | 'error', eventKey?: string) => {
-    setFeedback({ text, type });
-    if (type === 'error') {
-      setFlashRed(true);
-      setTimeout(() => setFlashRed(false), 200);
-      playSound('fine');
-    } else if (type === 'success') {
-      playSound('point');
-    }
-
-    if (eventKey || (type === 'success' && Math.random() < 0.3)) {
-      try {
-        const advice = await getDrivingAdvice(lang, [], eventKey || text);
-        const audio = await getSpeechData(advice);
-        if (audio && audioCtxRef.current) {
-          const buffer = await decodeAudioData(decodeBase64(audio), audioCtxRef.current, 24000, 1);
-          const source = audioCtxRef.current.createBufferSource();
-          source.buffer = buffer;
-          source.connect(audioCtxRef.current.destination);
-          source.start();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gemini Traffic Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0f172a;
+            overflow: hidden;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
         }
-      } catch (e) {
-        console.error("AI Assistant error:", e);
-      }
-    }
-    setTimeout(() => setFeedback(null), 3000);
-  };
-
-  useEffect(() => {
-    if (!currentUser || isGameOver) return;
-    const interval = setInterval(() => {
-      if (Math.random() < 0.4) {
-        const phrases = MOTIVATIONAL_PHRASES[lang] || MOTIVATIONAL_PHRASES['en'];
-        const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-        triggerFeedback(randomPhrase, 'success');
-      }
-    }, 25000);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser, isGameOver, lang]);
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameStateRef = useRef({
-    carX: LANES[1] - CAR_WIDTH / 2,
-    targetX: LANES[1] - CAR_WIDTH / 2,
-    stopLineY: -200,
-    trafficLight: TrafficLightState.GREEN,
-    timer: 0,
-    linesOffset: 0,
-    isBraking: false,
-    traffic: [] as (TrafficCar & { crashed?: boolean })[],
-    scenery: [] as SceneryObject[],
-    totalDistance: 0,
-    idCounter: 0,
-    levelPassed: false,
-    fineTimer: 0
-  });
-
-  const update = useCallback(() => {
-    if (!currentUser || showGarage || showTopUp || showLang || isGameOver) return;
-    const state = gameStateRef.current;
-    
-    if (!isAdminRef.current && balanceRef.current <= 0) {
-      setIsGameOver(true);
-      return;
-    }
-
-    const speed = 4 + (level * 0.5);
-    const currentMoveSpeed = state.isBraking ? 0 : speed;
-    state.linesOffset = (state.linesOffset + currentMoveSpeed) % 80;
-    state.totalDistance += currentMoveSpeed;
-
-    if (state.totalDistance > 5000) {
-      state.totalDistance = 0;
-      setBiomeIdx(p => (p + 1) % BIOMES.length);
-    }
-
-    state.carX += (state.targetX - state.carX) * 0.15;
-    state.timer++;
-
-    if (state.timer < 300) state.trafficLight = TrafficLightState.GREEN;
-    else if (state.timer < 450) state.trafficLight = TrafficLightState.YELLOW;
-    else if (state.timer < 950) state.trafficLight = TrafficLightState.RED;
-    else state.timer = 0;
-
-    if (state.totalDistance % 3000 < currentMoveSpeed) {
-      state.stopLineY = -150;
-      state.levelPassed = false;
-      state.fineTimer = 0;
-    }
-
-    if (state.stopLineY > -300) state.stopLineY += currentMoveSpeed;
-
-    if (state.trafficLight === TrafficLightState.RED && state.stopLineY > PLAYER_Y - 50 && state.stopLineY < PLAYER_Y + 100 && !state.levelPassed) {
-      if (!state.isBraking) {
-        state.fineTimer++;
-        if (state.fineTimer > 60) {
-          if (!isAdminRef.current) {
-            setBalance(b => Math.max(0, b - 0.2));
-            triggerFeedback(t.fine + " -0.20", 'error', "Traffic rule violation");
-          } else {
-            triggerFeedback(t.fine + " (Free)", 'warning');
-          }
-          state.levelPassed = true;
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
         }
-      }
-    }
-
-    if (state.stopLineY > PLAYER_Y && state.stopLineY < PLAYER_Y + 20 && !state.levelPassed && state.trafficLight === TrafficLightState.GREEN) {
-      setBalance(b => b + 0.5);
-      triggerFeedback(t.reward + " +0.50", 'success');
-      state.levelPassed = true;
-    }
-
-    if (Math.random() < 0.01 && !state.isBraking) {
-      const lIdx = Math.floor(Math.random() * 3);
-      const colors = ['#e11d48', '#2563eb', '#16a34a', '#ca8a04', '#ffffff', '#000000'];
-      state.traffic.push({ 
-        id: state.idCounter++, 
-        x: LANES[lIdx] - CAR_WIDTH/2, 
-        y: -200, 
-        width: CAR_WIDTH, 
-        height: CAR_HEIGHT, 
-        color: colors[Math.floor(Math.random()*colors.length)], 
-        speed: 2 + Math.random() * 2 
-      });
-    }
-
-    state.traffic.forEach(car => {
-      car.y += car.speed + (state.isBraking ? -speed : 0);
-      if (!car.crashed && state.carX < car.x + CAR_WIDTH && state.carX + CAR_WIDTH > car.x && PLAYER_Y < car.y + CAR_HEIGHT && PLAYER_Y + CAR_HEIGHT > car.y) {
-        car.crashed = true;
-        playSound('crash');
-        if (!isAdminRef.current) {
-          setBalance(b => Math.max(0, b - 1.0));
-          triggerFeedback(t.crash + " -1.00", 'error', "Accident occurred");
-        } else {
-          triggerFeedback(t.crash + " (Free)", 'warning');
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-      }
-    });
+        canvas {
+            image-rendering: pixelated;
+        }
+        @keyframes pulse-custom {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .animate-pulse-slow {
+            animation: pulse-custom 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-    state.traffic = state.traffic.filter(c => c.y < LOGICAL_HEIGHT + 200);
+    <script type="module">
+        import React, { useState, useEffect, useRef, useCallback } from 'https://esm.sh/react@19.0.0';
+        import ReactDOM from 'https://esm.sh/react-dom@19.0.0/client';
+        import { GoogleGenAI, Modality } from "https://esm.sh/@google/genai@1.41.0";
 
-    if (Math.random() < 0.05 && !state.isBraking) {
-      state.scenery.push({ 
-        id: state.idCounter++, 
-        x: Math.random() > 0.5 ? Math.random()*50 : LOGICAL_WIDTH-50-Math.random()*50, 
-        y: -50, 
-        size: 10+Math.random()*20, 
-        color: BIOMES[biomeIdx].accent 
-      });
-    }
+        // --- TYPES & ENUMS ---
+        const TrafficLightState = {
+            GREEN: 'GREEN',
+            YELLOW: 'YELLOW',
+            RED: 'RED'
+        };
 
-    state.scenery.forEach(s => s.y += currentMoveSpeed);
-    state.scenery = state.scenery.filter(s => s.y < LOGICAL_HEIGHT + 50);
+        // --- CONSTANTS ---
+        const LOGICAL_WIDTH = 400;
+        const LOGICAL_HEIGHT = 600;
+        const CAR_WIDTH = 48;
+        const CAR_HEIGHT = 86;
+        const PLAYER_Y = LOGICAL_HEIGHT - 130;
+        const LANES = [100, 200, 300];
+        const PAYMENT_URL = "https://buymeacoffee.com/surwin";
 
-    if (engineGainRef.current) {
-      engineGainRef.current.gain.setTargetAtTime(state.isBraking ? 0.05 : 0.12, audioCtxRef.current!.currentTime, 0.1);
-      engineOscRef.current!.frequency.setTargetAtTime(35 + currentMoveSpeed * 3, audioCtxRef.current!.currentTime, 0.1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser, showGarage, showTopUp, showLang, isGameOver, level, t, lang, biomeIdx]);
+        const MOTIVATIONAL_PHRASES = {
+            az: ["Möhtəşəm!", "Sən bir peşəkarsan!", "Yola davam!", "Əla sürürsən!", "Belə davam et!", "Diqqətli ol!", "Sükan arxasında qal!"],
+            en: ["Awesome!", "You're a pro!", "Keep going!", "Great driving!", "Stay focused!", "Master of the road!", "You got this!"],
+        };
 
-  const drawCar = (ctx: CanvasRenderingContext2D, x: number, y: number, color: string, braking: boolean) => {
-    ctx.save();
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.beginPath();
-    ctx.ellipse(x+CAR_WIDTH/2, y+CAR_HEIGHT/2+4, CAR_WIDTH/2+2, CAR_HEIGHT/2+2, 0, 0, Math.PI*2);
-    ctx.fill();
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    // @ts-ignore
-    ctx.roundRect(x, y, CAR_WIDTH, CAR_HEIGHT, 12);
-    ctx.fill();
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(x+6, y+14, CAR_WIDTH-12, 18);
-    ctx.fillRect(x+6, y+60, CAR_WIDTH-12, 14);
-    ctx.fillStyle = '#fef08a';
-    ctx.fillRect(x+6, y+2, 10, 4);
-    ctx.fillRect(x+CAR_WIDTH-16, y+2, 10, 4);
-    ctx.fillStyle = braking ? '#ef4444' : '#7f1d1d';
-    ctx.fillRect(x+6, y+CAR_HEIGHT-6, 10, 4);
-    ctx.fillRect(x+CAR_WIDTH-16, y+CAR_HEIGHT-6, 10, 4);
-    ctx.restore();
-  };
+        const BIOMES = [
+            { name: "City Streets", ground: "#0f172a", accent: "#334155" },
+            { name: "Forest Road", ground: "#064e3b", accent: "#166534" },
+            { name: "Canyon", ground: "#451a03", accent: "#92400e" }
+        ];
 
-  const draw = useCallback(() => {
-    if (!currentUser) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const state = gameStateRef.current;
-    const biome = BIOMES[biomeIdx];
+        const INITIAL_SKINS = [
+            { id: 'classic', name: 'Classic Blue', color: '#3b82f6', price: 0, owned: true },
+            { id: 'sport', name: 'Sport Red', color: '#ef4444', price: 5.0, owned: false },
+            { id: 'taxi', name: 'Yellow Taxi', color: '#fbbf24', price: 8.0, owned: false },
+            { id: 'noir', name: 'Premium Black', color: '#1e293b', price: 15.0, owned: false },
+        ];
 
-    ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-    ctx.fillStyle = biome.ground;
-    ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+        const LANGUAGES = [
+            { code: 'az', name: 'Azərbaycan', flag: '🇦🇿', currency: 'AZN', rate: 1 },
+            { code: 'en', name: 'English', flag: '🇬🇧', currency: 'USD', rate: 0.59 },
+            { code: 'ru', name: 'Русский', flag: '🇷🇺', currency: 'RUB', rate: 54.4 },
+            { code: 'tr', name: 'Türkçe', flag: '🇹🇷', currency: 'TRY', rate: 20.3 },
+            { code: 'fr', name: 'Français', flag: '🇫🇷', currency: 'EUR', rate: 0.54 },
+            { code: 'de', name: 'Deutsch', flag: '🇩🇪', currency: 'EUR', rate: 0.54 },
+        ];
 
-    ctx.fillStyle = biome.accent + '44';
-    for(let i=0; i<LOGICAL_HEIGHT; i+=50) {
-      ctx.fillRect(0, (i+state.linesOffset)%LOGICAL_HEIGHT, 60, 25);
-      ctx.fillRect(LOGICAL_WIDTH-60, (i+state.linesOffset)%LOGICAL_HEIGHT, 60, 25);
-    }
+        const TRANSLATIONS = {
+            az: {
+                login: "Giriş", register: "Qeydiyyat", username: "İstifadəçi adı", password: "Şifrə",
+                balance: "Balans", brake: "TORMOZ", braking: "DAYANIR...", garage: "QARAJ",
+                topup: "ARTIR", gameOver: "OYUN BİTDİ", balanceFinished: "Davam etmək üçün balans artırın.",
+                restart: "YENİDƏN", topUpHeading: "BALANSIN ARTIR", topUpText: "Təhlükəsiz ödəniş üçün aşağıdakı düyməyə keçid edin.",
+                payStripe: "Balansı Artır (☕)", fine: "CƏRİMƏ!", reward: "MÜKAFAT!", crash: "QƏZA!",
+                langHeading: "DİL SEÇİN", adminMode: "Admin Rejimi", close: "Bağla", selected: "SEÇİLİB",
+                select: "SEÇ", free: "ÖDƏNİŞSİZ"
+            },
+            en: {
+                login: "Login", register: "Register", username: "Username", password: "Password",
+                balance: "Balance", brake: "BRAKE", braking: "BRAKING...", garage: "GARAGE",
+                topup: "ADD", gameOver: "GAME OVER", balanceFinished: "Top up to continue.",
+                restart: "RESTART", topUpHeading: "RECHARGE BALANCE", topUpText: "Follow the link below for secure payment.",
+                payStripe: "Top Up Now (☕)", fine: "FINE!", reward: "REWARD!", crash: "CRASH!",
+                langHeading: "LANGUAGE", adminMode: "Admin Mode", close: "Close", selected: "SELECTED",
+                select: "SELECT", free: "FREE"
+            }
+        };
 
-    state.scenery.forEach(s => {
-      ctx.fillStyle = s.color;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
-      ctx.fill();
-    });
+        // --- GEMINI SERVICE ---
+        const ai = new GoogleGenAI({ apiKey: window.process?.env?.API_KEY || '' });
 
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(60, 0, LOGICAL_WIDTH-120, LOGICAL_HEIGHT);
-    ctx.fillStyle = '#334155';
-    ctx.fillRect(60, 0, 4, LOGICAL_HEIGHT);
-    ctx.fillRect(LOGICAL_WIDTH-64, 0, 4, LOGICAL_HEIGHT);
+        const getDrivingAdvice = async (lang, context, event) => {
+            try {
+                const response = await ai.models.generateContent({
+                    model: 'gemini-3-flash-preview',
+                    contents: `User is playing a traffic simulator. Current event: ${event}. Language: ${lang}. Provide a very short (max 10 words), motivational advice.`,
+                    config: { temperature: 0.8 },
+                });
+                return response.text || "Keep driving!";
+            } catch (error) {
+                return "Stay focused!";
+            }
+        };
 
-    ctx.setLineDash([30, 50]);
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 2;
-    ctx.lineDashOffset = -state.linesOffset;
-    ctx.beginPath();
-    ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT);
-    ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT);
-    ctx.stroke();
-    ctx.setLineDash([]);
+        const getSpeechData = async (text) => {
+            try {
+                const response = await ai.models.generateContent({
+                    model: "gemini-2.5-flash-preview-tts",
+                    contents: [{ parts: [{ text }] }],
+                    config: {
+                        responseModalities: [Modality.AUDIO],
+                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } },
+                    },
+                });
+                return response.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data || null;
+            } catch (error) {
+                return null;
+            }
+        };
 
-    if (state.stopLineY > -50) {
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
-      ctx.fillRect(60, state.stopLineY, LOGICAL_WIDTH-120, 15);
-      ctx.fillStyle = '#0f172a';
-      // @ts-ignore
-      ctx.roundRect(LOGICAL_WIDTH-45, 40, 25, 70, 6);
-      ctx.fill();
+        // --- UTILS ---
+        const decodeBase64 = (base64) => {
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+            return bytes;
+        };
 
-      const drawL = (y: number, c: string, a: boolean) => {
-        ctx.fillStyle = a ? c : '#334155';
-        if(a){ ctx.shadowBlur=12; ctx.shadowColor=c; }
-        ctx.beginPath();
-        ctx.arc(LOGICAL_WIDTH-32.5, y, 8, 0, Math.PI*2);
-        ctx.fill();
-        ctx.shadowBlur=0;
-      };
-      drawL(55, '#ef4444', state.trafficLight === TrafficLightState.RED);
-      drawL(75, '#eab308', state.trafficLight === TrafficLightState.YELLOW);
-      drawL(95, '#22c55e', state.trafficLight === TrafficLightState.GREEN);
-    }
+        const decodeAudioData = async (data, ctx, sampleRate, numChannels) => {
+            const dataInt16 = new Int16Array(data.buffer);
+            const frameCount = dataInt16.length / numChannels;
+            const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+            for (let channel = 0; channel < numChannels; channel++) {
+                const channelData = buffer.getChannelData(channel);
+                for (let i = 0; i < frameCount; i++) channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+            }
+            return buffer;
+        };
 
-    state.traffic.forEach(c => drawCar(ctx, c.x, c.y, c.color, false));
-    drawCar(ctx, state.carX, PLAYER_Y, skins.find(s=>s.id===activeSkinId)!.color, isBraking);
-  }, [currentUser, activeSkinId, skins, biomeIdx, isBraking]);
+        // --- APP COMPONENT ---
+        const App = () => {
+            const [currentUser, setCurrentUser] = useState(() => localStorage.getItem("activeUser"));
+            const [authMode, setAuthMode] = useState('login');
+            const [authForm, setAuthForm] = useState({ username: '', password: '' });
+            const [balance, setBalance] = useState(() => parseFloat(localStorage.getItem("balance") || "0.30"));
+            const [lang, setLang] = useState(() => localStorage.getItem("gameLang") || 'az');
+            const [isBraking, setIsBraking] = useState(false);
+            const [feedback, setFeedback] = useState(null);
+            const [isGameOver, setIsGameOver] = useState(false);
+            const [showGarage, setShowGarage] = useState(false);
+            const [showTopUp, setShowTopUp] = useState(false);
+            const [showLang, setShowLang] = useState(false);
+            const [skins, setSkins] = useState(INITIAL_SKINS);
+            const [activeSkinId, setActiveSkinId] = useState('classic');
+            const [biomeIdx, setBiomeIdx] = useState(0);
+            const [flashRed, setFlashRed] = useState(false);
+            const [isAdmin, setIsAdmin] = useState(false);
 
-  useEffect(() => {
-    let frame: number;
-    const loop = () => {
-      update();
-      draw();
-      frame = requestAnimationFrame(loop);
-    };
-    frame = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(frame);
-  }, [update, draw]);
+            const t = TRANSLATIONS[lang] || TRANSLATIONS['en'];
+            const currentLangData = LANGUAGES.find(l => l.code === lang) || LANGUAGES[0];
 
-  const switchLane = (dir: 'L' | 'R') => {
-    const s = gameStateRef.current;
-    let idx = LANES.indexOf(LANES.find(l => Math.abs(l - CAR_WIDTH/2 - s.targetX) < 10) || LANES[1]);
-    idx = dir === 'L' ? Math.max(0, idx - 1) : Math.min(2, idx + 1);
-    s.targetX = LANES[idx] - CAR_WIDTH/2;
-    playSound('point');
-  };
+            const audioCtxRef = useRef(null);
+            const engineOscRef = useRef(null);
+            const engineGainRef = useRef(null);
+            const balanceRef = useRef(balance);
+            const isAdminRef = useRef(isAdmin);
+            const canvasRef = useRef(null);
 
-  const handleAuth = () => {
-    if(!authForm.username || !authForm.password) return;
-    initAudio();
-    localStorage.setItem("u_"+authForm.username, authForm.password);
-    localStorage.setItem("activeUser", authForm.username);
-    setCurrentUser(authForm.username);
-  };
+            const gameStateRef = useRef({
+                carX: LANES[1] - CAR_WIDTH / 2,
+                targetX: LANES[1] - CAR_WIDTH / 2,
+                stopLineY: -200,
+                trafficLight: TrafficLightState.GREEN,
+                timer: 0,
+                linesOffset: 0,
+                isBraking: false,
+                traffic: [],
+                scenery: [],
+                totalDistance: 0,
+                idCounter: 0,
+                levelPassed: false,
+                fineTimer: 0
+            });
 
-  const reset = () => {
-    if (!isAdmin && balanceRef.current <= 0) {
-      setShowTopUp(true);
-      return;
-    }
-    setLevel(1);
-    setIsGameOver(false);
-    gameStateRef.current.traffic = [];
-    gameStateRef.current.stopLineY = -200;
-    initAudio();
-  };
+            useEffect(() => {
+                balanceRef.current = balance;
+                localStorage.setItem("balance", balance.toFixed(2));
+            }, [balance]);
 
-  const formatBalance = (val: number) => {
-    const converted = val * currentLangData.rate;
-    return `${converted.toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currentLangData.currency}`;
-  };
+            useEffect(() => {
+                localStorage.setItem("gameLang", lang);
+            }, [lang]);
 
-  if (!currentUser) return (
-    <div className="flex h-[100dvh] bg-[#0f172a] items-center justify-center p-8" onMouseDown={initAudio}>
-      <div className="w-full max-w-sm bg-slate-800 border border-white/5 rounded-3xl p-10 shadow-2xl overflow-hidden relative">
-        <div className="absolute top-0 right-0 p-4">
-           <div className="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar no-scrollbar">
-            {LANGUAGES.map(l => (
-              <button 
-                key={l.code} 
-                onClick={() => setLang(l.code)} 
-                className={`flex-none w-8 h-8 rounded-lg flex items-center justify-center text-lg transition-all ${lang === l.code ? 'bg-cyan-600 scale-110' : 'bg-slate-900/50 opacity-40 hover:opacity-80'}`}
-              >
-                {l.flag}
-              </button>
-            ))}
-          </div>
-        </div>
-        <h2 className="text-3xl font-black text-white italic mb-8 uppercase text-center mt-6">
-          {authMode === 'login' ? t.login : t.register}
-        </h2>
-        <div className="space-y-4">
-          <input 
-            type="text" 
-            placeholder={t.username} 
-            className="w-full bg-slate-900 border border-white/5 p-4 rounded-xl text-white outline-none focus:border-cyan-500/50 transition-colors" 
-            onChange={e=>setAuthForm({...authForm, username: e.target.value})} 
-          />
-          <input 
-            type="password" 
-            placeholder={t.password} 
-            className="w-full bg-slate-900 border border-white/5 p-4 rounded-xl text-white outline-none focus:border-cyan-500/50 transition-colors" 
-            onChange={e=>setAuthForm({...authForm, password: e.target.value})} 
-          />
-          <button 
-            onClick={handleAuth} 
-            className="w-full py-4 bg-cyan-600 rounded-xl text-white font-black uppercase tracking-widest transition-transform active:scale-95 shadow-lg shadow-cyan-900/50"
-          >
-            {authMode === 'login' ? t.login : t.register}
-          </button>
-          <button 
-            onClick={()=>setAuthMode(authMode==='login'?'register':'login')} 
-            className="w-full text-xs text-slate-500 font-bold uppercase tracking-wider hover:text-slate-400 transition-colors"
-          >
-            {authMode === 'login' ? "No account? Register" : "Have account? Login"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+            useEffect(() => {
+                isAdminRef.current = isAdmin;
+            }, [isAdmin]);
 
-  return (
-    <div className={`flex flex-col h-[100dvh] bg-[#0f172a] text-white overflow-hidden transition-colors ${flashRed?'bg-rose-950':''}`} onMouseDown={initAudio}>
-      <div className="flex-none p-4 flex justify-between items-center z-50 max-w-lg mx-auto w-full">
-        <div className="bg-slate-900/80 backdrop-blur-xl p-3 rounded-2xl shadow-xl min-w-[140px] relative border border-white/5">
-          <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-0.5 block select-none">
-            {t.balance}
-          </span>
-          <span className="text-xl font-black whitespace-nowrap">{formatBalance(balance)}</span>
-          {isAdmin && (
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-lg shadow-emerald-500/50" />
-          )}
-        </div>
-        <div className="flex gap-2">
-          <button onClick={()=>setShowTopUp(true)} className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center text-lg shadow-xl hover:scale-110 active:scale-90 transition-transform">💳</button>
-          <button onClick={()=>setShowGarage(true)} className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-lg shadow-xl hover:scale-110 active:scale-90 transition-transform">🛒</button>
-          <button onClick={()=>setShowLang(true)} className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-lg shadow-xl hover:scale-110 active:scale-90 transition-transform">{currentLangData.flag}</button>
-          <button onClick={()=>{localStorage.removeItem("activeUser"); setCurrentUser(null);}} className="w-10 h-10 bg-rose-600 rounded-lg flex items-center justify-center text-lg shadow-xl hover:scale-110 active:scale-90 transition-transform">🚪</button>
-        </div>
-      </div>
+            const initAudio = useCallback(() => {
+                if (audioCtxRef.current) return;
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                audioCtxRef.current = ctx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(40, ctx.currentTime);
+                gain.gain.setValueAtTime(0, ctx.currentTime);
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(150, ctx.currentTime);
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                engineOscRef.current = osc;
+                engineGainRef.current = gain;
+            }, []);
 
-      <div className="flex-1 flex items-center justify-center p-2 relative min-h-0 overflow-hidden">
-        <div className="relative w-full h-full max-w-[420px] max-h-[700px] overflow-hidden rounded-[40px] shadow-[0_0_60px_rgba(0,0,0,0.8)] border-8 border-slate-800 bg-slate-900">
-          <canvas ref={canvasRef} width={LOGICAL_WIDTH} height={LOGICAL_HEIGHT} className="w-full h-full object-contain" />
-          <div className="absolute inset-0 flex">
-            <div className="flex-1 active:bg-white/5 transition-colors" onClick={() => switchLane('L')} />
-            <div className="flex-1 active:bg-white/5 transition-colors" onClick={() => switchLane('R')} />
-          </div>
+            const playSound = (type) => {
+                const ctx = audioCtxRef.current;
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                if (type === 'crash') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(150, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+                } else {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(type === 'point' ? 600 : 200, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.2);
+                }
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            };
 
-          {feedback && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[110] pointer-events-none">
-              <div className={`px-6 py-4 rounded-3xl text-lg font-black shadow-2xl border-4 backdrop-blur-2xl animate-bounce whitespace-nowrap ${feedback.type==='success'?'bg-emerald-500/40 border-emerald-400/50 text-emerald-100':'bg-rose-500/40 border-rose-400/50 text-rose-100'}`}>
-                {feedback.text}
-              </div>
-            </div>
-          )}
+            const triggerFeedback = async (text, type, eventKey) => {
+                setFeedback({ text, type });
+                if (type === 'error') {
+                    setFlashRed(true);
+                    setTimeout(() => setFlashRed(false), 200);
+                    playSound('fine');
+                } else if (type === 'success') {
+                    playSound('point');
+                }
+                if (eventKey || (type === 'success' && Math.random() < 0.3)) {
+                    try {
+                        const advice = await getDrivingAdvice(lang, [], eventKey || text);
+                        const audio = await getSpeechData(advice);
+                        if (audio && audioCtxRef.current) {
+                            const buffer = await decodeAudioData(decodeBase64(audio), audioCtxRef.current, 24000, 1);
+                            const source = audioCtxRef.current.createBufferSource();
+                            source.buffer = buffer;
+                            source.connect(audioCtxRef.current.destination);
+                            source.start();
+                        }
+                    } catch (e) {}
+                }
+                setTimeout(() => setFeedback(null), 3000);
+            };
 
-          {isGameOver && (
-            <div className="absolute inset-0 z-[100] bg-slate-950/95 flex flex-col items-center justify-center p-8 text-center backdrop-blur-lg">
-              <h2 className="text-4xl font-black italic mb-4 uppercase text-rose-500 tracking-tighter">{t.gameOver}</h2>
-              <p className="text-slate-300 mb-8 text-sm leading-relaxed max-w-[200px]">{t.balanceFinished}</p>
-              <button onClick={()=>setShowTopUp(true)} className="w-full py-5 bg-cyan-600 rounded-2xl font-black text-lg mb-4 uppercase tracking-widest shadow-lg shadow-cyan-900/50 hover:bg-cyan-500 transition-colors">
-                {t.topup}
-              </button>
-              <button onClick={reset} className={`w-full py-5 rounded-2xl font-black text-lg uppercase tracking-widest transition-all ${(!isAdmin && balance <= 0) ? 'bg-slate-700 text-slate-500 cursor-not-allowed opacity-50' : 'bg-slate-800 text-white hover:bg-slate-700 active:scale-95'}`}>
-                {t.restart}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+            const update = useCallback(() => {
+                if (!currentUser || showGarage || showTopUp || showLang || isGameOver) return;
+                const state = gameStateRef.current;
+                if (!isAdminRef.current && balanceRef.current <= 0) {
+                    setIsGameOver(true);
+                    return;
+                }
+                const speed = 5;
+                const currentMoveSpeed = state.isBraking ? 0 : speed;
+                state.linesOffset = (state.linesOffset + currentMoveSpeed) % 80;
+                state.totalDistance += currentMoveSpeed;
 
-      <div className="flex-none px-6 pb-12 pt-4 max-w-lg mx-auto w-full z-50">
-        <button 
-          onMouseDown={()=>{setIsBraking(true); gameStateRef.current.isBraking=true; initAudio();}} 
-          onMouseUp={()=>{setIsBraking(false); gameStateRef.current.isBraking=false;}} 
-          onTouchStart={(e)=>{e.preventDefault(); setIsBraking(true); gameStateRef.current.isBraking=true; initAudio();}} 
-          onTouchEnd={(e)=>{e.preventDefault(); setIsBraking(false); gameStateRef.current.isBraking=false;}} 
-          className={`w-full py-8 rounded-[32px] text-3xl font-black shadow-2xl border-b-[12px] active:translate-y-2 active:border-b-0 transition-all ${isBraking?'bg-rose-700 border-rose-950':'bg-rose-600 border-rose-800'}`}
-        >
-          {isBraking ? t.braking : t.brake}
-        </button>
-      </div>
+                if (state.totalDistance > 5000) {
+                    state.totalDistance = 0;
+                    setBiomeIdx(p => (p + 1) % BIOMES.length);
+                }
 
-      {showLang && (
-        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowLang(false)}>
-          <div className="bg-slate-900 w-full max-w-sm rounded-[40px] p-8 border border-white/10 text-center flex flex-col max-h-[80vh] relative shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h2 className="text-2xl font-black mb-8 uppercase italic flex-none tracking-tight">{t.langHeading}</h2>
-            <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar flex-grow no-scrollbar">
-              {LANGUAGES.map(l => (
-                <button 
-                  key={l.code} 
-                  onClick={() => { setLang(l.code); setShowLang(false); }} 
-                  className={`w-full py-5 rounded-3xl font-black flex items-center justify-start px-8 gap-6 transition-all border-2 ${lang === l.code ? 'bg-cyan-600 border-cyan-400 text-white scale-105' : 'bg-slate-800 border-white/5 text-slate-300 hover:bg-slate-700'}`}
-                >
-                  <span className="text-3xl">{l.flag}</span>
-                  <div className="flex flex-col items-start">
-                    <span className="uppercase tracking-widest text-base leading-none">{l.name}</span>
-                    <span className="text-[11px] text-slate-500 font-black mt-1 uppercase opacity-60">{l.currency}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className="mt-8 flex flex-col items-center gap-4">
-              <button onClick={()=>setShowLang(false)} className="px-8 py-3 bg-slate-800 rounded-2xl text-slate-400 text-xs font-black uppercase tracking-widest hover:text-white transition-colors">
-                {t.close}
-              </button>
-              <div className="w-full flex justify-end">
-                <div onClick={() => { 
-                  setIsAdmin(!isAdmin); 
-                  playSound('point'); 
-                  if (!isAdmin) setBalance(b => b + 50); 
-                }} className="w-3 h-3 bg-white/5 rounded-full cursor-pointer hover:bg-white/20 transition-colors" />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+                state.carX += (state.targetX - state.carX) * 0.15;
+                state.timer++;
 
-      {showTopUp && (
-        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowTopUp(false)}>
-          <div className="bg-slate-900 w-full max-w-sm rounded-[40px] p-10 border border-white/10 text-center shadow-[0_0_80px_rgba(0,0,0,0.8)]" onClick={e => e.stopPropagation()}>
-            <h2 className="text-4xl font-black mb-4 uppercase italic bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent animate-pulse tracking-tighter">
-              {t.topUpHeading}
-            </h2>
-            <div className="w-20 h-1.5 bg-gradient-to-r from-cyan-500 to-emerald-500 mx-auto mb-8 rounded-full" />
-            <p className="text-sm text-slate-300 mb-10 leading-relaxed font-bold opacity-80 uppercase tracking-wide">
-              {t.topUpText}
-            </p>
-            <button 
-              onClick={() => window.open(PAYMENT_URL, '_blank')} 
-              className="group relative w-full py-6 bg-[#FFDD00] rounded-3xl text-slate-900 font-black text-xl mb-4 flex items-center justify-center gap-4 shadow-[0_20px_40px_rgba(255,221,0,0.2)] hover:scale-[1.05] active:scale-95 transition-all overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-white/30 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12" />
-              <span className="text-3xl">⚡</span> 
-              {t.payStripe}
-            </button>
-            <button onClick={() => setShowTopUp(false)} className="mt-6 text-slate-500 text-xs font-black uppercase tracking-[0.3em] hover:text-white transition-colors">
-              {t.close}
-            </button>
-          </div>
-        </div>
-      )}
+                if (state.timer < 300) state.trafficLight = TrafficLightState.GREEN;
+                else if (state.timer < 450) state.trafficLight = TrafficLightState.YELLOW;
+                else if (state.timer < 950) state.trafficLight = TrafficLightState.RED;
+                else state.timer = 0;
 
-      {showGarage && (
-        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowGarage(false)}>
-          <div className="bg-slate-900 w-full max-w-md max-h-[85vh] rounded-[48px] border border-white/10 flex flex-col overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="p-8 border-b border-white/5 flex justify-between items-center">
-              <h2 className="text-3xl font-black italic uppercase tracking-tighter text-cyan-400">{t.garage}</h2>
-              <button onClick={()=>setShowGarage(false)} className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-xl hover:bg-rose-600 transition-colors">✕</button>
-            </div>
-            <div className="p-6 space-y-4 overflow-y-auto no-scrollbar">
-              {skins.map(s => (
-                <div key={s.id} className={`flex items-center justify-between p-5 rounded-[32px] border-2 transition-all ${activeSkinId===s.id?'bg-cyan-500/10 border-cyan-500/50 scale-[1.02] shadow-xl shadow-cyan-900/20':'bg-slate-800/50 border-white/5'}`}>
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-10 rounded-xl shadow-inner border border-white/10" style={{backgroundColor:s.color}} />
-                    <div className="flex flex-col">
-                      <span className="font-black text-sm uppercase tracking-wider">{s.name}</span>
-                      {!s.owned && <span className="text-[10px] font-black text-slate-500 uppercase mt-1">LOCKED</span>}
-                    </div>
-                  </div>
-                  <button 
-                    onClick={()=>{ 
-                      if(s.owned) setActiveSkinId(s.id); 
-                      else if(balance>=s.price || isAdmin){
-                        setBalance(b=>isAdmin?b:b-s.price); 
-                        setSkins(prev=>prev.map(item=>item.id===s.id?{...item,owned:true}:item)); 
-                        setActiveSkinId(s.id);
-                        playSound('point');
-                      }
-                    }} 
-                    className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${s.owned ? (activeSkinId===s.id?'bg-emerald-500 text-white cursor-default':'bg-slate-700 text-slate-300 hover:bg-slate-600') : (balance >= s.price || isAdmin ? 'bg-cyan-600 text-white hover:bg-cyan-500' : 'bg-slate-900 text-slate-600 cursor-not-allowed')}`}
-                  >
-                    {s.owned ? (activeSkinId===s.id?t.selected:t.select) : (isAdmin ? t.free : formatBalance(s.price))}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+                if (state.totalDistance % 3000 < currentMoveSpeed) {
+                    state.stopLineY = -150;
+                    state.levelPassed = false;
+                    state.fineTimer = 0;
+                }
+                if (state.stopLineY > -300) state.stopLineY += currentMoveSpeed;
 
-export default App;
+                if (state.trafficLight === TrafficLightState.RED && state.stopLineY > PLAYER_Y - 50 && state.stopLineY < PLAYER_Y + 100 && !state.levelPassed) {
+                    if (!state.isBraking) {
+                        state.fineTimer++;
+                        if (state.fineTimer > 60) {
+                            if (!isAdminRef.current) {
+                                setBalance(b => Math.max(0, b - 0.2));
+                                triggerFeedback(t.fine + " -0.20", 'error', "Violation");
+                            } else {
+                                triggerFeedback(t.fine + " (Free)", 'warning');
+                            }
+                            state.levelPassed = true;
+                        }
+                    }
+                }
+
+                if (state.stopLineY > PLAYER_Y && state.stopLineY < PLAYER_Y + 20 && !state.levelPassed && state.trafficLight === TrafficLightState.GREEN) {
+                    setBalance(b => b + 0.5);
+                    triggerFeedback(t.reward + " +0.50", 'success');
+                    state.levelPassed = true;
+                }
+
+                if (Math.random() < 0.01 && !state.isBraking) {
+                    const lIdx = Math.floor(Math.random() * 3);
+                    const colors = ['#e11d48', '#2563eb', '#16a34a', '#ffffff', '#000000'];
+                    state.traffic.push({ id: state.idCounter++, x: LANES[lIdx] - CAR_WIDTH/2, y: -200, width: CAR_WIDTH, height: CAR_HEIGHT, color: colors[Math.floor(Math.random()*colors.length)], speed: 2 + Math.random() * 2 });
+                }
+
+                state.traffic.forEach(car => {
+                    car.y += car.speed + (state.isBraking ? -speed : 0);
+                    if (!car.crashed && state.carX < car.x + CAR_WIDTH && state.carX + CAR_WIDTH > car.x && PLAYER_Y < car.y + CAR_HEIGHT && PLAYER_Y + CAR_HEIGHT > car.y) {
+                        car.crashed = true;
+                        playSound('crash');
+                        if (!isAdminRef.current) {
+                            setBalance(b => Math.max(0, b - 1.0));
+                            triggerFeedback(t.crash + " -1.00", 'error', "Accident");
+                        } else {
+                            triggerFeedback(t.crash + " (Free)", 'warning');
+                        }
+                    }
+                });
+                state.traffic = state.traffic.filter(c => c.y < LOGICAL_HEIGHT + 200);
+
+                if (Math.random() < 0.05 && !state.isBraking) {
+                    state.scenery.push({ id: state.idCounter++, x: Math.random() > 0.5 ? Math.random()*50 : LOGICAL_WIDTH-50-Math.random()*50, y: -50, size: 10+Math.random()*20, color: BIOMES[biomeIdx].accent });
+                }
+                state.scenery.forEach(s => s.y += currentMoveSpeed);
+                state.scenery = state.scenery.filter(s => s.y < LOGICAL_HEIGHT + 50);
+
+                if (engineGainRef.current) {
+                    engineGainRef.current.gain.setTargetAtTime(state.isBraking ? 0.05 : 0.12, audioCtxRef.current.currentTime, 0.1);
+                    engineOscRef.current.frequency.setTargetAtTime(35 + currentMoveSpeed * 3, audioCtxRef.current.currentTime, 0.1);
+                }
+            }, [currentUser, showGarage, showTopUp, showLang, isGameOver, t, lang, biomeIdx]);
+
+            const drawCar = (ctx, x, y, color, braking) => {
+                ctx.save();
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.beginPath();
+                ctx.ellipse(x+CAR_WIDTH/2, y+CAR_HEIGHT/2+4, CAR_WIDTH/2+2, CAR_HEIGHT/2+2, 0, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                if (ctx.roundRect) ctx.roundRect(x, y, CAR_WIDTH, CAR_HEIGHT, 12); else ctx.rect(x,y,CAR_WIDTH,CAR_HEIGHT);
+                ctx.fill();
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillRect(x+6, y+14, CAR_WIDTH-12, 18);
+                ctx.fillRect(x+6, y+60, CAR_WIDTH-12, 14);
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(x+6, y+2, 10, 4);
+                ctx.fillRect(x+CAR_WIDTH-16, y+2, 10, 4);
+                ctx.fillStyle = braking ? '#ef4444' : '#7f1d1d';
+                ctx.fillRect(x+6, y+CAR_HEIGHT-6, 10, 4);
+                ctx.fillRect(x+CAR_WIDTH-16, y+CAR_HEIGHT-6, 10, 4);
+                ctx.restore();
+            };
+
+            const draw = useCallback(() => {
+                if (!currentUser) return;
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+                const state = gameStateRef.current;
+                const biome = BIOMES[biomeIdx];
+                ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+                ctx.fillStyle = biome.ground;
+                ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+                ctx.fillStyle = biome.accent + '44';
+                for(let i=0; i<LOGICAL_HEIGHT; i+=50) {
+                    ctx.fillRect(0, (i+state.linesOffset)%LOGICAL_HEIGHT, 60, 25);
+                    ctx.fillRect(LOGICAL_WIDTH-60, (i+state.linesOffset)%LOGICAL_HEIGHT, 60, 25);
+                }
+                state.scenery.forEach(s => {
+                    ctx.fillStyle = s.color;
+                    ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
+                });
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(60, 0, LOGICAL_WIDTH-120, LOGICAL_HEIGHT);
+                ctx.setLineDash([30, 50]);
+                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                ctx.lineWidth = 2;
+                ctx.lineDashOffset = -state.linesOffset;
+                ctx.beginPath();
+                ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT);
+                ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                if (state.stopLineY > -50) {
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                    ctx.fillRect(60, state.stopLineY, LOGICAL_WIDTH-120, 15);
+                    ctx.fillStyle = '#0f172a';
+                    if (ctx.roundRect) ctx.roundRect(LOGICAL_WIDTH-45, 40, 25, 70, 6); else ctx.rect(LOGICAL_WIDTH-45, 40, 25, 70);
+                    ctx.fill();
+                    const drawL = (y, c, a) => {
+                        ctx.fillStyle = a ? c : '#334155';
+                        if(a){ ctx.shadowBlur=12; ctx.shadowColor=c; }
+                        ctx.beginPath(); ctx.arc(LOGICAL_WIDTH-32.5, y, 8, 0, Math.PI*2); ctx.fill();
+                        ctx.shadowBlur=0;
+                    };
+                    drawL(55, '#ef4444', state.trafficLight === TrafficLightState.RED);
+                    drawL(75, '#eab308', state.trafficLight === TrafficLightState.YELLOW);
+                    drawL(95, '#22c55e', state.trafficLight === TrafficLightState.GREEN);
+                }
+                state.traffic.forEach(c => drawCar(ctx, c.x, c.y, c.color, false));
+                drawCar(ctx, state.carX, PLAYER_Y, skins.find(s=>s.id===activeSkinId).color, isBraking);
+            }, [currentUser, activeSkinId, skins, biomeIdx, isBraking]);
+
+            useEffect(() => {
+                let frame;
+                const loop = () => { update(); draw(); frame = requestAnimationFrame(loop); };
+                frame = requestAnimationFrame(loop);
+                return () => cancelAnimationFrame(frame);
+            }, [update, draw]);
+
+            const switchLane = (dir) => {
+                const s = gameStateRef.current;
+                let idx = LANES.indexOf(LANES.find(l => Math.abs(l - CAR_WIDTH/2 - s.targetX) < 10) || LANES[1]);
+                idx = dir === 'L' ? Math.max(0, idx - 1) : Math.min(2, idx + 1);
+                s.targetX = LANES[idx] - CAR_WIDTH/2;
+                playSound('point');
+            };
+
+            const handleAuth = () => {
+                if(!authForm.username || !authForm.password) return;
+                initAudio();
+                localStorage.setItem("activeUser", authForm.username);
+                setCurrentUser(authForm.username);
+            };
+
+            const reset = () => {
+                if (!isAdmin && balanceRef.current <= 0) { setShowTopUp(true); return; }
+                setIsGameOver(false);
+                gameStateRef.current.traffic = [];
+                gameStateRef.current.stopLineY = -200;
+                initAudio();
+            };
+
+            const formatBalance = (val) => {
+                const converted = val * currentLangData.rate;
+                return `${converted.toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currentLangData.currency}`;
+            };
+
+            if (!currentUser) return React.createElement('div', { className: "flex h-[100dvh] bg-[#0f172a] items-center justify-center p-8", onMouseDown: initAudio },
+                React.createElement('div', { className: "w-full max-w-sm bg-slate-800 border border-white/5 rounded-3xl p-10 shadow-2xl relative" },
+                    React.createElement('div', { className: "absolute top-0 right-0 p-4 flex gap-1" },
+                        LANGUAGES.map(l => React.createElement('button', { key: l.code, onClick: () => setLang(l.code), className: `w-8 h-8 rounded-lg text-lg ${lang === l.code ? 'bg-cyan-600 scale-110' : 'opacity-40'}` }, l.flag))
+                    ),
+                    React.createElement('h2', { className: "text-3xl font-black text-white italic mb-8 uppercase text-center mt-6" }, authMode === 'login' ? t.login : t.register),
+                    React.createElement('div', { className: "space-y-4" },
+                        React.createElement('input', { type: "text", placeholder: t.username, className: "w-full bg-slate-900 border border-white/5 p-4 rounded-xl text-white outline-none", onChange: e => setAuthForm({ ...authForm, username: e.target.value }) }),
+                        React.createElement('input', { type: "password", placeholder: t.password, className: "w-full bg-slate-900 border border-white/5 p-4 rounded-xl text-white outline-none", onChange: e => setAuthForm({ ...authForm, password: e.target.value }) }),
+                        React.createElement('button', { onClick: handleAuth, className: "w-full py-4 bg-cyan-600 rounded-xl text-white font-black uppercase tracking-widest active:scale-95" }, authMode === 'login' ? t.login : t.register),
+                        React.createElement('button', { onClick: () => setAuthMode(authMode === 'login' ? 'register' : 'login'), className: "w-full text-xs text-slate-500 font-bold uppercase" }, authMode === 'login' ? "Register" : "Login")
+                    )
+                )
+            );
+
+            return React.createElement('div', { className: `flex flex-col h-[100dvh] bg-[#0f172a] text-white overflow-hidden ${flashRed?'bg-rose-950':''}`, onMouseDown: initAudio },
+                React.createElement('div', { className: "p-4 flex justify-between items-center z-50 max-w-lg mx-auto w-full" },
+                    React.createElement('div', { className: "bg-slate-900/80 p-3 rounded-2xl border border-white/5" },
+                        React.createElement('span', { className: "text-[10px] font-black text-cyan-400 block" }, t.balance),
+                        React.createElement('span', { className: "text-xl font-black" }, formatBalance(balance)),
+                        isAdmin && React.createElement('div', { className: "absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full animate-pulse" })
+                    ),
+                    React.createElement('div', { className: "flex gap-2" },
+                        React.createElement('button', { onClick: () => setShowTopUp(true), className: "w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center" }, '💳'),
+                        React.createElement('button', { onClick: () => setShowGarage(true), className: "w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center" }, '🛒'),
+                        React.createElement('button', { onClick: () => setShowLang(true), className: "w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center" }, currentLangData.flag),
+                        React.createElement('button', { onClick: () => { localStorage.removeItem("activeUser"); setCurrentUser(null); }, className: "w-10 h-10 bg-rose-600 rounded-lg flex items-center justify-center" }, '🚪')
+                    )
+                ),
+                React.createElement('div', { className: "flex-1 flex items-center justify-center p-2 relative" },
+                    React.createElement('div', { className: "relative w-full h-full max-w-[420px] max-h-[700px] overflow-hidden rounded-[40px] border-8 border-slate-800 bg-slate-900" },
+                        React.createElement('canvas', { ref: canvasRef, width: LOGICAL_WIDTH, height: LOGICAL_HEIGHT, className: "w-full h-full object-contain" }),
+                        React.createElement('div', { className: "absolute inset-0 flex" },
+                            React.createElement('div', { className: "flex-1 active:bg-white/5", onClick: () => switchLane('L') }),
+                            React.createElement('div', { className: "flex-1 active:bg-white/5", onClick: () => switchLane('R') })
+                        ),
+                        feedback && React.createElement('div', { className: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[110]" },
+                            React.createElement('div', { className: `px-6 py-4 rounded-3xl text-lg font-black border-4 bg-slate-900/40 text-white` }, feedback.text)
+                        ),
+                        isGameOver && React.createElement('div', { className: "absolute inset-0 z-[100] bg-slate-950/95 flex flex-col items-center justify-center p-8 text-center" },
+                            React.createElement('h2', { className: "text-4xl font-black uppercase text-rose-500 mb-4" }, t.gameOver),
+                            React.createElement('button', { onClick: () => setShowTopUp(true), className: "w-full py-5 bg-cyan-600 rounded-2xl mb-4 font-black" }, t.topup),
+                            React.createElement('button', { onClick: reset, className: "w-full py-5 bg-slate-800 rounded-2xl font-black" }, t.restart)
+                        )
+                    )
+                ),
+                React.createElement('div', { className: "px-6 pb-12 pt-4 max-w-lg mx-auto w-full z-50" },
+                    React.createElement('button', {
+                        onMouseDown: () => { setIsBraking(true); gameStateRef.current.isBraking = true; initAudio(); },
+                        onMouseUp: () => { setIsBraking(false); gameStateRef.current.isBraking = false; },
+                        className: `w-full py-8 rounded-[32px] text-3xl font-black shadow-2xl border-b-[12px] transition-all ${isBraking ? 'bg-rose-700 border-rose-950 translate-y-2 border-b-0' : 'bg-rose-600 border-rose-800'}`
+                    }, isBraking ? t.braking : t.brake)
+                ),
+                showLang && React.createElement('div', { className: "fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-6" },
+                    React.createElement('div', { className: "bg-slate-900 w-full max-w-sm rounded-[40px] p-8" },
+                        React.createElement('h2', { className: "text-2xl font-black mb-6 uppercase text-center" }, t.langHeading),
+                        React.createElement('div', { className: "space-y-2" }, LANGUAGES.map(l => React.createElement('button', { key: l.code, onClick: () => { setLang(l.code); setShowLang(false); }, className: `w-full py-4 rounded-2xl flex items-center px-6 gap-4 ${lang === l.code ? 'bg-cyan-600' : 'bg-slate-800'}` }, React.createElement('span', { className: "text-2xl" }, l.flag), l.name))),
+                        React.createElement('button', { onClick: () => setShowLang(false), className: "mt-6 w-full text-slate-500 uppercase font-black" }, t.close),
+                        React.createElement('div', { className: "flex justify-end mt-4" }, React.createElement('div', { onClick: () => { setIsAdmin(!isAdmin); if(!isAdmin) setBalance(b => b+50); }, className: "w-2 h-2 opacity-10 bg-white" }))
+                    )
+                ),
+                showTopUp && React.createElement('div', { className: "fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-6" },
+                    React.createElement('div', { className: "bg-slate-900 w-full max-w-sm rounded-[40px] p-10 text-center" },
+                        React.createElement('h2', { className: "text-3xl font-black mb-4 uppercase text-cyan-400" }, t.topUpHeading),
+                        React.createElement('p', { className: "text-sm text-slate-300 mb-8" }, t.topUpText),
+                        React.createElement('button', { onClick: () => window.open(PAYMENT_URL, '_blank'), className: "w-full py-5 bg-[#FFDD00] rounded-3xl text-slate-900 font-black text-xl mb-4" }, t.payStripe),
+                        React.createElement('button', { onClick: () => setShowTopUp(false), className: "text-slate-500 uppercase font-black" }, t.close)
+                    )
+                ),
+                showGarage && React.createElement('div', { className: "fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-6" },
+                    React.createElement('div', { className: "bg-slate-900 w-full max-w-md rounded-[48px] p-8" },
+                        React.createElement('h2', { className: "text-2xl font-black mb-6 uppercase text-cyan-400" }, t.garage),
+                        React.createElement('div', { className: "space-y-3" }, skins.map(s => React.createElement('div', { key: s.id, className: `flex items-center justify-between p-4 rounded-3xl ${activeSkinId === s.id ? 'bg-cyan-600/20' : 'bg-slate-800'}` },
+                            React.createElement('div', { className: "w-10 h-6 rounded-lg", style: { backgroundColor: s.color } }),
+                            React.createElement('span', { className: "font-black" }, s.name),
+                            React.createElement('button', { onClick: () => { if(s.owned) setActiveSkinId(s.id); else if(balance >= s.price || isAdmin) { setBalance(b => isAdmin ? b : b-s.price); setSkins(prev => prev.map(item => item.id === s.id ? { ...item, owned: true } : item)); setActiveSkinId(s.id); } }, className: "px-4 py-2 bg-cyan-600 rounded-xl font-black text-[10px]" }, s.owned ? (activeSkinId === s.id ? t.selected : t.select) : (isAdmin ? t.free : formatBalance(s.price)))
+                        ))),
+                        React.createElement('button', { onClick: () => setShowGarage(false), className: "mt-6 w-full text-slate-500 uppercase font-black" }, t.close)
+                    )
+                )
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>

@@ -1,62 +1,93 @@
+import React, { useState, useEffect, useRef } from 'react';
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Road Master Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: white;
-            margin: 0;
-            overflow: hidden;
-        }
-        .font-orbitron {
-            font-family: 'Orbitron', sans-serif;
-        }
-        /* Custom perspectives and game animations */
-        .perspective-container {
-            perspective: 800px;
-            overflow: hidden;
-        }
-        .road-plane {
-            transform: rotateX(65deg);
-            transform-origin: bottom;
-            background: linear-gradient(to bottom, #1e293b 0%, #0f172a 100%);
-        }
-        @keyframes road-line-move {
-            0% { background-position: 0 0; }
-            100% { background-position: 0 100%; }
-        }
-        .moving-road {
-            background-image: 
-                linear-gradient(90deg, transparent 48%, #cbd5e1 48%, #cbd5e1 52%, transparent 52%),
-                linear-gradient(transparent 0%, transparent 40%, #cbd5e1 40%, #cbd5e1 60%, transparent 60%);
-            background-size: 100% 100%, 100% 80px;
-            animation: road-line-move 0.5s linear infinite;
-        }
-        .glass {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-    </style>
-<script type="importmap">
-{
-  "imports": {
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "react": "https://esm.sh/react@^19.2.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.41.0"
-  }
-}
-</script>
-</head>
-<body>
-    <div id="root"></div>
-</body>
-</html>
+const PAYMENT_URL = "https://buymeacoffee.com/surwin";
+
+const LANGUAGES = [
+  { code: 'az', name: 'Azərbaycan', flag: '🇦🇿', currency: 'AZN', rate: 1 },
+  { code: 'en', name: 'English', flag: '🇬🇧', currency: 'USD', rate: 0.59 },
+  { code: 'ru', name: 'Русский', flag: '🇷🇺', currency: 'RUB', rate: 54.4 },
+];
+
+const TRANSLATIONS: Record<string, any> = {
+  az: {
+    balance: "Balans",
+    topUpHeading: "BALANSIN ARTIR",
+    topUpText: "Təhlükəsiz ödəniş üçün düyməyə keçid edin.",
+    payStripe: "Balansı Artır (☕)",
+    demoBalance: "Demo Balans",
+  },
+  en: {
+    balance: "Balance",
+    topUpHeading: "RECHARGE BALANCE",
+    topUpText: "Click the button below for secure payment.",
+    payStripe: "Top Up Now (☕)",
+    demoBalance: "Demo Balance",
+  },
+  ru: {
+    balance: "Баланс",
+    topUpHeading: "ПОПОЛНИТЬ БАЛАНС",
+    topUpText: "Нажмите кнопку ниже для безопасной оплаты.",
+    payStripe: "Пополнить (☕)",
+    demoBalance: "Демо Баланс",
+  },
+};
+
+const App: React.FC = () => {
+  const [balance, setBalance] = useState<number>(0); // başlanğıc 0
+  const [lang, setLang] = useState<string>('az');
+  const [showTopUp, setShowTopUp] = useState(true);
+
+  const t = TRANSLATIONS[lang];
+
+  const formatBalance = (val: number) => {
+    const curr = LANGUAGES.find(l => l.code === lang)?.currency || 'AZN';
+    return `${val.toFixed(2)} ${curr}`;
+  };
+
+  const handleDemoBalance = () => {
+    setBalance(10); // Demo balans artırma
+    setShowTopUp(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center text-white p-4">
+      <div className="flex gap-2 mb-4">
+        {LANGUAGES.map(l => (
+          <button key={l.code} onClick={() => setLang(l.code)} className="text-2xl">{l.flag}</button>
+        ))}
+      </div>
+
+      <div className="bg-slate-900 p-4 rounded-xl w-full max-w-sm text-center shadow-lg">
+        <h1 className="text-xl font-bold mb-2">{t.balance}</h1>
+        <p className="text-2xl font-extrabold">{formatBalance(balance)}</p>
+      </div>
+
+      {showTopUp && (
+        <div className="mt-6 bg-slate-800 p-6 rounded-2xl w-full max-w-sm shadow-xl text-center">
+          <h2 className="text-lg font-black mb-2">{t.topUpHeading}</h2>
+          <p className="text-sm text-gray-300 mb-4">{t.topUpText}</p>
+          <button
+            onClick={() => window.open(PAYMENT_URL, "_blank")}
+            className="bg-yellow-400 text-black font-bold px-6 py-3 rounded-lg mb-2 hover:scale-105 transition-transform"
+          >
+            {t.payStripe}
+          </button>
+          <button
+            onClick={handleDemoBalance}
+            className="text-sm text-gray-400 underline hover:text-white"
+          >
+            {t.demoBalance}
+          </button>
+        </div>
+      )}
+
+      {!showTopUp && (
+        <div className="mt-6 text-center">
+          <p className="text-green-400 font-bold text-lg">Oyun artıq başlayır! 🎮</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;

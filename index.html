@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Premium Drive - Master UI</title>
+    <title>Premium Drive - LocalStorage Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="importmap">
@@ -25,8 +25,6 @@
         .neon-emerald { text-shadow: 0 0 10px rgba(16, 185, 129, 0.8); }
         .neon-rose { text-shadow: 0 0 10px rgba(244, 63, 94, 0.8); }
         .neon-box-cyan { box-shadow: 0 0 20px rgba(34, 211, 238, 0.15); }
-        
-        /* Tormoz düyməsi üçün xüsusi kölgə */
         .brake-shadow { box-shadow: 0 0 30px rgba(225, 29, 72, 0.5); }
     </style>
 </head>
@@ -37,7 +35,7 @@
             <div class="absolute -top-10 -left-10 w-32 h-32 bg-cyan-500/20 rounded-full blur-[40px]"></div>
             
             <h1 class="text-3xl font-black text-white italic mb-2 tracking-tighter neon-cyan relative z-10">PREMIUM DRIVE</h1>
-            <p class="text-slate-400 text-sm mb-8 relative z-10"><span id="lbl_loginBalance">Balans:</span> <span id="loginBalanceText" class="font-bold text-cyan-400 neon-cyan">0.00 AZN</span></p>
+            <p class="text-slate-400 text-sm mb-8 relative z-10"><span id="lbl_loginBalance">Balans:</span> <span id="loginBalanceText" class="font-bold text-cyan-400 neon-cyan">0.30 AZN</span></p>
             
             <button id="loginBtn" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all relative z-10">
                 Oyuna Başla
@@ -54,7 +52,7 @@
             <div class="flex gap-2">
                 <div class="glass-panel p-2 px-4 rounded-[20px] transition-all" id="balanceBox">
                     <p id="lbl_hudBalance" class="text-[9px] font-black text-cyan-400 uppercase tracking-[2px] mb-0.5 opacity-80">Balans</p>
-                    <p id="balanceText" class="text-base font-black neon-cyan">0.00 AZN</p>
+                    <p id="balanceText" class="text-base font-black neon-cyan">0.30 AZN</p>
                 </div>
                 <div class="glass-panel p-2 px-4 rounded-[20px]">
                     <p id="lbl_hudDistance" class="text-[9px] font-black text-emerald-400 uppercase tracking-[2px] mb-0.5 opacity-80">Məsafə</p>
@@ -232,7 +230,7 @@
         }
 
         // ==========================================
-        // OYUN DƏYİŞƏNLƏRİ 
+        // OYUN DƏYİŞƏNLƏRİ & LOCALSTORAGE 
         // ==========================================
         const LOGICAL_WIDTH = 400; const LOGICAL_HEIGHT = 600;
         const CAR_WIDTH = 48; const CAR_HEIGHT = 86; const PLAYER_Y = LOGICAL_HEIGHT - 130;
@@ -245,7 +243,12 @@
         ];
 
         let isGameRunning = false; let isBraking = false; let isGameOver = false;
-        let balance = 0.00; let score = 0; let trafficCars = []; let speedMultiplier = 1; 
+        
+        // BALANS SİSTEMİ (LocalStorage İnteqrasiyası)
+        let savedBalance = localStorage.getItem('premiumDriveBalance');
+        let balance = savedBalance !== null ? parseFloat(savedBalance) : 0.30;
+        
+        let score = 0; let trafficCars = []; let speedMultiplier = 1; 
         let currentBiome = 0; let animatedPopups = []; 
         let gameState = { carX: LANES[1] - CAR_WIDTH / 2, targetX: LANES[1] - CAR_WIDTH / 2, linesOffset: 0 };
         let trafficLight = { active: false, y: -200, state: 'GREEN', timer: 0, passed: false };
@@ -253,6 +256,9 @@
         const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
 
         function updateUI() {
+            // Balansı hər dəyişiklikdə LocalStorage-ə yazırıq
+            localStorage.setItem('premiumDriveBalance', balance.toFixed(4));
+            
             const info = LANGUAGES[currentLang];
             const formatted = `${(balance * info.rate).toFixed(2)} ${info.currency}`;
             document.getElementById('balanceText').innerText = formatted;
@@ -370,7 +376,6 @@
             gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80;
             gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
 
-            // Svetofor Sistemi
             if (!trafficLight.active && Math.random() < 0.003 && score > 50) {
                 trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false;
                 trafficLight.timer = 300; trafficLight.state = 'GREEN';
@@ -395,6 +400,7 @@
                         spawnPopup("+0.50", "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
                         getDrivingAdvice("Yaşıl işıq bonusu!");
                     }
+                    updateUI(); // Balans dəyişdi, yaddaşa yaz
                     if (balance <= 0) { balance = 0; gameOver('balance'); }
                 }
                 if (trafficLight.y > LOGICAL_HEIGHT) trafficLight.active = false;
@@ -411,6 +417,7 @@
                     spawnPopup("-1.00", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y);
                     trafficCars.splice(i, 1);
                     getDrivingAdvice("Qəza etdin! Pul silindi.");
+                    updateUI(); // Balans dəyişdi, yaddaşa yaz
                     if (balance <= 0) { balance = 0; gameOver('crash'); return; }
                 } else if (car.y > LOGICAL_HEIGHT) { trafficCars.splice(i, 1); }
             }
@@ -524,7 +531,9 @@
         document.getElementById('laneRight').addEventListener('mousedown', () => { if(gameState.targetX < LANES[2] - CAR_WIDTH/2) gameState.targetX += 100; });
         document.getElementById('laneRight').addEventListener('touchstart', (e) => { e.preventDefault(); if(gameState.targetX < LANES[2] - CAR_WIDTH/2) gameState.targetX += 100; }, {passive: false});
 
+        // Başlanğıcda ekranları yenilə
         applyLanguage(currentLang);
+        updateUI();
     </script>
 </body>
 </html>

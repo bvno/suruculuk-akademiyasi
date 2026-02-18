@@ -16,14 +16,13 @@
     </script>
 
     <style>
-        /* Toxunuş və seçmə qarşısını almaq üçün kiçik CSS əlavələri */
         body { user-select: none; -webkit-user-select: none; touch-action: none; overflow: hidden; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body class="bg-slate-950 text-white h-screen flex flex-col font-sans">
 
-    <div id="loginScreen" class="h-screen flex items-center justify-center p-6">
+    <div id="loginScreen" class="h-screen flex items-center justify-center p-6 z-50 absolute inset-0 bg-slate-950">
         <div class="bg-slate-900 p-10 rounded-[32px] border border-white/5 w-full max-w-sm text-center shadow-2xl">
             <h1 class="text-3xl font-black text-white italic mb-8 tracking-tighter">PREMIUM DRIVE</h1>
             <button id="loginBtn" class="w-full py-4 bg-cyan-600 rounded-2xl text-white font-bold uppercase tracking-widest shadow-lg shadow-cyan-600/20 active:translate-y-1 transition-all">
@@ -35,9 +34,15 @@
     <div id="gameScreen" class="hidden h-screen flex flex-col relative">
         
         <div class="p-4 flex justify-between items-center z-50">
-            <div class="bg-slate-900/80 backdrop-blur-xl p-3 px-5 rounded-2xl border border-white/10 shadow-2xl">
-                <p class="text-[10px] font-black text-cyan-400 uppercase tracking-[2px] mb-0.5">Balans</p>
-                <p id="balanceText" class="text-xl font-black">10.00 AZN</p>
+            <div class="flex gap-2">
+                <div class="bg-slate-900/80 backdrop-blur-xl p-3 px-5 rounded-2xl border border-white/10 shadow-2xl">
+                    <p class="text-[10px] font-black text-cyan-400 uppercase tracking-[2px] mb-0.5">Balans</p>
+                    <p id="balanceText" class="text-lg font-black">10.00 AZN</p>
+                </div>
+                <div class="bg-slate-900/80 backdrop-blur-xl p-3 px-5 rounded-2xl border border-white/10 shadow-2xl">
+                    <p class="text-[10px] font-black text-rose-400 uppercase tracking-[2px] mb-0.5">Məsafə</p>
+                    <p id="scoreText" class="text-lg font-black">0 M</p>
+                </div>
             </div>
             
             <div class="flex gap-2">
@@ -61,8 +66,8 @@
                 </div>
 
                 <div id="gameOverScreen" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex-col items-center justify-center p-10 text-center z-50">
-                    <h2 class="text-4xl font-black text-rose-500 mb-2 italic">OYUN BİTDİ</h2>
-                    <p class="text-slate-400 text-sm mb-8">Davam etmək üçün balans artırın</p>
+                    <h2 id="gameOverTitle" class="text-4xl font-black text-rose-500 mb-2 italic">QƏZA!</h2>
+                    <p class="text-slate-400 text-sm mb-4">Toplanan Məsafə: <span id="finalScore" class="font-bold text-white">0</span> M</p>
                     <button id="restartBtn" class="w-full py-4 bg-cyan-600 rounded-2xl font-black mb-3 active:translate-y-1 transition-all">YENİDƏN BAŞLA (Test)</button>
                 </div>
             </div>
@@ -79,17 +84,17 @@
         import { GoogleGenerativeAI } from "@google/generative-ai";
 
         // ==========================================
-        // SÜNİ İNTELLEKT (GEMİNİ) QURAŞDIRILMASI
+        // SÜNİ İNTELLEKT (GEMİNİ) 
         // ==========================================
         const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
         const genAI = new GoogleGenerativeAI(API_KEY);
 
         async function getDrivingAdvice(scenario) {
-            const aiTipEl = document.getElementById("aiTipText");
+            const aiTipEl = document. document.getElementById("aiTipText");
             aiTipEl.innerText = "Süni intellekt düşünür... 🤖";
             try {
                 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const prompt = `Sən bu oyunda ("Premium Drive") oyunçuya kömək edən bir sürücülük təlimatçısısan. Ssenari: ${scenario}. Oyunçuya qısa, əyləncəli və motivasiya verici bir məsləhət ver. Maksimum 1-2 cümlə olsun. Oyun dili: Azərbaycan dili.`;
+                const prompt = `Sən "Premium Drive" oyununda oyunçuya kömək edən sürücülük təlimatçısısan. Ssenari: ${scenario}. Oyunçuya qısa, əyləncəli və 1-2 cümləlik məsləhət ver. Oyun dili: Azərbaycan dili.`;
                 const result = await model.generateContent(prompt);
                 const response = await result.response;
                 aiTipEl.innerText = response.text();
@@ -100,19 +105,23 @@
         }
 
         // ==========================================
-        // OYUN DƏYİŞƏNLƏRİ VƏ SABİTLƏRİ
+        // OYUN DƏYİŞƏNLƏRİ
         // ==========================================
         const LOGICAL_WIDTH = 400;
         const LOGICAL_HEIGHT = 600;
         const CAR_WIDTH = 48;
         const CAR_HEIGHT = 86;
         const PLAYER_Y = LOGICAL_HEIGHT - 130;
-        const LANES = [100, 200, 300]; // Sol, Orta, Sağ zolaqlar
+        const LANES = [100, 200, 300]; 
 
         let isGameRunning = false;
         let isBraking = false;
         let isGameOver = false;
+        
         let balance = 10.00;
+        let score = 0;
+        let trafficCars = []; // Qarşıdan gələn maşınlar
+        let speedMultiplier = 1; // Oyun getdikcə sürətlənəcək
         
         let gameState = {
             carX: LANES[1] - CAR_WIDTH / 2,
@@ -120,15 +129,16 @@
             linesOffset: 0
         };
 
-        // DOM Elementləri
         const loginScreen = document.getElementById('loginScreen');
         const gameScreen = document.getElementById('gameScreen');
         const gameOverScreen = document.getElementById('gameOverScreen');
         const balanceText = document.getElementById('balanceText');
+        const scoreText = document.getElementById('scoreText');
+        const finalScoreText = document.getElementById('finalScore');
+        const gameOverTitle = document.getElementById('gameOverTitle');
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Audio Dəyişənləri
         let audioCtx = null;
         let engineOsc = null;
         let engineGain = null;
@@ -142,18 +152,33 @@
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             engineOsc = audioCtx.createOscillator();
             engineGain = audioCtx.createGain();
-            
             engineOsc.type = 'sawtooth';
             engineOsc.frequency.setValueAtTime(40, audioCtx.currentTime);
-            engineGain.gain.setValueAtTime(0.08, audioCtx.currentTime); // Səs səviyyəsi
-            
+            engineGain.gain.setValueAtTime(0.08, audioCtx.currentTime); 
             engineOsc.connect(engineGain);
             engineGain.connect(audioCtx.destination);
             engineOsc.start();
         }
 
-        function updateBalanceUI() {
+        function spawnTrafficCar() {
+            // Təsadüfi zolaq seç
+            const lane = LANES[Math.floor(Math.random() * LANES.length)];
+            // Əgər həmin zolaqda yaxın məsafədə başqa maşın yoxdursa əlavə et
+            const isSafe = trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150);
+            
+            if (isSafe) {
+                trafficCars.push({
+                    x: lane - CAR_WIDTH / 2,
+                    y: -100, // Ekranın yuxarısından başlayır
+                    speed: Math.random() * 2 + 2, // Fərqli sürətlər
+                    color: ['#ef4444', '#f59e0b', '#10b981', '#8b5cf6'][Math.floor(Math.random() * 4)] // Təsadüfi rəng
+                });
+            }
+        }
+
+        function updateUI() {
             balanceText.innerText = `${balance.toFixed(2)} AZN`;
+            scoreText.innerText = `${Math.floor(score)} M`;
         }
 
         function startGame() {
@@ -164,33 +189,43 @@
             initAudio();
             isGameRunning = true;
             isGameOver = false;
-            balance = 10.00; // Başlanğıc balansı
-            updateBalanceUI();
+            balance = 10.00; 
+            score = 0;
+            speedMultiplier = 1;
+            trafficCars = [];
+            gameState.carX = LANES[1] - CAR_WIDTH / 2;
+            gameState.targetX = LANES[1] - CAR_WIDTH / 2;
             
-            // Süni intellektdən başlanğıc məsləhəti al
-            getDrivingAdvice("Oyunçu yeni oyuna başlayır");
-            
+            updateUI();
+            getDrivingAdvice("Oyunçu yeni oyuna başlayır. Yola diqqət etməsini de.");
             requestAnimationFrame(gameLoop);
         }
 
-        function gameOver() {
+        function gameOver(reason) {
             isGameOver = true;
             gameOverScreen.classList.remove('hidden');
+            finalScoreText.innerText = Math.floor(score);
+            
+            if (reason === 'crash') {
+                gameOverTitle.innerText = "QƏZA!";
+                gameOverTitle.className = "text-4xl font-black text-rose-500 mb-2 italic";
+                getDrivingAdvice(`Oyunçu başqa maşına çırpıldı və qəza etdi. Topladığı xal: ${Math.floor(score)}. Motivasiya ver.`);
+            } else {
+                gameOverTitle.innerText = "BENZİN BİTDİ";
+                gameOverTitle.className = "text-4xl font-black text-amber-500 mb-2 italic";
+                getDrivingAdvice("Oyunçunun balansı (benzini) bitdi. Balansını artırmasını zarafatla xatırlat.");
+            }
+
             if (engineGain && audioCtx) {
                 engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
             }
-            // Süni intellektdən uduzmaq barədə məsləhət al
-            getDrivingAdvice("Oyunçunun balansı bitdi və oyunu uduzdu.");
         }
 
         function switchLane(direction) {
             if (isGameOver) return;
-            // Hazırkı zolağı tap
             let currentLaneIndex = LANES.indexOf(LANES.find(l => Math.abs(l - CAR_WIDTH/2 - gameState.targetX) < 10) || LANES[1]);
-            
             if (direction === 'L' && currentLaneIndex > 0) currentLaneIndex--;
             if (direction === 'R' && currentLaneIndex < 2) currentLaneIndex++;
-            
             gameState.targetX = LANES[currentLaneIndex] - CAR_WIDTH / 2;
         }
 
@@ -200,28 +235,47 @@
         function update() {
             if (!isGameRunning || isGameOver) return;
 
-            const speed = isBraking ? 0 : 5;
+            const baseSpeed = isBraking ? 1 : 6 * speedMultiplier;
             
-            // Yol cizgilərinin hərəkəti
-            gameState.linesOffset = (gameState.linesOffset + speed) % 80;
-            
-            // Maşının sağa/sola axıcı keçidi
+            // Xal və çətinlik artımı
+            if (!isBraking) {
+                score += 0.1 * speedMultiplier;
+                speedMultiplier += 0.0001; // Getdikcə sürətlənir
+                balance -= 0.005; 
+                updateUI();
+                if (balance <= 0) { balance = 0; gameOver('balance'); }
+            }
+
+            // Yol cizgiləri
+            gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80;
             gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
 
-            // Xəyali Balans Azalması (Oyunu maraqlı etmək üçün)
-            if (!isBraking) {
-                balance -= 0.005; // Hərəkət etdikcə balans azalır
-                updateBalanceUI();
-                if (balance <= 0) {
-                    balance = 0;
-                    updateBalanceUI();
-                    gameOver();
+            // Trafik (Düşmən maşınlar) məntiqi
+            if (Math.random() < 0.02 * speedMultiplier && !isBraking) spawnTrafficCar();
+
+            for (let i = trafficCars.length - 1; i >= 0; i--) {
+                let car = trafficCars[i];
+                // Əgər tormoz veririksə, qarşıdakı maşınlar bizə doğru daha sürətlə gəlir (çünki biz yavaşlayırıq)
+                car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
+
+                // Qəza Yoxlanışı (Collision Detection)
+                if (gameState.carX < car.x + CAR_WIDTH - 5 &&
+                    gameState.carX + CAR_WIDTH - 5 > car.x &&
+                    PLAYER_Y < car.y + CAR_HEIGHT - 5 &&
+                    PLAYER_Y + CAR_HEIGHT - 5 > car.y) {
+                        gameOver('crash');
+                }
+
+                // Ekranda çıxanları silirik
+                if (car.y > LOGICAL_HEIGHT) {
+                    trafficCars.splice(i, 1);
                 }
             }
 
             // Səs nizamlanması
             if (engineGain && audioCtx) {
-                const targetVol = isBraking ? 0.02 : 0.08;
+                const targetVol = isBraking ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier);
+                engineOsc.frequency.setTargetAtTime(40 * speedMultiplier, audioCtx.currentTime, 0.1);
                 engineGain.gain.setTargetAtTime(targetVol, audioCtx.currentTime, 0.1);
             }
         }
@@ -229,61 +283,63 @@
         function draw() {
             if (!ctx) return;
 
-            // Arxa fon (Torpaq/Şəhər)
-            ctx.fillStyle = '#0f172a'; // Slate-900
+            ctx.fillStyle = '#0f172a'; 
             ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
-            // Asfalt Yol
-            ctx.fillStyle = '#1e293b'; // Slate-800
+            ctx.fillStyle = '#1e293b'; 
             ctx.fillRect(60, 0, LOGICAL_WIDTH - 120, LOGICAL_HEIGHT);
 
-            // Yol cizgiləri (Qırıq xətlər)
             ctx.setLineDash([30, 50]);
             ctx.strokeStyle = 'rgba(255,255,255,0.2)';
             ctx.lineWidth = 4;
             ctx.lineDashOffset = -gameState.linesOffset;
-            
             ctx.beginPath();
-            ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); // Sol cizgi
-            ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); // Sağ cizgi
+            ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); 
+            ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); 
             ctx.stroke();
 
-            // Oyunçunun Maşını
-            ctx.fillStyle = '#3b82f6'; // Mavi rəng
+            // Düşmən Maşınları Çəkmək
+            trafficCars.forEach(car => {
+                ctx.fillStyle = car.color;
+                ctx.beginPath();
+                ctx.roundRect(car.x, car.y, CAR_WIDTH, CAR_HEIGHT, 8);
+                ctx.fill();
+                // Düşmən maşının ön şüşəsi
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(car.x + 8, car.y + 15, CAR_WIDTH - 16, 15);
+            });
+
+            // Bizim Maşın
+            ctx.fillStyle = '#3b82f6'; 
             ctx.beginPath();
             ctx.roundRect(gameState.carX, PLAYER_Y, CAR_WIDTH, CAR_HEIGHT, 10);
             ctx.fill();
+            // Bizim maşının arxa şüşəsi
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(gameState.carX + 8, PLAYER_Y + CAR_HEIGHT - 30, CAR_WIDTH - 16, 15);
 
-            // Tormoz İşıqları
             if (isBraking) {
                 ctx.fillStyle = '#ff0000';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#ff0000';
                 ctx.fillRect(gameState.carX + 5, PLAYER_Y + CAR_HEIGHT - 5, 8, 4);
                 ctx.fillRect(gameState.carX + CAR_WIDTH - 13, PLAYER_Y + CAR_HEIGHT - 5, 8, 4);
+                ctx.shadowBlur = 0;
             }
         }
 
         function gameLoop() {
             update();
             draw();
-            if (isGameRunning) {
-                requestAnimationFrame(gameLoop);
-            }
+            if (isGameRunning) requestAnimationFrame(gameLoop);
         }
 
         // ==========================================
-        // İSTİFADƏÇİ İDARƏETMƏSİ (DÜYMƏLƏR VƏ TOXUNUŞLAR)
+        // İDARƏETMƏ
         // ==========================================
-
         document.getElementById('loginBtn').addEventListener('click', startGame);
-        
-        document.getElementById('restartBtn').addEventListener('click', () => {
-            gameOverScreen.classList.add('hidden');
-            balance = 10.00;
-            isGameOver = false;
-            getDrivingAdvice("Oyunçu uduzduqdan sonra yenidən cəhd edir.");
-        });
+        document.getElementById('restartBtn').addEventListener('click', startGame);
 
-        // Tormoz düyməsi (Mouse və Touch)
         const brakeBtn = document.getElementById('brakeBtn');
         const startBraking = (e) => { e.preventDefault(); isBraking = true; brakeBtn.innerText = "DAYANIR..."; };
         const stopBraking = (e) => { e.preventDefault(); isBraking = false; brakeBtn.innerText = "TORMOZ"; };
@@ -293,7 +349,6 @@
         brakeBtn.addEventListener('touchstart', startBraking, {passive: false});
         brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
 
-        // Zolaq dəyişmə (Sol/Sağ klik)
         document.getElementById('laneLeft').addEventListener('mousedown', () => switchLane('L'));
         document.getElementById('laneLeft').addEventListener('touchstart', (e) => { e.preventDefault(); switchLane('L'); }, {passive: false});
         

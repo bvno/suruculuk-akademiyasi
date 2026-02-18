@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Premium Drive - BuyMeACoffee Edition</title>
+    <title>Premium Drive - Final Masterpiece</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="importmap">
@@ -25,7 +25,7 @@
         .neon-emerald { text-shadow: 0 0 10px rgba(16, 185, 129, 0.8); }
         .neon-rose { text-shadow: 0 0 10px rgba(244, 63, 94, 0.8); }
         .neon-box-cyan { box-shadow: 0 0 20px rgba(34, 211, 238, 0.15); }
-        .brake-shadow { box-shadow: 0 0 30px rgba(225, 29, 72, 0.5); }
+        .brake-shadow { box-shadow: 0 0 40px rgba(225, 29, 72, 0.6); }
     </style>
 </head>
 <body class="text-white h-screen flex flex-col font-sans relative transition-all duration-300">
@@ -149,7 +149,7 @@
         import { GoogleGenerativeAI } from "@google/generative-ai";
 
         // ==========================================
-        // DİLLƏR VƏ QARAJ MƏLUMATLARI
+        // DİLLƏR, TƏRCÜMƏ VƏ QARAJ
         // ==========================================
         const LANGUAGES = {
             az: { name: 'Azərbaycan', flag: '🇦🇿', currency: 'AZN', rate: 1, dir: 'ltr', tts: 'tr-TR' },
@@ -159,10 +159,10 @@
         };
 
         const TRANSLATIONS = {
-            az: { loginBtn: "Oyuna Başla", hudBal: "Balans", brake: "TORMOZ", braking: "DAYANIR...", fuel: "BENZİN BİTDİ", crash: "QƏZA", garage: "QARAJ", select: "Seç", selected: "Seçilib", buy: "Satın Al" },
-            en: { loginBtn: "Start", hudBal: "Balance", brake: "BRAKE", braking: "BRAKING...", fuel: "OUT OF GAS", crash: "CRASH", garage: "GARAGE", select: "Select", selected: "Selected", buy: "Buy" },
-            ru: { loginBtn: "Начать", hudBal: "Баланс", brake: "ТОРМОЗ", braking: "ТОРМОЗ...", fuel: "НЕТ БЕНЗИНА", crash: "АВАРИЯ", garage: "ГАРАЖ", select: "Выбрать", selected: "Выбрано", buy: "Купить" },
-            tr: { loginBtn: "Başla", hudBal: "Bakiye", brake: "FREN", braking: "DURUYOR...", fuel: "BENZİN BİTTİ", crash: "KAZA", garage: "GARAJ", select: "Seç", selected: "Seçildi", buy: "Satın Al" }
+            az: { loginBtn: "Oyuna Başla", hudBal: "Balans", brake: "TORMOZ", braking: "DAYANIR...", fuel: "BALANS BİTDİ", crash: "QƏZA", garage: "QARAJ", select: "Seç", selected: "Seçilib", buy: "Satın Al" },
+            en: { loginBtn: "Start", hudBal: "Balance", brake: "BRAKE", braking: "BRAKING...", fuel: "NO BALANCE", crash: "CRASH", garage: "GARAGE", select: "Select", selected: "Selected", buy: "Buy" },
+            ru: { loginBtn: "Начать", hudBal: "Баланс", brake: "ТОРМОЗ", braking: "ТОРМОЗ...", fuel: "НЕТ БАЛАНСА", crash: "АВАРИЯ", garage: "ГАРАЖ", select: "Выбрать", selected: "Выбрано", buy: "Купить" },
+            tr: { loginBtn: "Başla", hudBal: "Bakiye", brake: "FREN", braking: "DURUYOR...", fuel: "BAKİYE BİTTİ", crash: "KAZA", garage: "GARAJ", select: "Seç", selected: "Seçildi", buy: "Satın Al" }
         };
 
         const CAR_SKINS = [
@@ -256,6 +256,7 @@
 
         let isGameRunning = false; let isBraking = false; let isGameOver = false;
         
+        // BALANS SİSTEMİ: Başlanğıc 0.30 AZN
         let savedBalance = localStorage.getItem('premiumDriveBalance');
         let balance = savedBalance !== null ? parseFloat(savedBalance) : 0.30;
         
@@ -267,7 +268,7 @@
         const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
 
         function updateUI() {
-            localStorage.setItem('premiumDriveBalance', balance.toFixed(4));
+            localStorage.setItem('premiumDriveBalance', balance.toFixed(2));
             
             const info = LANGUAGES[currentLang];
             const formatted = `${(balance * info.rate).toFixed(2)} ${info.currency}`;
@@ -337,7 +338,7 @@
         };
 
         // ==========================================
-        // OYUN MƏNTİQİ
+        // OYUN MƏNTİQİ (Mükəmməlləşdirilmiş Balans Sistemi)
         // ==========================================
         function startGame() {
             document.getElementById('loginScreen').classList.add('hidden');
@@ -379,13 +380,14 @@
             if (!isBraking) {
                 score += 0.1 * speedMultiplier; 
                 if(speedMultiplier < 1.5) speedMultiplier += 0.0001;
-                balance -= 0.002; 
-                updateUI(); if (balance <= 0) { balance = 0; gameOver('balance'); return; }
+                // QEYD: Əvvəlki versiyadakı avtomatik pul silinməsi (balance -= 0.002) BURADAN SİLİNDİ!
+                updateUI(); 
             }
 
             gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80;
             gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
 
+            // Svetofor Sistemi
             if (!trafficLight.active && Math.random() < 0.003 && score > 50) {
                 trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false;
                 trafficLight.timer = 300; trafficLight.state = 'GREEN';
@@ -399,19 +401,22 @@
                 if (trafficLight.timer === 140) trafficLight.state = 'RED';
                 if (trafficLight.timer === 0) trafficLight.state = 'GREEN';
 
+                // İşıqdan keçid (Cərimə və Mükafat)
                 if (trafficLight.y > PLAYER_Y + CAR_HEIGHT && !trafficLight.passed) {
                     trafficLight.passed = true;
                     if (trafficLight.state === 'RED' && !isBraking) {
-                        balance -= 0.20; playFineSound();
-                        spawnPopup("-0.20", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
+                        balance -= 0.20; // Qırmızı işıq cəriməsi
+                        playFineSound();
+                        spawnPopup("-0.20 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
                         getDrivingAdvice("Qırmızı işıq! Cərimə.");
                     } else if (trafficLight.state === 'GREEN') {
-                        balance += 0.50; playSuccessSound();
-                        spawnPopup("+0.50", "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
+                        balance += 0.50; // Yaşıl işıq bonusu
+                        playSuccessSound();
+                        spawnPopup("+0.50 AZN", "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
                         getDrivingAdvice("Yaşıl işıq bonusu!");
                     }
                     updateUI();
-                    if (balance <= 0) { balance = 0; gameOver('balance'); }
+                    if (balance <= 0) { balance = 0; updateUI(); gameOver('balance'); }
                 }
                 if (trafficLight.y > LOGICAL_HEIGHT) trafficLight.active = false;
             }
@@ -422,13 +427,15 @@
                 let car = trafficCars[i];
                 car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
                 
+                // Qəza Mexanikası
                 if (gameState.carX < car.x + CAR_WIDTH - 5 && gameState.carX + CAR_WIDTH - 5 > car.x && PLAYER_Y < car.y + CAR_HEIGHT - 5 && PLAYER_Y + CAR_HEIGHT - 5 > car.y) {
-                    balance -= 1.00; playCrashSound();
-                    spawnPopup("-1.00", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y);
+                    balance -= 1.00; // Qəza cəriməsi
+                    playCrashSound();
+                    spawnPopup("-1.00 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y);
                     trafficCars.splice(i, 1);
                     getDrivingAdvice("Qəza etdin! Pul silindi.");
                     updateUI(); 
-                    if (balance <= 0) { balance = 0; gameOver('crash'); return; }
+                    if (balance <= 0) { balance = 0; updateUI(); gameOver('crash'); return; }
                 } else if (car.y > LOGICAL_HEIGHT) { trafficCars.splice(i, 1); }
             }
 
@@ -507,12 +514,9 @@
         document.getElementById('loginBtn').addEventListener('click', () => { if(balance<=0) document.getElementById('topUpModal').classList.remove('hidden'); else startGame(); });
         document.getElementById('restartBtn').addEventListener('click', () => { if(balance<=0) document.getElementById('topUpModal').classList.remove('hidden'); else startGame(); });
         
-        // BuyMeACoffee Linkinə yönləndirmə
-        document.getElementById('buyMeCoffeeBtn').addEventListener('click', () => {
-            window.open('https://buymeacoffee.com/surwin', '_blank');
-        });
+        // BuyMeACoffee Yönləndirməsi
+        document.getElementById('buyMeCoffeeBtn').addEventListener('click', () => { window.open('https://buymeacoffee.com/surwin', '_blank'); });
 
-        // Demo test düyməsi
         document.getElementById('demoTopUpBtn').addEventListener('click', () => {
             balance += 10.00; playSuccessSound(); updateUI(); renderGarage(); document.getElementById('topUpModal').classList.add('hidden');
         });
@@ -542,10 +546,14 @@
         brakeBtn.addEventListener('mousedown', startBraking); brakeBtn.addEventListener('mouseup', stopBraking);
         brakeBtn.addEventListener('touchstart', startBraking, {passive: false}); brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
         
-        document.getElementById('laneLeft').addEventListener('mousedown', () => { if(gameState.targetX > LANES[0] - CAR_WIDTH/2) gameState.targetX -= 100; });
-        document.getElementById('laneLeft').addEventListener('touchstart', (e) => { e.preventDefault(); if(gameState.targetX > LANES[0] - CAR_WIDTH/2) gameState.targetX -= 100; }, {passive: false});
-        document.getElementById('laneRight').addEventListener('mousedown', () => { if(gameState.targetX < LANES[2] - CAR_WIDTH/2) gameState.targetX += 100; });
-        document.getElementById('laneRight').addEventListener('touchstart', (e) => { e.preventDefault(); if(gameState.targetX < LANES[2] - CAR_WIDTH/2) gameState.targetX += 100; }, {passive: false});
+        // Zolaq İdarəetməsi (Sadələşdirilmiş klik/toxunma)
+        const goLeft = (e) => { e.preventDefault(); if(gameState.targetX > LANES[0] - CAR_WIDTH/2) gameState.targetX -= 100; };
+        const goRight = (e) => { e.preventDefault(); if(gameState.targetX < LANES[2] - CAR_WIDTH/2) gameState.targetX += 100; };
+        
+        document.getElementById('laneLeft').addEventListener('mousedown', goLeft);
+        document.getElementById('laneLeft').addEventListener('touchstart', goLeft, {passive: false});
+        document.getElementById('laneRight').addEventListener('mousedown', goRight);
+        document.getElementById('laneRight').addEventListener('touchstart', goRight, {passive: false});
 
         // Başlanğıcda ekranları yenilə
         applyLanguage(currentLang);

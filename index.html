@@ -1,91 +1,138 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
+// --- Types ---
+type FeedbackType = 'success' | 'warning' | 'error';
+type TrafficLightState = 'GREEN' | 'YELLOW' | 'RED';
+type CarSkin = { id: string; name: string; color: string; price: number; owned: boolean };
+type Biome = { name: string; ground: string; accent: string };
+type SceneryObject = { id: number; x: number; y: number; size: number; color: string };
+type TrafficCar = { id: number; x: number; y: number; width: number; height: number; color: string; crashed?: boolean };
+
+// --- Constants ---
+const LOGICAL_WIDTH = 400;
+const LOGICAL_HEIGHT = 600;
+const CAR_WIDTH = 48;
+const CAR_HEIGHT = 86;
+const PLAYER_Y = LOGICAL_HEIGHT - 130;
+const LANES = [100, 200, 300];
 const PAYMENT_URL = "https://buymeacoffee.com/surwin";
+
+const MOTIVATIONAL_PHRASES: Record<string, string[]> = {
+  az: ["Möhtəşəm!", "Sən bir peşəkarsan!", "Yola davam!", "Əla sürürsən!", "Belə davam et!", "Diqqətli ol!", "Sükan arxasında kalsan!"],
+  en: ["Awesome!", "You're a pro!", "Keep going!", "Great driving!", "Stay focused!", "Master of the road!", "You got this!"],
+  ru: ["Отлично!", "Ты профессионал!", "Продолжай!", "Хорошая езда!", "Будь внимателен!", "Ты справишься!", "Вперёд!"]
+};
+
+const BIOMES: Biome[] = [
+  { name: "City Streets", ground: "#0f172a", accent: "#334155" },
+  { name: "Forest Road", ground: "#064e3b", accent: "#166534" },
+  { name: "Canyon", ground: "#451a03", accent: "#92400e" }
+];
+
+const INITIAL_SKINS: CarSkin[] = [
+  { id: 'classic', name: 'Classic Blue', color: '#3b82f6', price: 0, owned: true },
+  { id: 'sport', name: 'Sport Red', color: '#ef4444', price: 5.0, owned: false },
+  { id: 'taxi', name: 'Yellow Taxi', color: '#fbbf24', price: 8.0, owned: false },
+  { id: 'noir', name: 'Premium Black', color: '#1e293b', price: 15.0, owned: false },
+];
 
 const LANGUAGES = [
   { code: 'az', name: 'Azərbaycan', flag: '🇦🇿', currency: 'AZN', rate: 1 },
   { code: 'en', name: 'English', flag: '🇬🇧', currency: 'USD', rate: 0.59 },
-  { code: 'ru', name: 'Русский', flag: '🇷🇺', currency: 'RUB', rate: 54.4 },
+  { code: 'ru', name: 'Русский', flag: '🇷🇺', currency: 'RUB', rate: 54.4 }
 ];
 
 const TRANSLATIONS: Record<string, any> = {
-  az: {
-    balance: "Balans",
-    topUpHeading: "BALANSIN ARTIR",
-    topUpText: "Təhlükəsiz ödəniş üçün düyməyə keçid edin.",
-    payStripe: "Balansı Artır (☕)",
-    demoBalance: "Demo Balans",
-  },
-  en: {
-    balance: "Balance",
-    topUpHeading: "RECHARGE BALANCE",
-    topUpText: "Click the button below for secure payment.",
-    payStripe: "Top Up Now (☕)",
-    demoBalance: "Demo Balance",
-  },
-  ru: {
-    balance: "Баланс",
-    topUpHeading: "ПОПОЛНИТЬ БАЛАНС",
-    topUpText: "Нажмите кнопку ниже для безопасной оплаты.",
-    payStripe: "Пополнить (☕)",
-    demoBalance: "Демо Баланс",
-  },
+  az: { balance: "Balans", brake: "TORMOZ", braking: "DAYANIR...", garage: "QARAJ", topUpHeading: "BALANSIN ARTIR", topUpText: "Təhlükəsiz ödəniş üçün aşağıdakı düyməyə keçid edin.", payStripe: "Balansı Artır (☕)", gameOver: "OYUN BİTDİ", balanceFinished: "Davam etmək üçün balans artırın.", restart: "YENİDƏN", langHeading: "DİL SEÇİN", fine: "CƏRİMƏ!", reward: "MÜKAFAT!", crash: "QƏZA!" },
+  en: { balance: "Balance", brake: "BRAKE", braking: "BRAKING...", garage: "GARAGE", topUpHeading: "RECHARGE BALANCE", topUpText: "Follow the link below for secure payment.", payStripe: "Top Up Now (☕)", gameOver: "GAME OVER", balanceFinished: "Top up to continue.", restart: "RESTART", langHeading: "LANGUAGE", fine: "FINE!", reward: "REWARD!", crash: "CRASH!" },
+  ru: { balance: "Баланс", brake: "ТОРМОЗ", braking: "СТОП...", garage: "ГАРАЖ", topUpHeading: "ПОПОЛНИТЬ БАЛАНС", topUpText: "Для безопасной оплаты перейдите по ссылке ниже.", payStripe: "Пополнить (☕)", gameOver: "ИГРА ОКОНЧЕНА", balanceFinished: "Пополните баланс, чтобы продолжить.", restart: "ПЕРЕЗАПУСК", langHeading: "ЯЗЫК", fine: "ШТРАФ!", reward: "НАГРАДА!", crash: "АВАРИЯ!" }
 };
 
+// --- App Component ---
 const App: React.FC = () => {
-  const [balance, setBalance] = useState<number>(0); // başlanğıc 0
-  const [lang, setLang] = useState<string>('az');
+  const [balance, setBalance] = useState(0);
+  const [lang, setLang] = useState('az');
+  const [isGameOver, setIsGameOver] = useState(false);
   const [showTopUp, setShowTopUp] = useState(true);
+  const [feedback, setFeedback] = useState<{text:string,type:FeedbackType}|null>(null);
+  const [skins, setSkins] = useState<CarSkin[]>(INITIAL_SKINS);
+  const [activeSkinId, setActiveSkinId] = useState('classic');
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isBrakingRef = useRef(false);
 
   const t = TRANSLATIONS[lang];
+  const currentLangData = LANGUAGES.find(l=>l.code===lang)!;
 
-  const formatBalance = (val: number) => {
-    const curr = LANGUAGES.find(l => l.code === lang)?.currency || 'AZN';
-    return `${val.toFixed(2)} ${curr}`;
+  const triggerFeedback = (text: string, type: FeedbackType) => {
+    setFeedback({text,type});
+    setTimeout(()=>setFeedback(null),3000);
   };
 
-  const handleDemoBalance = () => {
-    setBalance(10); // Demo balans artırma
-    setShowTopUp(false);
+  const switchLane = (dir:'L'|'R') => { /* lane logic placeholder */ };
+
+  const resetGame = () => {
+    if(balance<=0){ setShowTopUp(true); return; }
+    setIsGameOver(false);
+    triggerFeedback("Game Reset!", 'success');
   };
+
+  const formatBalance = (val:number) => {
+    const converted = val * currentLangData.rate;
+    return `${converted.toLocaleString(lang,{minimumFractionDigits:2,maximumFractionDigits:2})} ${currentLangData.currency}`;
+  };
+
+  useEffect(()=>{
+    if(balance>0) setShowTopUp(false);
+  },[balance]);
+
+  // --- Demo: Motivational Feedback every 25s ---
+  useEffect(()=>{
+    const interval = setInterval(()=>{
+      if(balance>0 && Math.random()<0.3){
+        const phrases = MOTIVATIONAL_PHRASES[lang] || MOTIVATIONAL_PHRASES['en'];
+        const text = phrases[Math.floor(Math.random()*phrases.length)];
+        triggerFeedback(text,'success');
+      }
+    },25000);
+    return ()=>clearInterval(interval);
+  },[balance,lang]);
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center text-white p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0f172a] text-white p-4">
+      <div className="mb-4">
+        <span className="font-bold">{t.balance}: </span>{formatBalance(balance)}
+      </div>
+
+      {/* Top-Up Modal */}
+      {showTopUp && (
+        <div className="p-6 bg-slate-900 rounded-xl border border-white/10 text-center mb-4">
+          <h2 className="text-xl font-black mb-2">{t.topUpHeading}</h2>
+          <p className="text-sm mb-4">{t.topUpText}</p>
+          <button onClick={()=>window.open(PAYMENT_URL,'_blank')} className="bg-yellow-400 text-black font-bold px-6 py-3 rounded-xl mb-2">{t.payStripe}</button>
+          <button onClick={()=>{setBalance(balance+5)}} className="bg-green-600 text-white font-bold px-6 py-2 rounded-xl mb-2">Demo +5 {currentLangData.currency}</button>
+        </div>
+      )}
+
+      {/* Language Selection */}
       <div className="flex gap-2 mb-4">
-        {LANGUAGES.map(l => (
-          <button key={l.code} onClick={() => setLang(l.code)} className="text-2xl">{l.flag}</button>
+        {LANGUAGES.map(l=>(
+          <button key={l.code} onClick={()=>setLang(l.code)} className={`p-2 rounded-xl ${lang===l.code?'bg-cyan-600':'bg-slate-800'}`}>{l.flag}</button>
         ))}
       </div>
 
-      <div className="bg-slate-900 p-4 rounded-xl w-full max-w-sm text-center shadow-lg">
-        <h1 className="text-xl font-bold mb-2">{t.balance}</h1>
-        <p className="text-2xl font-extrabold">{formatBalance(balance)}</p>
+      {/* Canvas Placeholder */}
+      <div className="w-[400px] h-[600px] bg-slate-800 rounded-2xl flex items-center justify-center mb-4">
+        <canvas ref={canvasRef} width={LOGICAL_WIDTH} height={LOGICAL_HEIGHT} />
+        {feedback && <div className="absolute bg-white/20 p-2 rounded-xl">{feedback.text}</div>}
       </div>
 
-      {showTopUp && (
-        <div className="mt-6 bg-slate-800 p-6 rounded-2xl w-full max-w-sm shadow-xl text-center">
-          <h2 className="text-lg font-black mb-2">{t.topUpHeading}</h2>
-          <p className="text-sm text-gray-300 mb-4">{t.topUpText}</p>
-          <button
-            onClick={() => window.open(PAYMENT_URL, "_blank")}
-            className="bg-yellow-400 text-black font-bold px-6 py-3 rounded-lg mb-2 hover:scale-105 transition-transform"
-          >
-            {t.payStripe}
-          </button>
-          <button
-            onClick={handleDemoBalance}
-            className="text-sm text-gray-400 underline hover:text-white"
-          >
-            {t.demoBalance}
-          </button>
-        </div>
-      )}
+      {/* Controls */}
+      <div className="flex gap-2">
+        <button onMouseDown={()=>isBrakingRef.current=true} onMouseUp={()=>isBrakingRef.current=false} className="bg-red-600 px-6 py-3 rounded-xl">{isBrakingRef.current?t.braking:t.brake}</button>
+        <button onClick={resetGame} className="bg-slate-800 px-6 py-3 rounded-xl">{t.restart}</button>
+      </div>
 
-      {!showTopUp && (
-        <div className="mt-6 text-center">
-          <p className="text-green-400 font-bold text-lg">Oyun artıq başlayır! 🎮</p>
-        </div>
-      )}
+      {isGameOver && <div className="mt-4 text-red-400 font-bold">{t.gameOver}</div>}
     </div>
   );
 };

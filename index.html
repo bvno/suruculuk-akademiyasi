@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Premium Drive - LocalStorage Edition</title>
+    <title>Premium Drive - BuyMeACoffee Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="importmap">
@@ -62,7 +62,7 @@
             <div class="flex gap-2">
                 <button id="garageBtn" class="w-12 h-12 bg-indigo-500/20 border border-indigo-500/50 text-indigo-400 rounded-[20px] flex items-center justify-center text-xl shadow-[0_0_15px_rgba(99,102,241,0.2)] active:scale-95 transition-all">🛒</button>
                 <button id="langBtn" class="w-12 h-12 glass-panel rounded-[20px] flex items-center justify-center text-lg active:scale-95 transition-all">🇦🇿</button>
-                <button id="topupBtn" class="w-12 h-12 bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 rounded-[20px] flex items-center justify-center text-xl shadow-[0_0_15px_rgba(16,185,129,0.2)] active:scale-95 transition-all">💳</button>
+                <button id="topupBtn" class="w-12 h-12 bg-[#FFDD00]/20 border border-[#FFDD00]/50 text-[#FFDD00] rounded-[20px] flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,221,0,0.2)] active:scale-95 transition-all">☕</button>
             </div>
         </div>
 
@@ -90,7 +90,9 @@
                 <h2 id="gameOverTitle" class="text-3xl font-black text-rose-500 mb-2 neon-rose tracking-wider">GAME OVER</h2>
                 <p class="text-slate-400 text-sm mb-6"><span id="lbl_gameOverDistance">Məsafə:</span> <span id="finalScore" class="font-bold text-white">0</span> M</p>
                 <button id="restartBtn" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] mb-4 active:scale-95 transition-all">YENİDƏN BAŞLA</button>
-                <button id="gameOverTopupBtn" class="w-full py-4 glass-panel rounded-[24px] text-white font-bold uppercase tracking-widest active:scale-95 transition-all">BALANSI ARTIR</button>
+                <button id="gameOverTopupBtn" class="w-full py-4 bg-[#FFDD00] text-black rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(255,221,0,0.3)] active:scale-95 transition-all flex items-center justify-center gap-2">
+                    ☕ BALANSI ARTIR
+                </button>
             </div>
         </div>
 
@@ -118,9 +120,19 @@
 
     <div id="topUpModal" class="hidden absolute inset-0 bg-[#020617]/80 backdrop-blur-2xl flex items-center justify-center p-6 z-[100]">
         <div class="glass-panel p-8 rounded-[40px] text-center w-full max-w-sm relative overflow-hidden">
-            <div class="absolute -top-20 -right-20 w-40 h-40 bg-emerald-500/20 rounded-full blur-[50px]"></div>
-            <h2 id="lbl_topupModalTitle" class="text-2xl font-black mb-8 neon-emerald relative z-10">Balansın Artır</h2>
-            <button id="demoTopUpBtn" class="w-full py-4 bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 rounded-[24px] font-bold shadow-[0_0_15px_rgba(16,185,129,0.2)] mb-6 active:scale-95 transition-all relative z-10">+10 AZN (Demo)</button>
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-[#FFDD00]/20 rounded-full blur-[50px]"></div>
+            
+            <h2 id="lbl_topupModalTitle" class="text-2xl font-black mb-2 neon-emerald relative z-10">Balansın Artır</h2>
+            <p class="text-slate-400 text-sm mb-8 relative z-10">Oyuna davam etmək və yeni maşınlar almaq üçün mənə dəstək olun.</p>
+            
+            <button id="buyMeCoffeeBtn" class="w-full py-4 bg-[#FFDD00] text-black rounded-[24px] font-black shadow-[0_0_20px_rgba(255,221,0,0.3)] mb-4 active:scale-95 transition-all relative z-10 flex items-center justify-center gap-3 text-lg">
+                <span class="text-2xl">☕</span> Buy Me A Coffee
+            </button>
+            
+            <button id="demoTopUpBtn" class="w-full py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-[24px] font-bold mb-6 active:scale-95 transition-all relative z-10 text-sm">
+                +10 AZN (Sadəcə Test)
+            </button>
+
             <button id="closeTopUpBtn" class="text-slate-400 text-[12px] font-bold uppercase tracking-widest active:text-white transition-all relative z-10">Bağla</button>
         </div>
     </div>
@@ -244,7 +256,6 @@
 
         let isGameRunning = false; let isBraking = false; let isGameOver = false;
         
-        // BALANS SİSTEMİ (LocalStorage İnteqrasiyası)
         let savedBalance = localStorage.getItem('premiumDriveBalance');
         let balance = savedBalance !== null ? parseFloat(savedBalance) : 0.30;
         
@@ -256,7 +267,6 @@
         const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
 
         function updateUI() {
-            // Balansı hər dəyişiklikdə LocalStorage-ə yazırıq
             localStorage.setItem('premiumDriveBalance', balance.toFixed(4));
             
             const info = LANGUAGES[currentLang];
@@ -400,7 +410,7 @@
                         spawnPopup("+0.50", "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
                         getDrivingAdvice("Yaşıl işıq bonusu!");
                     }
-                    updateUI(); // Balans dəyişdi, yaddaşa yaz
+                    updateUI();
                     if (balance <= 0) { balance = 0; gameOver('balance'); }
                 }
                 if (trafficLight.y > LOGICAL_HEIGHT) trafficLight.active = false;
@@ -417,7 +427,7 @@
                     spawnPopup("-1.00", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y);
                     trafficCars.splice(i, 1);
                     getDrivingAdvice("Qəza etdin! Pul silindi.");
-                    updateUI(); // Balans dəyişdi, yaddaşa yaz
+                    updateUI(); 
                     if (balance <= 0) { balance = 0; gameOver('crash'); return; }
                 } else if (car.y > LOGICAL_HEIGHT) { trafficCars.splice(i, 1); }
             }
@@ -497,6 +507,12 @@
         document.getElementById('loginBtn').addEventListener('click', () => { if(balance<=0) document.getElementById('topUpModal').classList.remove('hidden'); else startGame(); });
         document.getElementById('restartBtn').addEventListener('click', () => { if(balance<=0) document.getElementById('topUpModal').classList.remove('hidden'); else startGame(); });
         
+        // BuyMeACoffee Linkinə yönləndirmə
+        document.getElementById('buyMeCoffeeBtn').addEventListener('click', () => {
+            window.open('https://buymeacoffee.com/surwin', '_blank');
+        });
+
+        // Demo test düyməsi
         document.getElementById('demoTopUpBtn').addEventListener('click', () => {
             balance += 10.00; playSuccessSound(); updateUI(); renderGarage(); document.getElementById('topUpModal').classList.add('hidden');
         });

@@ -1,213 +1,26 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+// src/services/geminiService.ts
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// --- CONFIG & TYPES ---
-type Language = 'az' | 'en' | 'tr' | 'ru';
+// BURAYA ÖZ API AÇARINIZI YAZIN
+const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN";
+const genAI = new GoogleGenerativeAI(API_KEY);
 
-interface LangData {
-  flag: string; currency: string; rate: number;
-  brake: string; topup: string; garage: string;
-  advice: string; gameOver: string;
+export async function getDrivingAdvice(scenario: string = "Şəhər içi sürmək") {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    // Süni intellektə verəcəyimiz tapşırıq (Prompt)
+    const prompt = `Sən bu oyunda ("Premium Drive") oyunçuya kömək edən bir sürücülük təlimatçısısan. Ssenari: ${scenario}. Oyunçuya qısa, əyləncəli və motivasiya verici bir məsləhət ver. Maksimum 1-2 cümlə olsun. Oyun dili: Azərbaycan dili.`;
+    
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+  } catch (error) {
+    console.error("Gemini Xətası:", error);
+    return "Yolda diqqətli olun! Süni intellekt hazırda dincəlir.";
+  }
 }
 
-const LANGUAGES: Record<Language, LangData> = {
-  az: { flag: '🇦🇿', currency: '₼', rate: 1, brake: 'TORMOZ', topup: 'Balansı Artır', garage: 'Qaraj', advice: 'Diqqətli sür!', gameOver: 'OYUN BİTDİ' },
-  en: { flag: '🇺🇸', currency: '$', rate: 0.6, brake: 'BRAKE', topup: 'Top Up', garage: 'Garage', advice: 'Drive Safely!', gameOver: 'GAME OVER' },
-  tr: { flag: '🇹🇷', currency: '₺', rate: 18.5, brake: 'FREN', topup: 'Bakiye Yükle', garage: 'Garaj', advice: 'Dikkatli sür!', gameOver: 'OYUN BİTTİ' },
-  ru: { flag: '🇷🇺', currency: '₽', rate: 55.0, brake: 'ТОРМОЗ', topup: 'Пополнить', garage: 'Гараж', advice: 'Водите осторожно!', gameOver: 'ИГРА ОКОНЧЕНА' },
-};
-
-// --- MAIN COMPONENT ---
-export default function TrafficSimulator() {
-  // State Management
-  const [balance, setBalance] = useState<number>(() => Number(localStorage.getItem('balance')) || 0);
-  const [lang, setLang] = useState<Language>('az');
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isBraking, setIsBraking] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [carLane, setCarLane] = useState(1); // 0, 1, 2
-  const [light, setLight] = useState<'GREEN' | 'YELLOW' | 'RED'>('GREEN');
-  const [feedback, setFeedback] = useState<{text: string, color: string} | null>(null);
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  // --- AUDIO SYSTEM (Web Audio API) ---
-  const playSound = (freq: number, type: OscillatorType = 'sine', duration = 0.2) => {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + duration);
-  };
-
-  // --- GAME LOGIC ---
-  useEffect(() => {
-    localStorage.setItem('balance', balance.toString());
-    if (balance <= 0 && isPlaying) {
-      setIsPlaying(false);
-      playSound(150, 'sawtooth', 0.5);
-    }
-  }, [balance, isPlaying]);
-
-  // Svetofor Dövrü
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setLight(prev => {
-        if (prev === 'GREEN') return 'YELLOW';
-        if (prev === 'YELLOW') return 'RED';
-        return 'GREEN';
-      });
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Balans və Cərimə Mexanikası
-  const checkRules = useCallback(() => {
-    if (!isPlaying) return;
-    if (light === 'RED' && !isBraking) {
-      setBalance(prev => Math.max(0, prev - 0.20));
-      showFeedback("-0.20", "text-red-500");
-      playSound(200, 'square');
-    } else if (light === 'GREEN' && !isBraking) {
-      setBalance(prev => prev + 0.01); // Davamlı qazanc
-    }
-  }, [isPlaying, light, isBraking]);
-
-  useEffect(() => {
-    const interval = setInterval(checkRules, 1000);
-    return () => clearInterval(interval);
-  }, [checkRules]);
-
-  const showFeedback = (text: string, color: string) => {
-    setFeedback({ text, color });
-    setTimeout(() => setFeedback(null), 1000);
-  };
-
-  const handleTopUp = () => {
-    window.open('https://buymeacoffee.com/surwin', '_blank');
-    // Demo məqsədli balans artımı (Real sistemdə bu webhook ilə olar)
-    setBalance(prev => prev + 10);
-    playSound(880, 'sine');
-  };
-
-  // --- RENDER ---
-  return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans p-4 flex flex-col items-center select-none">
-      
-      {/* 1. HUD - Üst Panel */}
-      <div className="w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[32px] flex justify-between items-center shadow-2xl">
-        <div>
-          <p className="text-[10px] tracking-[2px] opacity-50 uppercase">{LANGUAGES[lang].garage}</p>
-          <p className="text-2xl font-black text-emerald-400">
-            {(balance * LANGUAGES[lang].rate).toFixed(2)} <span className="text-sm">{LANGUAGES[lang].currency}</span>
-          </p>
-        </div>
-        
-        <div className="flex gap-2">
-          <button 
-            onClick={() => {
-              const keys = Object.keys(LANGUAGES) as Language[];
-              const nextIdx = (keys.indexOf(lang) + 1) % keys.length;
-              setLang(keys[nextIdx]);
-            }}
-            className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xl hover:bg-white/10 transition-all"
-          >
-            {LANGUAGES[lang].flag}
-          </button>
-        </div>
-      </div>
-
-      {/* 2. GAME CANVAS AREA */}
-      <div className="relative w-full max-w-md h-[450px] my-6 bg-[#0a0a0a] rounded-[40px] border-4 border-white/5 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-        
-        {/* Yol Zolaqları */}
-        <div className="absolute inset-0 flex justify-around opacity-20">
-          <div className="w-1 border-r-2 border-dashed border-white h-full"></div>
-          <div className="w-1 border-r-2 border-dashed border-white h-full"></div>
-        </div>
-
-        {/* Svetofor */}
-        <div className="absolute top-8 right-8 flex flex-col gap-2 p-3 bg-black/60 rounded-full border border-white/10">
-          <div className={`w-4 h-4 rounded-full shadow-lg ${light === 'RED' ? 'bg-red-500 shadow-red-500/50' : 'bg-red-900'}`}></div>
-          <div className={`w-4 h-4 rounded-full shadow-lg ${light === 'YELLOW' ? 'bg-yellow-500 shadow-yellow-500/50' : 'bg-yellow-900'}`}></div>
-          <div className={`w-4 h-4 rounded-full shadow-lg ${light === 'GREEN' ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-emerald-900'}`}></div>
-        </div>
-
-        {/* Oyunçu Maşını */}
-        <div 
-          className="absolute bottom-12 transition-all duration-300 ease-out"
-          style={{ left: `${20 + carLane * 30}%`, transform: 'translateX(-50%)' }}
-        >
-          <div className="w-12 h-20 bg-gradient-to-b from-cyan-400 to-blue-600 rounded-lg shadow-[0_0_20px_rgba(34,211,238,0.4)] relative">
-            <div className="absolute -top-1 left-2 right-2 h-2 bg-white/30 rounded-t-sm"></div> {/* Ön Şüşə */}
-          </div>
-        </div>
-
-        {/* Feedback Popup */}
-        {feedback && (
-          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl font-black italic animate-bounce ${feedback.color}`}>
-            {feedback.text}
-          </div>
-        )}
-
-        {/* Start / Game Over Overlay */}
-        {!isPlaying && (
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-10 text-center">
-            <h2 className="text-4xl font-black mb-2 bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent italic">
-              {balance <= 0 ? LANGUAGES[lang].gameOver : 'READY?'}
-            </h2>
-            <p className="text-white/60 mb-8 text-sm">{LANGUAGES[lang].advice}</p>
-            
-            <button 
-              onClick={balance > 0 ? () => setIsPlaying(true) : handleTopUp}
-              className="w-full py-4 bg-white text-black rounded-2xl font-bold active:scale-95 transition-transform shadow-xl"
-            >
-              {balance > 0 ? 'START DRIVE' : LANGUAGES[lang].topup}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* 3. CONTROLS - İdarəetmə */}
-      <div className="w-full max-w-md grid grid-cols-2 gap-4">
-        <div className="grid grid-cols-2 gap-2">
-          <button 
-            onClick={() => setCarLane(prev => Math.max(0, prev - 1))}
-            className="h-20 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center text-2xl active:bg-white/20"
-          >
-            ←
-          </button>
-          <button 
-            onClick={() => setCarLane(prev => Math.min(2, prev + 1))}
-            className="h-20 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center text-2xl active:bg-white/20"
-          >
-            →
-          </button>
-        </div>
-
-        <button 
-          onMouseDown={() => setIsBraking(true)}
-          onMouseUp={() => setIsBraking(false)}
-          onTouchStart={() => setIsBraking(true)}
-          onTouchEnd={() => setIsBraking(false)}
-          className={`h-20 rounded-3xl font-black tracking-widest transition-all ${isBraking ? 'bg-red-600 shadow-[0_0_30px_rgba(220,38,38,0.4)]' : 'bg-red-500/20 border border-red-500/50 text-red-500'}`}
-        >
-          {LANGUAGES[lang].brake}
-        </button>
-      </div>
-
-      {/* Secret Admin Trigger */}
-      <div 
-        className="mt-8 opacity-10 text-[8px] cursor-pointer" 
-        onClick={() => { setIsAdmin(true); setBalance(50); showFeedback("ADMIN ACTIVE", "text-cyan-400"); }}
-      >
-        VER: 2.0.4-PREMIUM
-      </div>
-
-    </div>
-  );
+// Gələcəkdə səs əlavə etmək istəsəniz, bu funksiyanı da saxlayıram
+export async function getSpeechData(text: string) {
+  return null; 
 }

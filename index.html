@@ -1,26 +1,309 @@
-// src/services/geminiService.ts
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-// BURAYA ÖZ API AÇARINIZI YAZIN
-const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN";
-const genAI = new GoogleGenerativeAI(API_KEY);
-
-export async function getDrivingAdvice(scenario: string = "Şəhər içi sürmək") {
-  try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Premium Drive - AI Edition</title>
     
-    // Süni intellektə verəcəyimiz tapşırıq (Prompt)
-    const prompt = `Sən bu oyunda ("Premium Drive") oyunçuya kömək edən bir sürücülük təlimatçısısan. Ssenari: ${scenario}. Oyunçuya qısa, əyləncəli və motivasiya verici bir məsləhət ver. Maksimum 1-2 cümlə olsun. Oyun dili: Azərbaycan dili.`;
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    const result = await model.generateContent(prompt);
-    return result.response.text();
-  } catch (error) {
-    console.error("Gemini Xətası:", error);
-    return "Yolda diqqətli olun! Süni intellekt hazırda dincəlir.";
-  }
-}
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
 
-// Gələcəkdə səs əlavə etmək istəsəniz, bu funksiyanı da saxlayıram
-export async function getSpeechData(text: string) {
-  return null; 
-}
+    <style>
+        /* Toxunuş və seçmə qarşısını almaq üçün kiçik CSS əlavələri */
+        body { user-select: none; -webkit-user-select: none; touch-action: none; overflow: hidden; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-950 text-white h-screen flex flex-col font-sans">
+
+    <div id="loginScreen" class="h-screen flex items-center justify-center p-6">
+        <div class="bg-slate-900 p-10 rounded-[32px] border border-white/5 w-full max-w-sm text-center shadow-2xl">
+            <h1 class="text-3xl font-black text-white italic mb-8 tracking-tighter">PREMIUM DRIVE</h1>
+            <button id="loginBtn" class="w-full py-4 bg-cyan-600 rounded-2xl text-white font-bold uppercase tracking-widest shadow-lg shadow-cyan-600/20 active:translate-y-1 transition-all">
+                Oyuna Başla
+            </button>
+        </div>
+    </div>
+
+    <div id="gameScreen" class="hidden h-screen flex flex-col relative">
+        
+        <div class="p-4 flex justify-between items-center z-50">
+            <div class="bg-slate-900/80 backdrop-blur-xl p-3 px-5 rounded-2xl border border-white/10 shadow-2xl">
+                <p class="text-[10px] font-black text-cyan-400 uppercase tracking-[2px] mb-0.5">Balans</p>
+                <p id="balanceText" class="text-xl font-black">10.00 AZN</p>
+            </div>
+            
+            <div class="flex gap-2">
+                <button id="topupBtn" class="w-12 h-12 bg-emerald-600/20 border border-emerald-500/50 rounded-xl flex items-center justify-center text-xl active:bg-emerald-600/40">💳</button>
+            </div>
+        </div>
+
+        <div class="px-4 z-50">
+            <div class="bg-blue-900/40 border border-blue-500/30 rounded-xl p-3 text-sm text-blue-200 text-center italic shadow-lg">
+                💡 AI: <span id="aiTipText">Süni intellekt məsləhəti yüklənir...</span>
+            </div>
+        </div>
+
+        <div class="flex-1 flex items-center justify-center p-4 relative">
+            <div class="relative w-full h-full max-w-[400px] max-h-[600px] bg-slate-900 rounded-[40px] overflow-hidden border-4 border-slate-800 shadow-2xl">
+                <canvas id="gameCanvas" width="400" height="600" class="w-full h-full object-contain"></canvas>
+                
+                <div class="absolute inset-0 flex">
+                    <div id="laneLeft" class="flex-1 active:bg-white/5 cursor-pointer"></div>
+                    <div id="laneRight" class="flex-1 active:bg-white/5 cursor-pointer"></div>
+                </div>
+
+                <div id="gameOverScreen" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex-col items-center justify-center p-10 text-center z-50">
+                    <h2 class="text-4xl font-black text-rose-500 mb-2 italic">OYUN BİTDİ</h2>
+                    <p class="text-slate-400 text-sm mb-8">Davam etmək üçün balans artırın</p>
+                    <button id="restartBtn" class="w-full py-4 bg-cyan-600 rounded-2xl font-black mb-3 active:translate-y-1 transition-all">YENİDƏN BAŞLA (Test)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 pb-10 max-w-lg mx-auto w-full z-50">
+            <button id="brakeBtn" class="w-full py-6 rounded-[28px] text-2xl font-black transition-all border-b-[6px] bg-rose-600 border-rose-800 shadow-lg active:translate-y-1 active:border-b-0 active:bg-rose-700 active:border-rose-900">
+                TORMOZ
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from "@google/generative-ai";
+
+        // ==========================================
+        // SÜNİ İNTELLEKT (GEMİNİ) QURAŞDIRILMASI
+        // ==========================================
+        const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
+        const genAI = new GoogleGenerativeAI(API_KEY);
+
+        async function getDrivingAdvice(scenario) {
+            const aiTipEl = document.getElementById("aiTipText");
+            aiTipEl.innerText = "Süni intellekt düşünür... 🤖";
+            try {
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const prompt = `Sən bu oyunda ("Premium Drive") oyunçuya kömək edən bir sürücülük təlimatçısısan. Ssenari: ${scenario}. Oyunçuya qısa, əyləncəli və motivasiya verici bir məsləhət ver. Maksimum 1-2 cümlə olsun. Oyun dili: Azərbaycan dili.`;
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                aiTipEl.innerText = response.text();
+            } catch (error) {
+                console.error(error);
+                aiTipEl.innerText = "Yolda diqqətli olun! Süni intellekt hazırda xəttə deyil.";
+            }
+        }
+
+        // ==========================================
+        // OYUN DƏYİŞƏNLƏRİ VƏ SABİTLƏRİ
+        // ==========================================
+        const LOGICAL_WIDTH = 400;
+        const LOGICAL_HEIGHT = 600;
+        const CAR_WIDTH = 48;
+        const CAR_HEIGHT = 86;
+        const PLAYER_Y = LOGICAL_HEIGHT - 130;
+        const LANES = [100, 200, 300]; // Sol, Orta, Sağ zolaqlar
+
+        let isGameRunning = false;
+        let isBraking = false;
+        let isGameOver = false;
+        let balance = 10.00;
+        
+        let gameState = {
+            carX: LANES[1] - CAR_WIDTH / 2,
+            targetX: LANES[1] - CAR_WIDTH / 2,
+            linesOffset: 0
+        };
+
+        // DOM Elementləri
+        const loginScreen = document.getElementById('loginScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const balanceText = document.getElementById('balanceText');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Audio Dəyişənləri
+        let audioCtx = null;
+        let engineOsc = null;
+        let engineGain = null;
+
+        // ==========================================
+        // FUNKSİYALAR
+        // ==========================================
+
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            engineOsc = audioCtx.createOscillator();
+            engineGain = audioCtx.createGain();
+            
+            engineOsc.type = 'sawtooth';
+            engineOsc.frequency.setValueAtTime(40, audioCtx.currentTime);
+            engineGain.gain.setValueAtTime(0.08, audioCtx.currentTime); // Səs səviyyəsi
+            
+            engineOsc.connect(engineGain);
+            engineGain.connect(audioCtx.destination);
+            engineOsc.start();
+        }
+
+        function updateBalanceUI() {
+            balanceText.innerText = `${balance.toFixed(2)} AZN`;
+        }
+
+        function startGame() {
+            loginScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            gameOverScreen.classList.add('hidden');
+            
+            initAudio();
+            isGameRunning = true;
+            isGameOver = false;
+            balance = 10.00; // Başlanğıc balansı
+            updateBalanceUI();
+            
+            // Süni intellektdən başlanğıc məsləhəti al
+            getDrivingAdvice("Oyunçu yeni oyuna başlayır");
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            gameOverScreen.classList.remove('hidden');
+            if (engineGain && audioCtx) {
+                engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+            }
+            // Süni intellektdən uduzmaq barədə məsləhət al
+            getDrivingAdvice("Oyunçunun balansı bitdi və oyunu uduzdu.");
+        }
+
+        function switchLane(direction) {
+            if (isGameOver) return;
+            // Hazırkı zolağı tap
+            let currentLaneIndex = LANES.indexOf(LANES.find(l => Math.abs(l - CAR_WIDTH/2 - gameState.targetX) < 10) || LANES[1]);
+            
+            if (direction === 'L' && currentLaneIndex > 0) currentLaneIndex--;
+            if (direction === 'R' && currentLaneIndex < 2) currentLaneIndex++;
+            
+            gameState.targetX = LANES[currentLaneIndex] - CAR_WIDTH / 2;
+        }
+
+        // ==========================================
+        // OYUN DÖVRÜ (GAME LOOP)
+        // ==========================================
+        function update() {
+            if (!isGameRunning || isGameOver) return;
+
+            const speed = isBraking ? 0 : 5;
+            
+            // Yol cizgilərinin hərəkəti
+            gameState.linesOffset = (gameState.linesOffset + speed) % 80;
+            
+            // Maşının sağa/sola axıcı keçidi
+            gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
+
+            // Xəyali Balans Azalması (Oyunu maraqlı etmək üçün)
+            if (!isBraking) {
+                balance -= 0.005; // Hərəkət etdikcə balans azalır
+                updateBalanceUI();
+                if (balance <= 0) {
+                    balance = 0;
+                    updateBalanceUI();
+                    gameOver();
+                }
+            }
+
+            // Səs nizamlanması
+            if (engineGain && audioCtx) {
+                const targetVol = isBraking ? 0.02 : 0.08;
+                engineGain.gain.setTargetAtTime(targetVol, audioCtx.currentTime, 0.1);
+            }
+        }
+
+        function draw() {
+            if (!ctx) return;
+
+            // Arxa fon (Torpaq/Şəhər)
+            ctx.fillStyle = '#0f172a'; // Slate-900
+            ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+
+            // Asfalt Yol
+            ctx.fillStyle = '#1e293b'; // Slate-800
+            ctx.fillRect(60, 0, LOGICAL_WIDTH - 120, LOGICAL_HEIGHT);
+
+            // Yol cizgiləri (Qırıq xətlər)
+            ctx.setLineDash([30, 50]);
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 4;
+            ctx.lineDashOffset = -gameState.linesOffset;
+            
+            ctx.beginPath();
+            ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); // Sol cizgi
+            ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); // Sağ cizgi
+            ctx.stroke();
+
+            // Oyunçunun Maşını
+            ctx.fillStyle = '#3b82f6'; // Mavi rəng
+            ctx.beginPath();
+            ctx.roundRect(gameState.carX, PLAYER_Y, CAR_WIDTH, CAR_HEIGHT, 10);
+            ctx.fill();
+
+            // Tormoz İşıqları
+            if (isBraking) {
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(gameState.carX + 5, PLAYER_Y + CAR_HEIGHT - 5, 8, 4);
+                ctx.fillRect(gameState.carX + CAR_WIDTH - 13, PLAYER_Y + CAR_HEIGHT - 5, 8, 4);
+            }
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            if (isGameRunning) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // ==========================================
+        // İSTİFADƏÇİ İDARƏETMƏSİ (DÜYMƏLƏR VƏ TOXUNUŞLAR)
+        // ==========================================
+
+        document.getElementById('loginBtn').addEventListener('click', startGame);
+        
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            gameOverScreen.classList.add('hidden');
+            balance = 10.00;
+            isGameOver = false;
+            getDrivingAdvice("Oyunçu uduzduqdan sonra yenidən cəhd edir.");
+        });
+
+        // Tormoz düyməsi (Mouse və Touch)
+        const brakeBtn = document.getElementById('brakeBtn');
+        const startBraking = (e) => { e.preventDefault(); isBraking = true; brakeBtn.innerText = "DAYANIR..."; };
+        const stopBraking = (e) => { e.preventDefault(); isBraking = false; brakeBtn.innerText = "TORMOZ"; };
+
+        brakeBtn.addEventListener('mousedown', startBraking);
+        brakeBtn.addEventListener('mouseup', stopBraking);
+        brakeBtn.addEventListener('touchstart', startBraking, {passive: false});
+        brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
+
+        // Zolaq dəyişmə (Sol/Sağ klik)
+        document.getElementById('laneLeft').addEventListener('mousedown', () => switchLane('L'));
+        document.getElementById('laneLeft').addEventListener('touchstart', (e) => { e.preventDefault(); switchLane('L'); }, {passive: false});
+        
+        document.getElementById('laneRight').addEventListener('mousedown', () => switchLane('R'));
+        document.getElementById('laneRight').addEventListener('touchstart', (e) => { e.preventDefault(); switchLane('R'); }, {passive: false});
+
+        document.getElementById('topupBtn').addEventListener('click', () => {
+            alert("Siz BuyMeACoffee və ya Xsolla ödəniş səhifəsinə yönləndiriləcəksiniz!");
+        });
+
+    </script>
+</body>
+</html>

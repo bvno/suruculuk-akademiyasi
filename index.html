@@ -1,140 +1,213 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-// --- Types ---
-type FeedbackType = 'success' | 'warning' | 'error';
-type TrafficLightState = 'GREEN' | 'YELLOW' | 'RED';
-type CarSkin = { id: string; name: string; color: string; price: number; owned: boolean };
-type Biome = { name: string; ground: string; accent: string };
-type SceneryObject = { id: number; x: number; y: number; size: number; color: string };
-type TrafficCar = { id: number; x: number; y: number; width: number; height: number; color: string; crashed?: boolean };
+// --- CONFIG & TYPES ---
+type Language = 'az' | 'en' | 'tr' | 'ru';
 
-// --- Constants ---
-const LOGICAL_WIDTH = 400;
-const LOGICAL_HEIGHT = 600;
-const CAR_WIDTH = 48;
-const CAR_HEIGHT = 86;
-const PLAYER_Y = LOGICAL_HEIGHT - 130;
-const LANES = [100, 200, 300];
-const PAYMENT_URL = "https://buymeacoffee.com/surwin";
+interface LangData {
+  flag: string; currency: string; rate: number;
+  brake: string; topup: string; garage: string;
+  advice: string; gameOver: string;
+}
 
-const MOTIVATIONAL_PHRASES: Record<string, string[]> = {
-  az: ["Möhtəşəm!", "Sən bir peşəkarsan!", "Yola davam!", "Əla sürürsən!", "Belə davam et!", "Diqqətli ol!", "Sükan arxasında kalsan!"],
-  en: ["Awesome!", "You're a pro!", "Keep going!", "Great driving!", "Stay focused!", "Master of the road!", "You got this!"],
-  ru: ["Отлично!", "Ты профессионал!", "Продолжай!", "Хорошая езда!", "Будь внимателен!", "Ты справишься!", "Вперёд!"]
+const LANGUAGES: Record<Language, LangData> = {
+  az: { flag: '🇦🇿', currency: '₼', rate: 1, brake: 'TORMOZ', topup: 'Balansı Artır', garage: 'Qaraj', advice: 'Diqqətli sür!', gameOver: 'OYUN BİTDİ' },
+  en: { flag: '🇺🇸', currency: '$', rate: 0.6, brake: 'BRAKE', topup: 'Top Up', garage: 'Garage', advice: 'Drive Safely!', gameOver: 'GAME OVER' },
+  tr: { flag: '🇹🇷', currency: '₺', rate: 18.5, brake: 'FREN', topup: 'Bakiye Yükle', garage: 'Garaj', advice: 'Dikkatli sür!', gameOver: 'OYUN BİTTİ' },
+  ru: { flag: '🇷🇺', currency: '₽', rate: 55.0, brake: 'ТОРМОЗ', topup: 'Пополнить', garage: 'Гараж', advice: 'Водите осторожно!', gameOver: 'ИГРА ОКОНЧЕНА' },
 };
 
-const BIOMES: Biome[] = [
-  { name: "City Streets", ground: "#0f172a", accent: "#334155" },
-  { name: "Forest Road", ground: "#064e3b", accent: "#166534" },
-  { name: "Canyon", ground: "#451a03", accent: "#92400e" }
-];
+// --- MAIN COMPONENT ---
+export default function TrafficSimulator() {
+  // State Management
+  const [balance, setBalance] = useState<number>(() => Number(localStorage.getItem('balance')) || 0);
+  const [lang, setLang] = useState<Language>('az');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isBraking, setIsBraking] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [carLane, setCarLane] = useState(1); // 0, 1, 2
+  const [light, setLight] = useState<'GREEN' | 'YELLOW' | 'RED'>('GREEN');
+  const [feedback, setFeedback] = useState<{text: string, color: string} | null>(null);
 
-const INITIAL_SKINS: CarSkin[] = [
-  { id: 'classic', name: 'Classic Blue', color: '#3b82f6', price: 0, owned: true },
-  { id: 'sport', name: 'Sport Red', color: '#ef4444', price: 5.0, owned: false },
-  { id: 'taxi', name: 'Yellow Taxi', color: '#fbbf24', price: 8.0, owned: false },
-  { id: 'noir', name: 'Premium Black', color: '#1e293b', price: 15.0, owned: false },
-];
-
-const LANGUAGES = [
-  { code: 'az', name: 'Azərbaycan', flag: '🇦🇿', currency: 'AZN', rate: 1 },
-  { code: 'en', name: 'English', flag: '🇬🇧', currency: 'USD', rate: 0.59 },
-  { code: 'ru', name: 'Русский', flag: '🇷🇺', currency: 'RUB', rate: 54.4 }
-];
-
-const TRANSLATIONS: Record<string, any> = {
-  az: { balance: "Balans", brake: "TORMOZ", braking: "DAYANIR...", garage: "QARAJ", topUpHeading: "BALANSIN ARTIR", topUpText: "Təhlükəsiz ödəniş üçün aşağıdakı düyməyə keçid edin.", payStripe: "Balansı Artır (☕)", gameOver: "OYUN BİTDİ", balanceFinished: "Davam etmək üçün balans artırın.", restart: "YENİDƏN", langHeading: "DİL SEÇİN", fine: "CƏRİMƏ!", reward: "MÜKAFAT!", crash: "QƏZA!" },
-  en: { balance: "Balance", brake: "BRAKE", braking: "BRAKING...", garage: "GARAGE", topUpHeading: "RECHARGE BALANCE", topUpText: "Follow the link below for secure payment.", payStripe: "Top Up Now (☕)", gameOver: "GAME OVER", balanceFinished: "Top up to continue.", restart: "RESTART", langHeading: "LANGUAGE", fine: "FINE!", reward: "REWARD!", crash: "CRASH!" },
-  ru: { balance: "Баланс", brake: "ТОРМОЗ", braking: "СТОП...", garage: "ГАРАЖ", topUpHeading: "ПОПОЛНИТЬ БАЛАНС", topUpText: "Для безопасной оплаты перейдите по ссылке ниже.", payStripe: "Пополнить (☕)", gameOver: "ИГРА ОКОНЧЕНА", balanceFinished: "Пополните баланс, чтобы продолжить.", restart: "ПЕРЕЗАПУСК", langHeading: "ЯЗЫК", fine: "ШТРАФ!", reward: "НАГРАДА!", crash: "АВАРИЯ!" }
-};
-
-// --- App Component ---
-const App: React.FC = () => {
-  const [balance, setBalance] = useState(0);
-  const [lang, setLang] = useState('az');
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [showTopUp, setShowTopUp] = useState(true);
-  const [feedback, setFeedback] = useState<{text:string,type:FeedbackType}|null>(null);
-  const [skins, setSkins] = useState<CarSkin[]>(INITIAL_SKINS);
-  const [activeSkinId, setActiveSkinId] = useState('classic');
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const isBrakingRef = useRef(false);
 
-  const t = TRANSLATIONS[lang];
-  const currentLangData = LANGUAGES.find(l=>l.code===lang)!;
-
-  const triggerFeedback = (text: string, type: FeedbackType) => {
-    setFeedback({text,type});
-    setTimeout(()=>setFeedback(null),3000);
+  // --- AUDIO SYSTEM (Web Audio API) ---
+  const playSound = (freq: number, type: OscillatorType = 'sine', duration = 0.2) => {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
   };
 
-  const switchLane = (dir:'L'|'R') => { /* lane logic placeholder */ };
+  // --- GAME LOGIC ---
+  useEffect(() => {
+    localStorage.setItem('balance', balance.toString());
+    if (balance <= 0 && isPlaying) {
+      setIsPlaying(false);
+      playSound(150, 'sawtooth', 0.5);
+    }
+  }, [balance, isPlaying]);
 
-  const resetGame = () => {
-    if(balance<=0){ setShowTopUp(true); return; }
-    setIsGameOver(false);
-    triggerFeedback("Game Reset!", 'success');
+  // Svetofor Dövrü
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLight(prev => {
+        if (prev === 'GREEN') return 'YELLOW';
+        if (prev === 'YELLOW') return 'RED';
+        return 'GREEN';
+      });
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Balans və Cərimə Mexanikası
+  const checkRules = useCallback(() => {
+    if (!isPlaying) return;
+    if (light === 'RED' && !isBraking) {
+      setBalance(prev => Math.max(0, prev - 0.20));
+      showFeedback("-0.20", "text-red-500");
+      playSound(200, 'square');
+    } else if (light === 'GREEN' && !isBraking) {
+      setBalance(prev => prev + 0.01); // Davamlı qazanc
+    }
+  }, [isPlaying, light, isBraking]);
+
+  useEffect(() => {
+    const interval = setInterval(checkRules, 1000);
+    return () => clearInterval(interval);
+  }, [checkRules]);
+
+  const showFeedback = (text: string, color: string) => {
+    setFeedback({ text, color });
+    setTimeout(() => setFeedback(null), 1000);
   };
 
-  const formatBalance = (val:number) => {
-    const converted = val * currentLangData.rate;
-    return `${converted.toLocaleString(lang,{minimumFractionDigits:2,maximumFractionDigits:2})} ${currentLangData.currency}`;
+  const handleTopUp = () => {
+    window.open('https://buymeacoffee.com/surwin', '_blank');
+    // Demo məqsədli balans artımı (Real sistemdə bu webhook ilə olar)
+    setBalance(prev => prev + 10);
+    playSound(880, 'sine');
   };
 
-  useEffect(()=>{
-    if(balance>0) setShowTopUp(false);
-  },[balance]);
-
-  // --- Demo: Motivational Feedback every 25s ---
-  useEffect(()=>{
-    const interval = setInterval(()=>{
-      if(balance>0 && Math.random()<0.3){
-        const phrases = MOTIVATIONAL_PHRASES[lang] || MOTIVATIONAL_PHRASES['en'];
-        const text = phrases[Math.floor(Math.random()*phrases.length)];
-        triggerFeedback(text,'success');
-      }
-    },25000);
-    return ()=>clearInterval(interval);
-  },[balance,lang]);
-
+  // --- RENDER ---
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0f172a] text-white p-4">
-      <div className="mb-4">
-        <span className="font-bold">{t.balance}: </span>{formatBalance(balance)}
-      </div>
-
-      {/* Top-Up Modal */}
-      {showTopUp && (
-        <div className="p-6 bg-slate-900 rounded-xl border border-white/10 text-center mb-4">
-          <h2 className="text-xl font-black mb-2">{t.topUpHeading}</h2>
-          <p className="text-sm mb-4">{t.topUpText}</p>
-          <button onClick={()=>window.open(PAYMENT_URL,'_blank')} className="bg-yellow-400 text-black font-bold px-6 py-3 rounded-xl mb-2">{t.payStripe}</button>
-          <button onClick={()=>{setBalance(balance+5)}} className="bg-green-600 text-white font-bold px-6 py-2 rounded-xl mb-2">Demo +5 {currentLangData.currency}</button>
+    <div className="min-h-screen bg-[#050505] text-white font-sans p-4 flex flex-col items-center select-none">
+      
+      {/* 1. HUD - Üst Panel */}
+      <div className="w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[32px] flex justify-between items-center shadow-2xl">
+        <div>
+          <p className="text-[10px] tracking-[2px] opacity-50 uppercase">{LANGUAGES[lang].garage}</p>
+          <p className="text-2xl font-black text-emerald-400">
+            {(balance * LANGUAGES[lang].rate).toFixed(2)} <span className="text-sm">{LANGUAGES[lang].currency}</span>
+          </p>
         </div>
-      )}
-
-      {/* Language Selection */}
-      <div className="flex gap-2 mb-4">
-        {LANGUAGES.map(l=>(
-          <button key={l.code} onClick={()=>setLang(l.code)} className={`p-2 rounded-xl ${lang===l.code?'bg-cyan-600':'bg-slate-800'}`}>{l.flag}</button>
-        ))}
+        
+        <div className="flex gap-2">
+          <button 
+            onClick={() => {
+              const keys = Object.keys(LANGUAGES) as Language[];
+              const nextIdx = (keys.indexOf(lang) + 1) % keys.length;
+              setLang(keys[nextIdx]);
+            }}
+            className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xl hover:bg-white/10 transition-all"
+          >
+            {LANGUAGES[lang].flag}
+          </button>
+        </div>
       </div>
 
-      {/* Canvas Placeholder */}
-      <div className="w-[400px] h-[600px] bg-slate-800 rounded-2xl flex items-center justify-center mb-4">
-        <canvas ref={canvasRef} width={LOGICAL_WIDTH} height={LOGICAL_HEIGHT} />
-        {feedback && <div className="absolute bg-white/20 p-2 rounded-xl">{feedback.text}</div>}
+      {/* 2. GAME CANVAS AREA */}
+      <div className="relative w-full max-w-md h-[450px] my-6 bg-[#0a0a0a] rounded-[40px] border-4 border-white/5 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+        
+        {/* Yol Zolaqları */}
+        <div className="absolute inset-0 flex justify-around opacity-20">
+          <div className="w-1 border-r-2 border-dashed border-white h-full"></div>
+          <div className="w-1 border-r-2 border-dashed border-white h-full"></div>
+        </div>
+
+        {/* Svetofor */}
+        <div className="absolute top-8 right-8 flex flex-col gap-2 p-3 bg-black/60 rounded-full border border-white/10">
+          <div className={`w-4 h-4 rounded-full shadow-lg ${light === 'RED' ? 'bg-red-500 shadow-red-500/50' : 'bg-red-900'}`}></div>
+          <div className={`w-4 h-4 rounded-full shadow-lg ${light === 'YELLOW' ? 'bg-yellow-500 shadow-yellow-500/50' : 'bg-yellow-900'}`}></div>
+          <div className={`w-4 h-4 rounded-full shadow-lg ${light === 'GREEN' ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-emerald-900'}`}></div>
+        </div>
+
+        {/* Oyunçu Maşını */}
+        <div 
+          className="absolute bottom-12 transition-all duration-300 ease-out"
+          style={{ left: `${20 + carLane * 30}%`, transform: 'translateX(-50%)' }}
+        >
+          <div className="w-12 h-20 bg-gradient-to-b from-cyan-400 to-blue-600 rounded-lg shadow-[0_0_20px_rgba(34,211,238,0.4)] relative">
+            <div className="absolute -top-1 left-2 right-2 h-2 bg-white/30 rounded-t-sm"></div> {/* Ön Şüşə */}
+          </div>
+        </div>
+
+        {/* Feedback Popup */}
+        {feedback && (
+          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl font-black italic animate-bounce ${feedback.color}`}>
+            {feedback.text}
+          </div>
+        )}
+
+        {/* Start / Game Over Overlay */}
+        {!isPlaying && (
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-10 text-center">
+            <h2 className="text-4xl font-black mb-2 bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent italic">
+              {balance <= 0 ? LANGUAGES[lang].gameOver : 'READY?'}
+            </h2>
+            <p className="text-white/60 mb-8 text-sm">{LANGUAGES[lang].advice}</p>
+            
+            <button 
+              onClick={balance > 0 ? () => setIsPlaying(true) : handleTopUp}
+              className="w-full py-4 bg-white text-black rounded-2xl font-bold active:scale-95 transition-transform shadow-xl"
+            >
+              {balance > 0 ? 'START DRIVE' : LANGUAGES[lang].topup}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Controls */}
-      <div className="flex gap-2">
-        <button onMouseDown={()=>isBrakingRef.current=true} onMouseUp={()=>isBrakingRef.current=false} className="bg-red-600 px-6 py-3 rounded-xl">{isBrakingRef.current?t.braking:t.brake}</button>
-        <button onClick={resetGame} className="bg-slate-800 px-6 py-3 rounded-xl">{t.restart}</button>
+      {/* 3. CONTROLS - İdarəetmə */}
+      <div className="w-full max-w-md grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2">
+          <button 
+            onClick={() => setCarLane(prev => Math.max(0, prev - 1))}
+            className="h-20 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center text-2xl active:bg-white/20"
+          >
+            ←
+          </button>
+          <button 
+            onClick={() => setCarLane(prev => Math.min(2, prev + 1))}
+            className="h-20 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center text-2xl active:bg-white/20"
+          >
+            →
+          </button>
+        </div>
+
+        <button 
+          onMouseDown={() => setIsBraking(true)}
+          onMouseUp={() => setIsBraking(false)}
+          onTouchStart={() => setIsBraking(true)}
+          onTouchEnd={() => setIsBraking(false)}
+          className={`h-20 rounded-3xl font-black tracking-widest transition-all ${isBraking ? 'bg-red-600 shadow-[0_0_30px_rgba(220,38,38,0.4)]' : 'bg-red-500/20 border border-red-500/50 text-red-500'}`}
+        >
+          {LANGUAGES[lang].brake}
+        </button>
       </div>
 
-      {isGameOver && <div className="mt-4 text-red-400 font-bold">{t.gameOver}</div>}
+      {/* Secret Admin Trigger */}
+      <div 
+        className="mt-8 opacity-10 text-[8px] cursor-pointer" 
+        onClick={() => { setIsAdmin(true); setBalance(50); showFeedback("ADMIN ACTIVE", "text-cyan-400"); }}
+      >
+        VER: 2.0.4-PREMIUM
+      </div>
+
     </div>
   );
-};
-
-export default App;
+}

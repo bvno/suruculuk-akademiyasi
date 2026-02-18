@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="az">
+<html lang="az" id="htmlTag">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Premium Drive - AI Edition</title>
+    <title>Premium Drive - AI Audio Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -18,65 +18,85 @@
     <style>
         body { user-select: none; -webkit-user-select: none; touch-action: none; overflow: hidden; }
         .hidden { display: none !important; }
+        .rtl { direction: rtl; font-family: 'Arial', sans-serif; }
     </style>
 </head>
-<body class="bg-slate-950 text-white h-screen flex flex-col font-sans">
+<body class="bg-slate-950 text-white h-screen flex flex-col font-sans relative transition-all duration-300">
 
-    <div id="loginScreen" class="h-screen flex items-center justify-center p-6 z-50 absolute inset-0 bg-slate-950">
+    <div id="loginScreen" class="h-screen flex items-center justify-center p-6 z-40 absolute inset-0 bg-slate-950">
         <div class="bg-slate-900 p-10 rounded-[32px] border border-white/5 w-full max-w-sm text-center shadow-2xl">
-            <h1 class="text-3xl font-black text-white italic mb-8 tracking-tighter">PREMIUM DRIVE</h1>
+            <h1 class="text-3xl font-black text-white italic mb-2 tracking-tighter">PREMIUM DRIVE</h1>
+            <p class="text-slate-400 text-sm mb-8"><span id="lbl_loginBalance">Balans:</span> <span id="loginBalanceText" class="font-bold text-cyan-400">0.00 AZN</span></p>
             <button id="loginBtn" class="w-full py-4 bg-cyan-600 rounded-2xl text-white font-bold uppercase tracking-widest shadow-lg shadow-cyan-600/20 active:translate-y-1 transition-all">
                 Oyuna Başla
+            </button>
+            <button id="loginTopupBtn" class="w-full mt-4 py-4 bg-slate-800 rounded-2xl text-white font-bold uppercase tracking-widest active:translate-y-1 transition-all">
+                Balansı Artır
             </button>
         </div>
     </div>
 
     <div id="gameScreen" class="hidden h-screen flex flex-col relative">
-        
-        <div class="p-4 flex justify-between items-center z-50">
+        <div class="p-4 flex justify-between items-center z-30">
             <div class="flex gap-2">
-                <div class="bg-slate-900/80 backdrop-blur-xl p-3 px-5 rounded-2xl border border-white/10 shadow-2xl">
-                    <p class="text-[10px] font-black text-cyan-400 uppercase tracking-[2px] mb-0.5">Balans</p>
-                    <p id="balanceText" class="text-lg font-black">10.00 AZN</p>
+                <div class="bg-slate-900/80 backdrop-blur-xl p-3 px-4 rounded-2xl border border-white/10 shadow-2xl transition-all" id="balanceBox">
+                    <p id="lbl_hudBalance" class="text-[10px] font-black text-cyan-400 uppercase tracking-[2px] mb-0.5">Balans</p>
+                    <p id="balanceText" class="text-lg font-black">0.00 AZN</p>
                 </div>
-                <div class="bg-slate-900/80 backdrop-blur-xl p-3 px-5 rounded-2xl border border-white/10 shadow-2xl">
-                    <p class="text-[10px] font-black text-rose-400 uppercase tracking-[2px] mb-0.5">Məsafə</p>
+                <div class="bg-slate-900/80 backdrop-blur-xl p-3 px-4 rounded-2xl border border-white/10 shadow-2xl">
+                    <p id="lbl_hudDistance" class="text-[10px] font-black text-rose-400 uppercase tracking-[2px] mb-0.5">Məsafə</p>
                     <p id="scoreText" class="text-lg font-black">0 M</p>
                 </div>
             </div>
-            
             <div class="flex gap-2">
+                <button id="langBtn" class="w-12 h-12 bg-blue-600/20 border border-blue-500/50 rounded-xl flex items-center justify-center text-xl active:bg-blue-600/40 transition-all">🇦🇿</button>
                 <button id="topupBtn" class="w-12 h-12 bg-emerald-600/20 border border-emerald-500/50 rounded-xl flex items-center justify-center text-xl active:bg-emerald-600/40">💳</button>
             </div>
         </div>
 
-        <div class="px-4 z-50">
+        <div class="px-4 z-30">
             <div class="bg-blue-900/40 border border-blue-500/30 rounded-xl p-3 text-sm text-blue-200 text-center italic shadow-lg">
-                💡 AI: <span id="aiTipText">Süni intellekt məsləhəti yüklənir...</span>
+                <span id="aiIcon">💡</span> AI: <span id="aiTipText">Süni intellekt məsləhəti yüklənir...</span>
             </div>
         </div>
 
         <div class="flex-1 flex items-center justify-center p-4 relative">
             <div class="relative w-full h-full max-w-[400px] max-h-[600px] bg-slate-900 rounded-[40px] overflow-hidden border-4 border-slate-800 shadow-2xl">
                 <canvas id="gameCanvas" width="400" height="600" class="w-full h-full object-contain"></canvas>
-                
                 <div class="absolute inset-0 flex">
                     <div id="laneLeft" class="flex-1 active:bg-white/5 cursor-pointer"></div>
                     <div id="laneRight" class="flex-1 active:bg-white/5 cursor-pointer"></div>
                 </div>
-
-                <div id="gameOverScreen" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex-col items-center justify-center p-10 text-center z-50">
+                <div id="gameOverScreen" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex-col items-center justify-center p-10 text-center z-40">
                     <h2 id="gameOverTitle" class="text-4xl font-black text-rose-500 mb-2 italic">QƏZA!</h2>
-                    <p class="text-slate-400 text-sm mb-4">Toplanan Məsafə: <span id="finalScore" class="font-bold text-white">0</span> M</p>
-                    <button id="restartBtn" class="w-full py-4 bg-cyan-600 rounded-2xl font-black mb-3 active:translate-y-1 transition-all">YENİDƏN BAŞLA (Test)</button>
+                    <p class="text-slate-400 text-sm mb-4"><span id="lbl_gameOverDistance">Toplanan Məsafə:</span> <span id="finalScore" class="font-bold text-white">0</span> M</p>
+                    <button id="restartBtn" class="w-full py-4 bg-cyan-600 rounded-2xl font-black mb-3 active:translate-y-1 transition-all">YENİDƏN BAŞLA</button>
+                    <button id="gameOverTopupBtn" class="w-full py-4 bg-emerald-600 rounded-2xl font-black active:translate-y-1 transition-all">BALANSI ARTIR</button>
                 </div>
             </div>
         </div>
 
-        <div class="p-6 pb-10 max-w-lg mx-auto w-full z-50">
+        <div class="p-6 pb-10 max-w-lg mx-auto w-full z-30">
             <button id="brakeBtn" class="w-full py-6 rounded-[28px] text-2xl font-black transition-all border-b-[6px] bg-rose-600 border-rose-800 shadow-lg active:translate-y-1 active:border-b-0 active:bg-rose-700 active:border-rose-900">
                 TORMOZ
             </button>
+        </div>
+    </div>
+
+    <div id="topUpModal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-6 z-[100]">
+        <div class="bg-slate-900 p-8 rounded-[32px] border border-white/10 text-center w-full max-w-sm shadow-2xl">
+            <h2 id="lbl_topupModalTitle" class="text-2xl font-black mb-4 italic uppercase">Balansın Artır</h2>
+            <button id="demoTopUpBtn" class="w-full py-4 bg-emerald-600 rounded-2xl font-black text-white mb-6 active:translate-y-1 transition-all">
+                +10 AZN (Demo Test)
+            </button>
+            <button id="closeTopUpBtn" class="text-slate-500 text-[12px] font-bold uppercase tracking-widest active:text-white transition-all">Bağla</button>
+        </div>
+    </div>
+    <div id="langModal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-6 z-[100]">
+        <div class="bg-slate-900 p-6 rounded-[32px] border border-white/10 text-center w-full max-w-sm shadow-2xl">
+            <h2 class="text-xl font-black mb-6 italic text-white">Dil / Language</h2>
+            <div id="langList" class="grid grid-cols-2 gap-3 mb-6"></div>
+            <button id="closeLangBtn" class="text-slate-500 text-[12px] font-bold uppercase tracking-widest active:text-white transition-all">Geri</button>
         </div>
     </div>
 
@@ -84,141 +104,201 @@
         import { GoogleGenerativeAI } from "@google/generative-ai";
 
         // ==========================================
-        // SÜNİ İNTELLEKT (GEMİNİ) 
+        // DİLLƏR, TƏRCÜMƏ VƏ TTS KODLARI
+        // ==========================================
+        const LANGUAGES = {
+            az: { name: 'Azərbaycan', flag: '🇦🇿', currency: 'AZN', rate: 1, dir: 'ltr', tts: 'tr-TR' }, // WebSpeech-də AZ yoxdursa, Türkcə oxuyur
+            en: { name: 'English', flag: '🇬🇧', currency: 'USD', rate: 0.59, dir: 'ltr', tts: 'en-US' },
+            ru: { name: 'Русский', flag: '🇷🇺', currency: 'RUB', rate: 54.4, dir: 'ltr', tts: 'ru-RU' },
+            tr: { name: 'Türkçe', flag: '🇹🇷', currency: 'TRY', rate: 20.3, dir: 'ltr', tts: 'tr-TR' }
+        };
+
+        const TRANSLATIONS = {
+            az: { loginBtn: "Oyuna Başla", hudBal: "Balans", brake: "TORMOZ", braking: "DAYANIR...", crash: "QƏZA!", fuel: "BENZİN BİTDİ", aiThinking: "AI düşünür... 🤖" },
+            en: { loginBtn: "Start Game", hudBal: "Balance", brake: "BRAKE", braking: "BRAKING...", crash: "CRASH!", fuel: "OUT OF GAS", aiThinking: "AI is thinking... 🤖" },
+            ru: { loginBtn: "Начать", hudBal: "Баланс", brake: "ТОРМОЗ", braking: "ТОРМОЖЕНИЕ...", crash: "АВАРИЯ!", fuel: "НЕТ БЕНЗИНА", aiThinking: "ИИ думает... 🤖" },
+            tr: { loginBtn: "Başla", hudBal: "Bakiye", brake: "FREN", braking: "DURUYOR...", crash: "KAZA!", fuel: "BENZİN BİTTİ", aiThinking: "YZ düşünüyor... 🤖" }
+        };
+
+        let currentLang = 'az';
+        let isSpeaking = false;
+
+        function applyLanguage(code) {
+            currentLang = code;
+            document.getElementById('langBtn').innerText = LANGUAGES[code].flag;
+            document.getElementById('loginBtn').innerText = TRANSLATIONS[code].loginBtn;
+            document.getElementById('lbl_hudBalance').innerText = TRANSLATIONS[code].hudBal;
+            document.getElementById('brakeBtn').innerText = isBraking ? TRANSLATIONS[code].braking : TRANSLATIONS[code].brake;
+            updateUI(); 
+            document.getElementById('langModal').classList.add('hidden');
+        }
+
+        // ==========================================
+        // AUDIO SİSTEMİ (WEB AUDIO API & TTS)
+        // ==========================================
+        let audioCtx = null; 
+        let engineOsc = null; 
+        let engineGain = null;
+
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            engineOsc = audioCtx.createOscillator(); 
+            engineGain = audioCtx.createGain();
+            engineOsc.type = 'sawtooth'; 
+            engineOsc.frequency.setValueAtTime(40, audioCtx.currentTime);
+            engineGain.gain.setValueAtTime(0.08, audioCtx.currentTime); 
+            engineOsc.connect(engineGain); 
+            engineGain.connect(audioCtx.destination); 
+            engineOsc.start();
+        }
+
+        function playTone(freq, type, duration, vol = 0.1) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // Qəza Səsi (Crash)
+        function playCrashSound() { 
+            playTone(150, 'sawtooth', 0.5, 0.3); 
+            setTimeout(() => playTone(50, 'square', 0.8, 0.4), 100);
+        }
+
+        // Uğur/Artım Səsi (Success)
+        function playSuccessSound() { 
+            playTone(440, 'sine', 0.1); 
+            setTimeout(() => playTone(660, 'sine', 0.3), 100); 
+        }
+
+        // Cərimə Səsi (Fine)
+        function playFineSound() { 
+            playTone(200, 'square', 0.2); 
+            setTimeout(() => playTone(150, 'square', 0.3), 150);
+            
+            // Ekranda vizual effekt
+            const box = document.getElementById('balanceBox');
+            box.classList.add('border-rose-500', 'bg-rose-900/50');
+            setTimeout(() => box.classList.remove('border-rose-500', 'bg-rose-900/50'), 500);
+        }
+
+        // AI Səsli Oxuma (TTS)
+        function getSpeechData(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Əvvəlki səsi kəs
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = LANGUAGES[currentLang].tts;
+                utterance.rate = 1.1; // Sürət
+                utterance.pitch = 1.0; 
+                
+                utterance.onstart = () => { document.getElementById("aiIcon").innerText = "🔊"; };
+                utterance.onend = () => { document.getElementById("aiIcon").innerText = "💡"; };
+                
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // ==========================================
+        // SÜNİ İNTELLEKT (GEMİNİ) VƏ MOTİVASİYA
         // ==========================================
         const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
         const genAI = new GoogleGenerativeAI(API_KEY);
 
         async function getDrivingAdvice(scenario) {
-            const aiTipEl = document. document.getElementById("aiTipText");
-            aiTipEl.innerText = "Süni intellekt düşünür... 🤖";
+            const aiTipEl = document.getElementById("aiTipText");
+            aiTipEl.innerText = TRANSLATIONS[currentLang].aiThinking;
             try {
                 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const prompt = `Sən "Premium Drive" oyununda oyunçuya kömək edən sürücülük təlimatçısısan. Ssenari: ${scenario}. Oyunçuya qısa, əyləncəli və 1-2 cümləlik məsləhət ver. Oyun dili: Azərbaycan dili.`;
+                const prompt = `Sən "Premium Drive" oyununda oyunçuya səsli bələdçilik edən köməkçisən. Ssenari: ${scenario}. Qısa, enerjili və maksimum 1 cümləlik cavab ver. Mütləq bu dildə cavab ver: ${LANGUAGES[currentLang].name}.`;
                 const result = await model.generateContent(prompt);
-                const response = await result.response;
-                aiTipEl.innerText = response.text();
+                const text = await result.response.text();
+                aiTipEl.innerText = text;
+                
+                // Mətni oxutdur
+                getSpeechData(text);
             } catch (error) {
                 console.error(error);
-                aiTipEl.innerText = "Yolda diqqətli olun! Süni intellekt hazırda xəttə deyil.";
+                aiTipEl.innerText = "Yolda diqqətli olun!";
             }
         }
 
+        let motivationTimer = null;
+        function startMotivationTimer() {
+            clearInterval(motivationTimer);
+            motivationTimer = setInterval(() => {
+                if (isGameRunning && !isGameOver && !isBraking) {
+                    getDrivingAdvice("Oyunçu yaxşı irəliləyir. Ona qısa motivasiya ver.");
+                }
+            }, 30000); // Hər 30 saniyədən bir
+        }
+
         // ==========================================
-        // OYUN DƏYİŞƏNLƏRİ
+        // OYUN MƏNTİQİ (Qısaldılmış)
         // ==========================================
-        const LOGICAL_WIDTH = 400;
-        const LOGICAL_HEIGHT = 600;
-        const CAR_WIDTH = 48;
-        const CAR_HEIGHT = 86;
-        const PLAYER_Y = LOGICAL_HEIGHT - 130;
+        const LOGICAL_WIDTH = 400; const LOGICAL_HEIGHT = 600;
+        const CAR_WIDTH = 48; const CAR_HEIGHT = 86; const PLAYER_Y = LOGICAL_HEIGHT - 130;
         const LANES = [100, 200, 300]; 
 
-        let isGameRunning = false;
-        let isBraking = false;
-        let isGameOver = false;
-        
-        let balance = 10.00;
-        let score = 0;
-        let trafficCars = []; // Qarşıdan gələn maşınlar
-        let speedMultiplier = 1; // Oyun getdikcə sürətlənəcək
-        
-        let gameState = {
-            carX: LANES[1] - CAR_WIDTH / 2,
-            targetX: LANES[1] - CAR_WIDTH / 2,
-            linesOffset: 0
-        };
-
-        const loginScreen = document.getElementById('loginScreen');
-        const gameScreen = document.getElementById('gameScreen');
-        const gameOverScreen = document.getElementById('gameOverScreen');
-        const balanceText = document.getElementById('balanceText');
-        const scoreText = document.getElementById('scoreText');
-        const finalScoreText = document.getElementById('finalScore');
-        const gameOverTitle = document.getElementById('gameOverTitle');
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-
-        let audioCtx = null;
-        let engineOsc = null;
-        let engineGain = null;
-
-        // ==========================================
-        // FUNKSİYALAR
-        // ==========================================
-
-        function initAudio() {
-            if (audioCtx) return;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            engineOsc = audioCtx.createOscillator();
-            engineGain = audioCtx.createGain();
-            engineOsc.type = 'sawtooth';
-            engineOsc.frequency.setValueAtTime(40, audioCtx.currentTime);
-            engineGain.gain.setValueAtTime(0.08, audioCtx.currentTime); 
-            engineOsc.connect(engineGain);
-            engineGain.connect(audioCtx.destination);
-            engineOsc.start();
-        }
-
-        function spawnTrafficCar() {
-            // Təsadüfi zolaq seç
-            const lane = LANES[Math.floor(Math.random() * LANES.length)];
-            // Əgər həmin zolaqda yaxın məsafədə başqa maşın yoxdursa əlavə et
-            const isSafe = trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150);
-            
-            if (isSafe) {
-                trafficCars.push({
-                    x: lane - CAR_WIDTH / 2,
-                    y: -100, // Ekranın yuxarısından başlayır
-                    speed: Math.random() * 2 + 2, // Fərqli sürətlər
-                    color: ['#ef4444', '#f59e0b', '#10b981', '#8b5cf6'][Math.floor(Math.random() * 4)] // Təsadüfi rəng
-                });
-            }
-        }
+        let isGameRunning = false; let isBraking = false; let isGameOver = false;
+        let balance = 0.00; let score = 0; let trafficCars = []; let speedMultiplier = 1; 
+        let gameState = { carX: LANES[1] - CAR_WIDTH / 2, targetX: LANES[1] - CAR_WIDTH / 2, linesOffset: 0 };
+        const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
 
         function updateUI() {
-            balanceText.innerText = `${balance.toFixed(2)} AZN`;
-            scoreText.innerText = `${Math.floor(score)} M`;
+            const info = LANGUAGES[currentLang];
+            document.getElementById('balanceText').innerText = `${(balance * info.rate).toFixed(2)} ${info.currency}`;
+            document.getElementById('loginBalanceText').innerText = `${(balance * info.rate).toFixed(2)} ${info.currency}`;
+            document.getElementById('scoreText').innerText = `${Math.floor(score)} M`;
         }
 
+        document.getElementById('demoTopUpBtn').addEventListener('click', () => {
+            balance += 10.00; playSuccessSound(); updateUI(); document.getElementById('topUpModal').classList.add('hidden');
+        });
+
         function startGame() {
-            loginScreen.classList.add('hidden');
-            gameScreen.classList.remove('hidden');
-            gameOverScreen.classList.add('hidden');
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
             
-            initAudio();
-            isGameRunning = true;
-            isGameOver = false;
-            balance = 10.00; 
-            score = 0;
-            speedMultiplier = 1;
-            trafficCars = [];
-            gameState.carX = LANES[1] - CAR_WIDTH / 2;
-            gameState.targetX = LANES[1] - CAR_WIDTH / 2;
+            initAudio(); isGameRunning = true; isGameOver = false;
+            score = 0; speedMultiplier = 1; trafficCars = [];
+            gameState.carX = LANES[1] - CAR_WIDTH / 2; gameState.targetX = LANES[1] - CAR_WIDTH / 2;
             
-            updateUI();
-            getDrivingAdvice("Oyunçu yeni oyuna başlayır. Yola diqqət etməsini de.");
+            updateUI(); 
+            getDrivingAdvice("Oyunçu yeni oyuna başlayır, 'Uğurlar' de.");
+            startMotivationTimer();
             requestAnimationFrame(gameLoop);
         }
 
         function gameOver(reason) {
             isGameOver = true;
-            gameOverScreen.classList.remove('hidden');
-            finalScoreText.innerText = Math.floor(score);
+            clearInterval(motivationTimer);
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            document.getElementById('finalScore').innerText = Math.floor(score);
             
             if (reason === 'crash') {
-                gameOverTitle.innerText = "QƏZA!";
-                gameOverTitle.className = "text-4xl font-black text-rose-500 mb-2 italic";
-                getDrivingAdvice(`Oyunçu başqa maşına çırpıldı və qəza etdi. Topladığı xal: ${Math.floor(score)}. Motivasiya ver.`);
+                playCrashSound();
+                document.getElementById('gameOverTitle').innerText = TRANSLATIONS[currentLang].crash;
+                getDrivingAdvice(`Oyunçu başqa maşına çırpıldı. Zarafatyana 'Diqqətli ol' de.`);
             } else {
-                gameOverTitle.innerText = "BENZİN BİTDİ";
-                gameOverTitle.className = "text-4xl font-black text-amber-500 mb-2 italic";
-                getDrivingAdvice("Oyunçunun balansı (benzini) bitdi. Balansını artırmasını zarafatla xatırlat.");
+                document.getElementById('gameOverTitle').innerText = TRANSLATIONS[currentLang].fuel;
+                getDrivingAdvice("Oyunçunun pulu/benzini bitdi.");
             }
+            if (engineGain) engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+        }
 
-            if (engineGain && audioCtx) {
-                engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
-            }
+        function spawnTrafficCar() {
+            const lane = LANES[Math.floor(Math.random() * LANES.length)];
+            const isSafe = trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150);
+            if (isSafe) trafficCars.push({ x: lane - CAR_WIDTH / 2, y: -100, speed: Math.random() * 2 + 2, color: '#ef4444' });
         }
 
         function switchLane(direction) {
@@ -229,136 +309,85 @@
             gameState.targetX = LANES[currentLaneIndex] - CAR_WIDTH / 2;
         }
 
-        // ==========================================
-        // OYUN DÖVRÜ (GAME LOOP)
-        // ==========================================
         function update() {
             if (!isGameRunning || isGameOver) return;
-
             const baseSpeed = isBraking ? 1 : 6 * speedMultiplier;
             
-            // Xal və çətinlik artımı
             if (!isBraking) {
-                score += 0.1 * speedMultiplier;
-                speedMultiplier += 0.0001; // Getdikcə sürətlənir
-                balance -= 0.005; 
-                updateUI();
-                if (balance <= 0) { balance = 0; gameOver('balance'); }
+                score += 0.1 * speedMultiplier; speedMultiplier += 0.0001; balance -= 0.005; 
+                
+                // Təsadüfi "Radar/Cərimə" Mexanikası (1% ehtimal)
+                if(Math.random() < 0.001 * speedMultiplier) {
+                    balance -= 0.5; // Cərimə çıxılır
+                    playFineSound();
+                    getDrivingAdvice("Sürət həddini aşdığına görə radar cəriməsi yazıldı.");
+                }
+
+                updateUI(); if (balance <= 0) { balance = 0; gameOver('balance'); }
             }
 
-            // Yol cizgiləri
             gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80;
             gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
-
-            // Trafik (Düşmən maşınlar) məntiqi
             if (Math.random() < 0.02 * speedMultiplier && !isBraking) spawnTrafficCar();
 
             for (let i = trafficCars.length - 1; i >= 0; i--) {
                 let car = trafficCars[i];
-                // Əgər tormoz veririksə, qarşıdakı maşınlar bizə doğru daha sürətlə gəlir (çünki biz yavaşlayırıq)
                 car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
-
-                // Qəza Yoxlanışı (Collision Detection)
-                if (gameState.carX < car.x + CAR_WIDTH - 5 &&
-                    gameState.carX + CAR_WIDTH - 5 > car.x &&
-                    PLAYER_Y < car.y + CAR_HEIGHT - 5 &&
-                    PLAYER_Y + CAR_HEIGHT - 5 > car.y) {
-                        gameOver('crash');
-                }
-
-                // Ekranda çıxanları silirik
-                if (car.y > LOGICAL_HEIGHT) {
-                    trafficCars.splice(i, 1);
-                }
+                if (gameState.carX < car.x + CAR_WIDTH - 5 && gameState.carX + CAR_WIDTH - 5 > car.x && PLAYER_Y < car.y + CAR_HEIGHT - 5 && PLAYER_Y + CAR_HEIGHT - 5 > car.y) gameOver('crash');
+                if (car.y > LOGICAL_HEIGHT) trafficCars.splice(i, 1);
             }
-
-            // Səs nizamlanması
             if (engineGain && audioCtx) {
-                const targetVol = isBraking ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier);
                 engineOsc.frequency.setTargetAtTime(40 * speedMultiplier, audioCtx.currentTime, 0.1);
-                engineGain.gain.setTargetAtTime(targetVol, audioCtx.currentTime, 0.1);
+                engineGain.gain.setTargetAtTime(isBraking ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier), audioCtx.currentTime, 0.1);
             }
         }
 
         function draw() {
             if (!ctx) return;
+            ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+            ctx.fillStyle = '#1e293b'; ctx.fillRect(60, 0, LOGICAL_WIDTH - 120, LOGICAL_HEIGHT);
+            ctx.setLineDash([30, 50]); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 4; ctx.lineDashOffset = -gameState.linesOffset;
+            ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); ctx.stroke();
 
-            ctx.fillStyle = '#0f172a'; 
-            ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+            trafficCars.forEach(car => { ctx.fillStyle = car.color; ctx.beginPath(); ctx.roundRect(car.x, car.y, CAR_WIDTH, CAR_HEIGHT, 8); ctx.fill(); });
+            ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.roundRect(gameState.carX, PLAYER_Y, CAR_WIDTH, CAR_HEIGHT, 10); ctx.fill(); 
 
-            ctx.fillStyle = '#1e293b'; 
-            ctx.fillRect(60, 0, LOGICAL_WIDTH - 120, LOGICAL_HEIGHT);
-
-            ctx.setLineDash([30, 50]);
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-            ctx.lineWidth = 4;
-            ctx.lineDashOffset = -gameState.linesOffset;
-            ctx.beginPath();
-            ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); 
-            ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); 
-            ctx.stroke();
-
-            // Düşmən Maşınları Çəkmək
-            trafficCars.forEach(car => {
-                ctx.fillStyle = car.color;
-                ctx.beginPath();
-                ctx.roundRect(car.x, car.y, CAR_WIDTH, CAR_HEIGHT, 8);
-                ctx.fill();
-                // Düşmən maşının ön şüşəsi
-                ctx.fillStyle = '#1e293b';
-                ctx.fillRect(car.x + 8, car.y + 15, CAR_WIDTH - 16, 15);
-            });
-
-            // Bizim Maşın
-            ctx.fillStyle = '#3b82f6'; 
-            ctx.beginPath();
-            ctx.roundRect(gameState.carX, PLAYER_Y, CAR_WIDTH, CAR_HEIGHT, 10);
-            ctx.fill();
-            // Bizim maşının arxa şüşəsi
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(gameState.carX + 8, PLAYER_Y + CAR_HEIGHT - 30, CAR_WIDTH - 16, 15);
-
-            if (isBraking) {
-                ctx.fillStyle = '#ff0000';
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = '#ff0000';
-                ctx.fillRect(gameState.carX + 5, PLAYER_Y + CAR_HEIGHT - 5, 8, 4);
-                ctx.fillRect(gameState.carX + CAR_WIDTH - 13, PLAYER_Y + CAR_HEIGHT - 5, 8, 4);
-                ctx.shadowBlur = 0;
-            }
+            if (isBraking) { ctx.fillStyle = '#ff0000'; ctx.fillRect(gameState.carX + 5, PLAYER_Y + CAR_HEIGHT - 5, 8, 4); ctx.fillRect(gameState.carX + CAR_WIDTH - 13, PLAYER_Y + CAR_HEIGHT - 5, 8, 4); }
         }
 
-        function gameLoop() {
-            update();
-            draw();
-            if (isGameRunning) requestAnimationFrame(gameLoop);
-        }
+        function gameLoop() { update(); draw(); if (isGameRunning) requestAnimationFrame(gameLoop); }
 
-        // ==========================================
-        // İDARƏETMƏ
-        // ==========================================
-        document.getElementById('loginBtn').addEventListener('click', startGame);
-        document.getElementById('restartBtn').addEventListener('click', startGame);
-
-        const brakeBtn = document.getElementById('brakeBtn');
-        const startBraking = (e) => { e.preventDefault(); isBraking = true; brakeBtn.innerText = "DAYANIR..."; };
-        const stopBraking = (e) => { e.preventDefault(); isBraking = false; brakeBtn.innerText = "TORMOZ"; };
-
-        brakeBtn.addEventListener('mousedown', startBraking);
-        brakeBtn.addEventListener('mouseup', stopBraking);
-        brakeBtn.addEventListener('touchstart', startBraking, {passive: false});
-        brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
-
-        document.getElementById('laneLeft').addEventListener('mousedown', () => switchLane('L'));
-        document.getElementById('laneLeft').addEventListener('touchstart', (e) => { e.preventDefault(); switchLane('L'); }, {passive: false});
+        // Event Listeners
+        document.getElementById('loginBtn').addEventListener('click', () => { if(balance<=0) document.getElementById('topUpModal').classList.remove('hidden'); else startGame(); });
+        document.getElementById('restartBtn').addEventListener('click', () => { if(balance<=0) document.getElementById('topUpModal').classList.remove('hidden'); else startGame(); });
         
-        document.getElementById('laneRight').addEventListener('mousedown', () => switchLane('R'));
-        document.getElementById('laneRight').addEventListener('touchstart', (e) => { e.preventDefault(); switchLane('R'); }, {passive: false});
+        // Modal Openers
+        document.getElementById('loginTopupBtn').addEventListener('click', () => document.getElementById('topUpModal').classList.remove('hidden'));
+        document.getElementById('topupBtn').addEventListener('click', () => document.getElementById('topUpModal').classList.remove('hidden'));
+        document.getElementById('gameOverTopupBtn').addEventListener('click', () => document.getElementById('topUpModal').classList.remove('hidden'));
+        document.getElementById('langBtn').addEventListener('click', () => document.getElementById('langModal').classList.remove('hidden'));
+        document.getElementById('closeLangBtn').addEventListener('click', () => document.getElementById('langModal').classList.add('hidden'));
 
-        document.getElementById('topupBtn').addEventListener('click', () => {
-            alert("Siz BuyMeACoffee və ya Xsolla ödəniş səhifəsinə yönləndiriləcəksiniz!");
+        // Dil Seçimi Generasiyası
+        const langList = document.getElementById('langList');
+        Object.keys(LANGUAGES).forEach(code => {
+            const btn = document.createElement('button');
+            btn.className = "py-3 bg-slate-800 rounded-xl font-bold flex items-center justify-center gap-2 active:bg-slate-700 text-sm";
+            btn.innerHTML = `<span>${LANGUAGES[code].flag}</span> <span>${LANGUAGES[code].name}</span>`;
+            btn.onclick = () => applyLanguage(code);
+            langList.appendChild(btn);
         });
 
+        // Kontrollar
+        const brakeBtn = document.getElementById('brakeBtn');
+        const startBraking = (e) => { e.preventDefault(); isBraking = true; brakeBtn.innerText = TRANSLATIONS[currentLang].braking; };
+        const stopBraking = (e) => { e.preventDefault(); isBraking = false; brakeBtn.innerText = TRANSLATIONS[currentLang].brake; };
+        brakeBtn.addEventListener('mousedown', startBraking); brakeBtn.addEventListener('mouseup', stopBraking);
+        brakeBtn.addEventListener('touchstart', startBraking, {passive: false}); brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
+        document.getElementById('laneLeft').addEventListener('mousedown', () => switchLane('L')); document.getElementById('laneLeft').addEventListener('touchstart', (e) => { e.preventDefault(); switchLane('L'); }, {passive: false});
+        document.getElementById('laneRight').addEventListener('mousedown', () => switchLane('R')); document.getElementById('laneRight').addEventListener('touchstart', (e) => { e.preventDefault(); switchLane('R'); }, {passive: false});
+
+        applyLanguage(currentLang);
     </script>
 </body>
 </html>

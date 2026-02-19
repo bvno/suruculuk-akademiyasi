@@ -10,7 +10,8 @@
       { "imports": { "@google/generative-ai": "https://esm.run/@google/generative-ai" } }
     </script>
     <style>
-        body { user-select: none; -webkit-user-select: none; touch-action: none; overflow: hidden; background-color: #020617; font-family: 'Inter', sans-serif; transition: direction 0.3s ease; } 
+        /* Ekranın alt qisminin (Tormoz düyməsinin) telefonda gizli qalmaması üçün 100dvh istifadə edildi */
+        body { height: 100vh; height: 100dvh; user-select: none; -webkit-user-select: none; touch-action: none; overflow: hidden; background-color: #020617; font-family: 'Inter', sans-serif; transition: direction 0.3s ease; } 
         .hidden { display: none !important; }
         
         [dir="rtl"] { font-family: 'Tajawal', 'Arial', sans-serif; }
@@ -46,17 +47,17 @@
         .shake-effect { animation: shake 0.3s; }
     </style>
 </head>
-<body class="text-white h-screen flex flex-col font-sans relative transition-all duration-300" dir="ltr">
+<body class="text-white flex flex-col font-sans relative transition-all duration-300" dir="ltr">
 
     <div class="fixed top-4 right-4 z-[9999]">
         <div id="langBtn" class="glass-panel px-3 py-2 rounded-[16px] flex items-center gap-2 cursor-pointer border border-white/10 active:scale-95 transition-transform bg-[#020617]/80">
             <span id="currentFlag">🇦🇿</span> <span id="currentLangName" class="text-xs font-bold uppercase">AZ</span>
         </div>
         <div id="langDropdown" class="hidden absolute top-full right-0 mt-2 p-2 glass-panel rounded-[16px] flex flex-col gap-1 w-36 border border-white/10 bg-[#020617]/95">
-            </div>
+        </div>
     </div>
 
-    <div id="registrationScreen" class="h-screen flex items-center justify-center p-6 z-[60] absolute inset-0 bg-[#020617] overflow-y-auto">
+    <div id="registrationScreen" class="h-full flex items-center justify-center p-6 z-[60] absolute inset-0 bg-[#020617] overflow-y-auto">
         <div class="glass-panel p-6 sm:p-8 rounded-[32px] w-full max-w-md relative overflow-hidden my-auto mt-16">
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-[40px]"></div>
             
@@ -67,7 +68,7 @@
                 <ul class="list-disc pl-4 space-y-1.5">
                     <li data-i18n="rule1">Hər bir istifadəçi yalnız <b>1 dəfə</b> qeydiyyatdan keçə bilər.</li>
                     <li data-i18n="rule2">Eyni cihazdan birdən çox hesab yaradılarsa, sistem avtomatik aşkarlayıb <b>ban edəcək</b>.</li>
-                    <li data-i18n="rule3">Qeydiyyatdan sonra "Balansı Artır" bölməsində "Ödənişi Yoxla" düyməsinə basaraq <b>0.50 AZN</b> başlanğıc hədiyyənizi ala bilərsiniz.</li>
+                    <li data-i18n="rule3">Qeydiyyatdan sonra 'Balansı Artır' bölməsində 'Ödənişi Yoxla' edərək <b>0.50 AZN</b> başlanğıc hədiyyənizi ala bilərsiniz.</li>
                     <li data-i18n="rule4">Qaydalara riayət edərək qazanc əldə edə bilərsiniz.</li>
                     <li data-i18n="rule5">Oyuna davam etmək üçün balans bitdikdə mütləq artırmalısınız.</li>
                 </ul>
@@ -85,7 +86,7 @@
         </div>
     </div>
 
-    <div id="loginScreen" class="h-screen flex items-center justify-center p-6 z-50 absolute inset-0 bg-[#020617] hidden">
+    <div id="loginScreen" class="h-full flex items-center justify-center p-6 z-50 absolute inset-0 bg-[#020617] hidden">
         <div class="glass-panel p-10 rounded-[32px] w-full max-w-sm text-center relative overflow-hidden">
             <div class="absolute -top-10 -left-10 w-32 h-32 bg-cyan-500/20 rounded-full blur-[40px]"></div>
             
@@ -101,7 +102,7 @@
         </div>
     </div>
 
-    <div id="gameScreen" class="hidden h-screen flex flex-col relative overflow-hidden bg-[#020617]">
+    <div id="gameScreen" class="hidden h-full flex flex-col relative overflow-hidden bg-[#020617]">
         <div class="p-4 flex justify-between items-center z-30 shrink-0">
             <div class="flex gap-2">
                 <div class="glass-panel p-2 px-4 rounded-[20px] transition-all" id="balanceBox">
@@ -201,6 +202,19 @@
 
     <script type="module">
         import { GoogleGenerativeAI } from "@google/generative-ai";
+
+        // Bütün brauzerlərdə maşınların problemsiz işləməsi üçün Polyfill (Çox önəmlidir)
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+                if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2;
+                this.beginPath(); this.moveTo(x + r, y);
+                this.arcTo(x + w, y, x + w, y + h, r);
+                this.arcTo(x + w, y + h, x, y + h, r);
+                this.arcTo(x, y + h, x, y, r);
+                this.arcTo(x, y, x + r, y, r);
+                this.closePath(); return this;
+            }
+        }
 
         // ==========================================
         // 🌍 MULTI-LANGUAGE & CURRENCY CONFIGURATION
@@ -372,7 +386,7 @@
             e.preventDefault();
             localStorage.setItem('premiumDriveRegistered', 'true');
             if (savedBalance === null) {
-                balanceAZN = 0.00; // Qeydiyyat anında 0
+                balanceAZN = 0.00; 
                 localStorage.setItem('premiumDriveBalance', '0.00');
             }
             document.getElementById('registrationScreen').classList.add('hidden');
@@ -642,16 +656,14 @@
                 }
             }
 
-            // TRAFİK
+            // TRAFİK (Əvvəlki sadə, stabil vəziyyətinə qaytarıldı)
             if (Math.random() < 0.008 * speedMultiplier && !isBraking && !trafficLight.active && !policeEvent.active) {
                 const lane = LANES[Math.floor(Math.random() * LANES.length)];
                 if (trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150)) {
                     let cColor = TRAFFIC_COLORS[Math.floor(Math.random() * TRAFFIC_COLORS.length)];
-                    let isTruck = Math.random() > 0.8; 
                     trafficCars.push({ 
                         x: lane - CAR_WIDTH / 2, y: -150, speed: Math.random() * 0.5 + 1.0, 
-                        color: cColor, type: isTruck ? 'truck' : 'car', height: isTruck ? 130 : CAR_HEIGHT,
-                        nearMissed: false, crashed: false 
+                        color: cColor, nearMissed: false, crashed: false 
                     });
                 }
             }
@@ -659,7 +671,7 @@
             for (let i = trafficCars.length - 1; i >= 0; i--) {
                 let car = trafficCars[i]; car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
                 
-                if (!car.crashed && gameState.carX < car.x + CAR_WIDTH - 12 && gameState.carX + CAR_WIDTH - 12 > car.x && PLAYER_Y < car.y + car.height - 12 && PLAYER_Y + CAR_HEIGHT - 12 > car.y) {
+                if (!car.crashed && gameState.carX < car.x + CAR_WIDTH - 12 && gameState.carX + CAR_WIDTH - 12 > car.x && PLAYER_Y < car.y + CAR_HEIGHT - 12 && PLAYER_Y + CAR_HEIGHT - 12 > car.y) {
                     balanceAZN -= 0.10; 
                     playCrashSound(); triggerScreenShake(); screenShake = 20;
                     spawnPopup("- " + formatMoney(0.10), "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y); 
@@ -667,7 +679,7 @@
                     if (checkBankruptcy()) return;
                     getDrivingAdvice("aiScenCrash"); updateUI(); 
                 } 
-                else if (!car.crashed && !car.nearMissed && car.y > PLAYER_Y - car.height && car.y < PLAYER_Y + CAR_HEIGHT) {
+                else if (!car.crashed && !car.nearMissed && car.y > PLAYER_Y - CAR_HEIGHT && car.y < PLAYER_Y + CAR_HEIGHT) {
                     if (Math.abs((gameState.carX + CAR_WIDTH/2) - (car.x + CAR_WIDTH/2)) < CAR_WIDTH + 20) {
                         car.nearMissed = true; balanceAZN += 0.05;
                         playTone(800, 'sine', 0.1, 0.1); 
@@ -687,27 +699,21 @@
             }
         }
 
-        function drawCar(x, y, color, isPlayer, braking, type = 'car', height = CAR_HEIGHT) {
+        // TAMAMİLƏ ƏVVƏLKİ, STABİL MAŞIN ÇİZİMİ
+        function drawCar(x, y, color, isPlayer, braking) {
             ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 10; ctx.fillStyle = color; 
             
-            ctx.beginPath(); ctx.roundRect(x, y, CAR_WIDTH, height, 12); ctx.fill(); ctx.shadowColor = 'transparent'; 
+            ctx.beginPath(); ctx.roundRect(x, y, CAR_WIDTH, CAR_HEIGHT, 12); ctx.fill(); ctx.shadowColor = 'transparent'; 
             
-            if (type === 'car' || type === 'police') {
-                ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 15, CAR_WIDTH - 8, 18, 4); ctx.fill(); 
-                ctx.beginPath(); ctx.roundRect(x + 6, y + height - 25, CAR_WIDTH - 12, 12, 3); ctx.fill();
-            } else if (type === 'truck') {
-                ctx.fillStyle = '#0f172a'; 
-                ctx.beginPath(); ctx.roundRect(x + 2, y + 25, CAR_WIDTH - 4, height - 30, 4); ctx.fill();
-                ctx.fillStyle = '#020617'; 
-                ctx.beginPath(); ctx.roundRect(x + 4, y + 5, CAR_WIDTH - 8, 15, 4); ctx.fill();
-            }
+            ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 15, CAR_WIDTH - 8, 18, 4); ctx.fill(); 
+            ctx.beginPath(); ctx.roundRect(x + 6, y + CAR_HEIGHT - 25, CAR_WIDTH - 12, 12, 3); ctx.fill();
 
-            if (isPlayer && braking) { ctx.fillStyle = '#f43f5e'; ctx.fillRect(x + 4, y + height - 6, 12, 4); ctx.fillRect(x + CAR_WIDTH - 16, y + height - 6, 12, 4); } 
+            if (isPlayer && braking) { ctx.fillStyle = '#f43f5e'; ctx.fillRect(x + 4, y + CAR_HEIGHT - 6, 12, 4); ctx.fillRect(x + CAR_WIDTH - 16, y + CAR_HEIGHT - 6, 12, 4); } 
             else if (!isPlayer) { ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(x + 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(x + CAR_WIDTH - 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); }
             
             if (isPlayer && nitroTimer > 0) {
                 ctx.fillStyle = 'rgba(34, 211, 238, 0.5)';
-                ctx.beginPath(); ctx.roundRect(x + 10, y + height, CAR_WIDTH - 20, Math.random() * 40 + 20, 5); ctx.fill();
+                ctx.beginPath(); ctx.roundRect(x + 10, y + CAR_HEIGHT, CAR_WIDTH - 20, Math.random() * 40 + 20, 5); ctx.fill();
             }
             ctx.restore();
         }
@@ -731,9 +737,10 @@
                 drawLight(16, '#f43f5e', trafficLight.state === 'RED'); drawLight(38, '#facc15', trafficLight.state === 'YELLOW'); drawLight(60, '#10b981', trafficLight.state === 'GREEN');
             }
 
+            // TAMAMİLƏ ƏVVƏLKİ, STABİL POLİS ÇİZİMİ
             if (policeEvent.active) {
                 let px = LOGICAL_WIDTH - 55;
-                drawCar(px, policeEvent.y, '#ffffff', false, false, 'police', CAR_HEIGHT);
+                drawCar(px, policeEvent.y, '#ffffff', false, false);
                 
                 let isRed = Date.now() % 400 < 200;
                 ctx.fillStyle = isRed ? '#f43f5e' : '#3b82f6';
@@ -760,8 +767,8 @@
                 }
             }
 
-            trafficCars.forEach(car => drawCar(car.x, car.y, car.color, false, false, car.type, car.height));
-            drawCar(gameState.carX, PLAYER_Y, CAR_SKINS.find(c => c.id === activeSkinId).color, true, isBraking, 'car', CAR_HEIGHT); 
+            trafficCars.forEach(car => drawCar(car.x, car.y, car.color, false, false));
+            drawCar(gameState.carX, PLAYER_Y, CAR_SKINS.find(c => c.id === activeSkinId).color, true, isBraking); 
 
             animatedPopups.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.alpha); ctx.font = '900 24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(p.text, p.x, p.y); ctx.restore(); });
             
@@ -809,7 +816,6 @@
                         btn.classList.replace('bg-emerald-600', 'bg-emerald-500/10'); 
                     }, 2000);
                 } else {
-                    // Əgər bonus artıq alınıbsa, əsl ödəniş yoxlaması simulyasiyası gedir (XƏTA verir)
                     btn.innerHTML = `❌ Error`; 
                     btn.classList.replace('text-emerald-400', 'text-rose-400'); 
                     btn.classList.replace('bg-emerald-500/10', 'bg-rose-500/10');

@@ -164,6 +164,7 @@
             <div class="text-slate-300 text-xs mb-6 relative z-10 space-y-3 text-left bg-[#0f172a]/80 p-4 rounded-[20px] border border-white/5 shadow-inner">
                 <p class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">✔</span><span><a href="https://buymeacoffee.com/surwin" target="_blank" class="text-[#FFDD00] underline font-bold">buymeacoffee.com/surwin</a> linkinə daxil olaraq ödəniş edin.</span></p>
                 <p class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">✔</span><span>Balans bitdikdə yalnız məbləğ yükləyərək oyuna davam edə bilərsiniz. (İlk yoxlamada 0.50 AZN bonus veriləcək)</span></p>
+                <p class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">✔</span><span class="text-rose-300 font-bold">Minimum məbləğ 3 AZN-dir. Əgər balansı artırmadan oyuna davam etsəniz, oyun DEMO sayılır və ödəniş olunmur. Yalnız minimum 3 AZN ödəniş etdikdən sonra oyun tam aktiv olur, gerçək pul qazana və istədiyiniz zaman gecikmədən nağdlaşdıra bilərsiniz.</span></p>
             </div>
             <button id="buyMeCoffeeBtn" class="w-full py-4 bg-[#FFDD00] text-black rounded-[24px] font-black shadow-[0_0_20px_rgba(255,221,0,0.3)] mb-4 active:scale-95 transition-all relative z-10 flex items-center justify-center gap-3 text-lg"><span class="text-2xl">☕</span> Ödəniş Et</button>
             <button id="verifyPaymentBtn" class="w-full py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-[24px] font-bold mb-4 active:scale-95 transition-all relative z-10 text-sm flex items-center justify-center gap-2">🔄 Ödənişi Yoxla</button>
@@ -428,7 +429,6 @@
             updateUI(); getDrivingAdvice("Qaza bas!"); requestAnimationFrame(gameLoop);
         }
 
-        // BÖHRAN VƏZİYYƏTİ MƏNTİQİ: KİLİDLƏNMƏ VƏ YENİDƏN BAŞLAMANIN LƏĞVİ
         function gameOver() {
             isGameOver = true; 
             document.getElementById('gameOverScreen').classList.remove('hidden'); 
@@ -443,8 +443,8 @@
                 title.innerText = "KİLİDLƏNDİ";
                 title.classList.replace('text-rose-500', 'text-red-600'); 
                 
-                restartBtn.classList.add('hidden'); // İkinci şans ləğv edilir
-                topupBtn.classList.remove('hidden'); // Yalnız "Balansı Artır" görünür
+                restartBtn.classList.add('hidden'); 
+                topupBtn.classList.remove('hidden'); 
                 msg.innerText = "Balansınız bitdi! Oyun kilidləndi. Davam etmək üçün balansı artırın.";
                 msg.classList.remove('hidden');
                 getDrivingAdvice("Oyun kilidləndi!"); 
@@ -488,7 +488,7 @@
                         balance -= 0.60; 
                         playFineSound(); triggerScreenShake(); screenShake = 15;
                         spawnPopup("-0.60 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
-                        if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } // Balans sıfırlandıqda birbaşa donur və kilidlənir
+                        if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } 
                         getDrivingAdvice("Qırmızı işıq cəriməsi!"); 
                     } else if (trafficLight.state === 'GREEN') { 
                         balance += 0.40; 
@@ -535,7 +535,7 @@
                         balance -= 0.60;
                         playFineSound(); triggerScreenShake(); screenShake = 20;
                         spawnPopup("🚓 -0.60 AZN", "#f43f5e", LOGICAL_WIDTH/2, PLAYER_Y - 30);
-                        if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } // Oyunçu dərhal dayandırılır
+                        if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } 
                         getDrivingAdvice("Polisə tabe olmadın!");
                         updateUI();
                     }
@@ -568,7 +568,7 @@
                     playCrashSound(); triggerScreenShake(); screenShake = 20;
                     spawnPopup("-0.10 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y); 
                     car.crashed = true; trafficCars.splice(i, 1); 
-                    if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } // Dərhal kilidlənir
+                    if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } 
                     getDrivingAdvice("Qəza!"); updateUI(); 
                 } 
                 else if (!car.crashed && !car.nearMissed && car.y > PLAYER_Y - car.height && car.y < PLAYER_Y + CAR_HEIGHT) {
@@ -651,7 +651,6 @@
         document.getElementById('loginBtn').addEventListener('click', startGame);
         document.getElementById('restartBtn').addEventListener('click', startGame);
         document.getElementById('gameOverTopupBtn').addEventListener('click', () => {
-            // Kilidlənmə vəziyyətində Topup basıldıqda kilid ekranı arxa planda qalır ki, oyunçu geri qayıda bilməsin.
             document.getElementById('topUpModal').classList.remove('hidden');
         });
         document.getElementById('buyMeCoffeeBtn').addEventListener('click', () => { window.open('https://buymeacoffee.com/surwin', '_blank'); });
@@ -680,7 +679,6 @@
                     btn.classList.replace('text-white', 'text-emerald-400'); 
                     btn.classList.replace('bg-emerald-600', 'bg-emerald-500/10'); 
                     
-                    // Ödəniş gəldisə, kilidi aç və restart düyməsini bərpa et
                     if (isGameOver && balance > 0) {
                         const title = document.getElementById('gameOverTitle');
                         const restartBtn = document.getElementById('restartBtn');

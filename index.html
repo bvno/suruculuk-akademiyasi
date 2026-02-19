@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Premium Drive - Tam Gəlir Sistemi</title>
+    <title>Premium Drive - Level & Combo Update</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="importmap">
@@ -12,7 +12,6 @@
     <style>
         body { user-select: none; -webkit-user-select: none; touch-action: none; overflow: hidden; background-color: #020617; } 
         .hidden { display: none !important; }
-        .rtl { direction: rtl; font-family: 'Arial', sans-serif; }
         
         .glass-panel {
             background: rgba(15, 23, 42, 0.6);
@@ -24,12 +23,16 @@
         .neon-cyan { text-shadow: 0 0 10px rgba(34, 211, 238, 0.8); }
         .neon-emerald { text-shadow: 0 0 10px rgba(16, 185, 129, 0.8); }
         .neon-rose { text-shadow: 0 0 10px rgba(244, 63, 94, 0.8); }
+        .neon-amber { text-shadow: 0 0 10px rgba(245, 158, 11, 0.8); }
         .neon-box-cyan { box-shadow: 0 0 20px rgba(34, 211, 238, 0.15); }
         .brake-shadow { box-shadow: 0 0 40px rgba(225, 29, 72, 0.6); }
         
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.3); border-radius: 10px; }
+        /* Floating Text Animation */
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+        }
+        .animate-float { animation: floatUp 1.5s ease-out forwards; }
     </style>
 </head>
 <body class="text-white h-screen flex flex-col font-sans relative transition-all duration-300">
@@ -39,147 +42,217 @@
             <div class="absolute -top-10 -left-10 w-32 h-32 bg-cyan-500/20 rounded-full blur-[40px]"></div>
             
             <h1 class="text-3xl font-black text-white italic mb-2 tracking-tighter neon-cyan relative z-10">PREMIUM DRIVE</h1>
-            <p class="text-slate-400 text-sm mb-8 relative z-10"><span id="lbl_loginBalance">Balans:</span> <span id="loginBalanceText" class="font-bold text-cyan-400 neon-cyan">0.30 AZN</span></p>
+            <p class="text-slate-400 text-sm mb-6 relative z-10">Mükəmməl Sürücülük Simulyasiyası</p>
             
-            <button id="loginBtn" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all relative z-10">
+            <div class="bg-[#0f172a] p-4 rounded-2xl mb-6 border border-white/5 relative z-10">
+                <p class="text-[10px] text-cyan-400 uppercase tracking-widest mb-1">Mövcud Balansınız</p>
+                <p id="loginBalanceText" class="text-2xl font-black text-white neon-cyan">0.00 AZN</p>
+            </div>
+            
+            <button id="loginBtn" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all relative z-10 mb-3">
                 Oyuna Başla
-            </button>
-            <button id="loginTopupBtn" class="w-full mt-4 py-4 glass-panel rounded-[24px] text-white font-bold uppercase tracking-widest active:scale-95 transition-all relative z-10">
-                Balansı Artır
             </button>
         </div>
     </div>
 
     <div id="gameScreen" class="hidden h-screen flex flex-col relative overflow-hidden bg-[#020617]">
-        <div class="p-4 flex justify-between items-center z-30 shrink-0">
-            <div class="flex gap-2">
-                <div class="glass-panel p-2 px-4 rounded-[20px] transition-all" id="balanceBox">
-                    <p id="lbl_hudBalance" class="text-[9px] font-black text-cyan-400 uppercase tracking-[2px] mb-0.5 opacity-80">Balans</p>
-                    <p id="balanceText" class="text-base font-black neon-cyan">0.30 AZN</p>
+        
+        <div class="p-4 flex flex-col gap-2 z-30 shrink-0">
+            <div class="flex justify-between items-center">
+                <div class="glass-panel p-2 px-4 rounded-[20px] flex items-center gap-3">
+                    <div>
+                        <p class="text-[9px] font-black text-cyan-400 uppercase tracking-widest mb-0.5 opacity-80">Balans</p>
+                        <p id="balanceText" class="text-base font-black neon-cyan">0.00 AZN</p>
+                    </div>
                 </div>
-                <div class="glass-panel p-2 px-4 rounded-[20px]">
-                    <p id="lbl_hudDistance" class="text-[9px] font-black text-emerald-400 uppercase tracking-[2px] mb-0.5 opacity-80">Məsafə</p>
-                    <p id="scoreText" class="text-base font-black neon-emerald">0 M</p>
+                <div class="flex gap-2">
+                    <button id="withdrawBtn" class="w-10 h-10 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 rounded-xl flex items-center justify-center text-lg active:scale-95 transition-all">💸</button>
+                    <button id="garageBtn" class="w-10 h-10 bg-indigo-500/20 border border-indigo-500/50 text-indigo-400 rounded-xl flex items-center justify-center text-lg active:scale-95 transition-all">🛒</button>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <button id="withdrawBtn" class="w-12 h-12 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 rounded-[20px] flex items-center justify-center text-xl shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all">💸</button>
-                <button id="garageBtn" class="w-12 h-12 bg-indigo-500/20 border border-indigo-500/50 text-indigo-400 rounded-[20px] flex items-center justify-center text-xl shadow-[0_0_15px_rgba(99,102,241,0.2)] active:scale-95 transition-all">🛒</button>
-                <button id="topupBtn" class="w-12 h-12 bg-[#FFDD00]/20 border border-[#FFDD00]/50 text-[#FFDD00] rounded-[20px] flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,221,0,0.2)] active:scale-95 transition-all">☕</button>
-            </div>
-        </div>
-
-        <div class="px-4 z-30 mb-2 shrink-0">
-            <div class="glass-panel border-blue-500/30 rounded-[20px] p-3 text-xs text-blue-100 flex items-center gap-3">
-                <div class="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/40 shadow-[0_0_10px_rgba(59,130,246,0.5)] shrink-0"><span id="aiIcon" class="text-[10px]">🤖</span></div>
-                <span id="aiTipText" class="truncate w-full italic font-light">Süni intellekt məsləhəti yüklənir...</span>
+            
+            <div class="flex justify-between items-center">
+                <div class="flex gap-2">
+                    <div class="glass-panel px-3 py-1.5 rounded-xl border-amber-500/30">
+                        <p class="text-[9px] text-amber-400 uppercase font-bold">Level <span id="levelText" class="text-white text-xs">1</span></p>
+                    </div>
+                    <div class="glass-panel px-3 py-1.5 rounded-xl border-rose-500/30">
+                        <p class="text-[9px] text-rose-400 uppercase font-bold">Combo <span id="comboText" class="text-white text-xs">x1.0</span></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <p id="livesText" class="text-sm tracking-widest">❤️❤️❤️</p>
+                    <div class="text-right">
+                        <p class="text-[9px] text-emerald-400 font-bold uppercase">Məsafə</p>
+                        <p id="scoreText" class="text-sm font-black neon-emerald">0 M</p>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="flex-1 w-full max-w-[400px] mx-auto relative glass-panel neon-box-cyan rounded-[40px] overflow-hidden z-10 flex shrink">
             <canvas id="gameCanvas" width="400" height="600" class="w-full h-full object-contain bg-[#0f172a]"></canvas>
+            
             <div class="absolute inset-0 flex">
                 <div id="laneLeft" class="flex-1 active:bg-white/5 cursor-pointer"></div>
                 <div id="laneRight" class="flex-1 active:bg-white/5 cursor-pointer"></div>
             </div>
-            <div id="gameOverScreen" class="hidden absolute inset-0 bg-[#020617]/90 backdrop-blur-xl flex-col items-center justify-center p-8 text-center z-40">
-                <div class="w-20 h-20 rounded-full bg-rose-500/20 flex items-center justify-center mb-4 blur-[2px] mx-auto"><span class="text-4xl">⚠️</span></div>
-                <h2 id="gameOverTitle" class="text-3xl font-black text-rose-500 mb-2 neon-rose tracking-wider">GAME OVER</h2>
-                <p class="text-slate-400 text-sm mb-6">Məsafə: <span id="finalScore" class="font-bold text-white">0</span> M</p>
-                <button id="restartBtn" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] mb-4 active:scale-95 transition-all">YENİDƏN BAŞLA</button>
+
+            <div id="popupContainer" class="absolute inset-0 pointer-events-none"></div>
+
+            <div id="gameOverScreen" class="hidden absolute inset-0 bg-[#020617]/95 backdrop-blur-xl flex-col items-center justify-center p-8 text-center z-40">
+                <div class="w-20 h-20 rounded-full bg-rose-500/20 flex items-center justify-center mb-4 blur-[2px] mx-auto">
+                    <span class="text-4xl">⚠️</span>
+                </div>
+                <h2 id="gameOverTitle" class="text-3xl font-black text-rose-500 mb-2 neon-rose tracking-wider">OYUN BİTDİ</h2>
+                <p id="gameOverReason" class="text-slate-300 text-sm mb-6">Müflis oldunuz!</p>
+                <div class="bg-[#0f172a] w-full p-4 rounded-2xl mb-6 border border-white/5">
+                    <p class="text-xs text-slate-400">Yekun Məsafə: <span id="finalScore" class="font-bold text-emerald-400">0 M</span></p>
+                    <p class="text-xs text-slate-400 mt-1">Gəldiyiniz Level: <span id="finalLevel" class="font-bold text-amber-400">1</span></p>
+                </div>
+                <button id="restartBtn" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all">Yenidən Cəhd Et</button>
             </div>
         </div>
 
         <div class="w-full max-w-[400px] mx-auto p-4 pb-6 shrink-0 z-20">
-            <button id="brakeBtn" class="w-full py-6 rounded-[32px] text-3xl font-black tracking-widest transition-all bg-rose-600 border-4 border-rose-800 text-white brake-shadow active:bg-rose-500 active:scale-95 touch-manipulation">TORMOZ</button>
+            <button id="brakeBtn" class="w-full py-6 rounded-[32px] text-3xl font-black tracking-widest transition-all bg-rose-600 border-4 border-rose-800 text-white brake-shadow active:bg-rose-500 active:scale-95 touch-manipulation">
+                TORMOZ
+            </button>
         </div>
     </div>
 
-    <div id="topUpModal" class="hidden absolute inset-0 bg-[#020617]/90 backdrop-blur-2xl flex items-center justify-center p-6 z-[100] overflow-y-auto">
-        <div class="glass-panel p-6 rounded-[40px] text-center w-full max-w-md relative overflow-hidden my-auto">
-            <div class="absolute -top-20 -right-20 w-40 h-40 bg-[#FFDD00]/20 rounded-full blur-[50px]"></div>
-            
-            <h2 class="text-2xl font-black mb-4 neon-emerald relative z-10">Balansı Artır</h2>
-            
-            <div class="text-slate-300 text-xs mb-6 relative z-10 space-y-3 text-left bg-[#0f172a]/80 p-4 rounded-[20px] border border-white/5 shadow-inner">
-                <p class="flex items-start gap-2">
-                    <span class="text-emerald-400 mt-0.5">✔</span>
-                    <span><a href="https://buymeacoffee.com/surwin" target="_blank" class="text-[#FFDD00] underline font-bold">buymeacoffee.com/surwin</a> linkinə daxil olaraq <b>minimum 2 USD</b> ödəniş etdikdə, vəsait təsdiqləndikdən sonra avtomatik olaraq oyun balansına əlavə olunacaq.</span>
-                </p>
-                <p class="flex items-start gap-2">
-                    <span class="text-emerald-400 mt-0.5">✔</span>
-                    <span>Balansınıza yüklənmiş məbləğlə oyunda davam edə və qazanc əldə edə bilərsiniz.</span>
-                </p>
-                <p class="flex items-start gap-2">
-                    <span class="text-emerald-400 mt-0.5">✔</span>
-                    <span>İstədiyiniz zaman balans şərtlərinə (min. 30 AZN) uyğun olaraq vəsaiti nağdlaşdıra bilərsiniz.</span>
-                </p>
-            </div>
-
-            <button id="buyMeCoffeeBtn" class="w-full py-4 bg-[#FFDD00] text-black rounded-[24px] font-black shadow-[0_0_20px_rgba(255,221,0,0.3)] mb-4 active:scale-95 transition-all relative z-10 flex items-center justify-center gap-3 text-lg">
-                <span class="text-2xl">☕</span> Ödəniş Et
-            </button>
-            
-            <button id="verifyPaymentBtn" class="w-full py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-[24px] font-bold mb-4 active:scale-95 transition-all relative z-10 text-sm flex items-center justify-center gap-2">
-                🔄 Ödənişi Yoxla / Təsdiqlə
-            </button>
-
-            <button id="closeTopUpBtn" class="text-slate-400 text-[12px] font-bold uppercase tracking-widest active:text-white transition-all relative z-10">Bağla</button>
-        </div>
-    </div>
-
-    <div id="withdrawModal" class="hidden absolute inset-0 bg-[#020617]/90 backdrop-blur-2xl flex items-center justify-center p-6 z-[100]">
+    <div id="dailyBonusModal" class="hidden absolute inset-0 bg-[#020617]/90 backdrop-blur-2xl flex items-center justify-center p-6 z-[100]">
         <div class="glass-panel p-8 rounded-[40px] text-center w-full max-w-sm relative overflow-hidden">
-            <div class="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500/20 rounded-full blur-[50px]"></div>
-            <h2 class="text-2xl font-black mb-2 neon-cyan relative z-10">Nağdlaşdır</h2>
-            <p class="text-white text-sm font-bold mb-2 relative z-10">Qazandığınız məbləği dərhal nağdlaşdıra bilərsiniz.</p>
-            <p class="text-slate-400 text-xs mb-6 relative z-10">Balansınız minimum 30 AZN olduqda vəsaiti dərhal nağdlaşdıra bilərsiniz.</p>
-            <div class="bg-[#0f172a] p-4 rounded-2xl mb-6 border border-white/5 relative z-10">
-                <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Cari Balansınız</p>
-                <p id="withdrawBalanceDisplay" class="text-2xl font-black text-cyan-400 neon-cyan">0.00 AZN</p>
-            </div>
-            <form id="withdrawForm" action="BURA_LİNKİ_YAPIŞDIRACAQSINIZ" method="POST" class="flex flex-col gap-3 relative z-10">
-                <input type="hidden" name="Müştərinin_Balansı" id="hiddenBalanceInput" value="">
-                <input type="text" name="Ad_Soyad" placeholder="Ad və Soyadınız" required class="w-full p-4 rounded-2xl bg-[#020617] border border-slate-700 text-white outline-none focus:border-cyan-500 text-sm">
-                <input type="text" name="Kart_Nomresi" placeholder="Kart və ya Hesab Nömrəsi" required class="w-full p-4 rounded-2xl bg-[#020617] border border-slate-700 text-white outline-none focus:border-cyan-500 text-sm">
-                <p id="withdrawWarning" class="text-rose-500 text-xs font-bold mt-1 hidden">Balansınız 30 AZN-dən azdır.</p>
-                <button type="submit" id="submitWithdrawBtn" class="w-full py-4 mt-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all">Sorğu Göndər</button>
-            </form>
-            <button id="closeWithdrawBtn" class="text-slate-400 text-[12px] font-bold uppercase tracking-widest mt-6 active:text-white transition-all relative z-10">Geri</button>
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-[#FFDD00]/20 rounded-full blur-[50px]"></div>
+            <h2 class="text-2xl font-black mb-2 neon-amber relative z-10">Gündəlik Hədiyyə!</h2>
+            <p class="text-slate-300 text-sm mb-6 relative z-10">Oyuna hər gün daxil olaraq bonus qazanın.</p>
+            <div class="text-5xl mb-6 animate-bounce">🎁</div>
+            <button id="claimDailyBtn" class="w-full py-4 bg-[#FFDD00] text-black rounded-[24px] font-black shadow-[0_0_20px_rgba(255,221,0,0.3)] active:scale-95 transition-all relative z-10 text-lg">
+                +1.00 AZN Al
+            </button>
         </div>
     </div>
 
     <div id="garageModal" class="hidden absolute inset-0 bg-[#020617]/90 backdrop-blur-2xl flex flex-col items-center justify-center p-6 z-[100]">
-        <div class="glass-panel p-6 rounded-[32px] w-full max-w-sm relative overflow-hidden flex flex-col max-h-[90%]">
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-[40px]"></div>
-            <div class="flex justify-between items-center mb-6 relative z-10">
-                <h2 class="text-2xl font-black neon-cyan italic">QARAJ</h2>
-                <div class="text-right">
-                    <p class="text-[10px] text-cyan-400 uppercase tracking-widest">Balans</p>
-                    <p id="garageBalanceText" class="text-sm font-bold neon-cyan">0.00 AZN</p>
-                </div>
-            </div>
-            <div id="garageList" class="flex-1 overflow-y-auto pr-2 space-y-4 relative z-10 custom-scrollbar"></div>
-            <button id="closeGarageBtn" class="w-full mt-6 py-4 glass-panel rounded-[20px] text-slate-300 font-bold uppercase tracking-widest active:scale-95 transition-all relative z-10">Bağla</button>
+        <div class="glass-panel p-6 rounded-[32px] w-full max-w-sm relative flex flex-col max-h-[90%]">
+            <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-black neon-cyan italic">QARAJ</h2></div>
+            <div id="garageList" class="flex-1 overflow-y-auto pr-2 space-y-4"></div>
+            <button id="closeGarageBtn" class="w-full mt-6 py-4 glass-panel rounded-[20px] text-slate-300 font-bold uppercase">Bağla</button>
+        </div>
+    </div>
+
+    <div id="withdrawModal" class="hidden absolute inset-0 bg-[#020617]/90 backdrop-blur-2xl flex items-center justify-center p-6 z-[100]">
+        <div class="glass-panel p-8 rounded-[40px] text-center w-full max-w-sm relative">
+            <h2 class="text-2xl font-black mb-2 neon-cyan">Nağdlaşdır</h2>
+            <p class="text-slate-400 text-xs mb-6">Balansınız minimum 30 AZN olduqda nağdlaşdıra bilərsiniz.</p>
+            <p id="withdrawBalanceDisplay" class="text-2xl font-black text-cyan-400 neon-cyan mb-4">0.00 AZN</p>
+            <form id="withdrawForm" action="BURA_LİNKİ_YAPIŞDIRACAQSINIZ" method="POST" class="flex flex-col gap-3">
+                <input type="text" name="Ad_Soyad" placeholder="Ad Soyad" required class="p-3 rounded-xl bg-[#020617] border border-slate-700 text-white text-sm">
+                <input type="text" name="Kart" placeholder="Kart Nömrəsi" required class="p-3 rounded-xl bg-[#020617] border border-slate-700 text-white text-sm">
+                <p id="withdrawWarning" class="text-rose-500 text-xs hidden">Balans 30 AZN-dən azdır.</p>
+                <button type="submit" id="submitWithdrawBtn" class="py-3 bg-cyan-500/20 text-cyan-400 rounded-xl font-bold mt-2">Sorğu Göndər</button>
+            </form>
+            <button id="closeWithdrawBtn" class="text-slate-400 text-[12px] font-bold uppercase mt-4">Geri</button>
         </div>
     </div>
 
     <script type="module">
-        import { GoogleGenerativeAI } from "@google/generative-ai";
+        // ==========================================
+        // OYUN DƏYİŞƏNLƏRİ & BAZA 
+        // ==========================================
+        const LOGICAL_WIDTH = 400; const LOGICAL_HEIGHT = 600;
+        const CAR_WIDTH = 48; const CAR_HEIGHT = 86; const PLAYER_Y = LOGICAL_HEIGHT - 130;
+        const LANES = [100, 200, 300]; 
+        const BIOMES = [
+            { name: "City", ground: '#020617', road: '#0f172a', curb: '#1e293b' },
+            { name: "Forest", ground: '#022c22', road: '#0f172a', curb: '#064e3b' },
+            { name: "Canyon", ground: '#291002', road: '#1c1917', curb: '#451a03' }
+        ];
 
-        // MƏLUMATLAR
-        const LANGUAGES = { az: { currency: 'AZN', rate: 1, tts: 'tr-TR' } };
+        let savedBalance = localStorage.getItem('premiumDriveBalance');
+        let balance = savedBalance !== null ? parseFloat(savedBalance) : 1.00; // Yeni istifadəçilərə 1 AZN
+        
+        let isGameRunning = false; let isBraking = false; let isGameOver = false;
+        let score = 0; let trafficCars = []; 
+        let currentBiome = 0; let speedMultiplier = 1.0;
+        
+        // YENİ MEXANİKALAR
+        let lives = 3; 
+        let level = 1; 
+        let combo = 1.0;
+        let lastComboTime = 0;
+
+        let gameState = { carX: LANES[1] - CAR_WIDTH / 2, targetX: LANES[1] - CAR_WIDTH / 2, linesOffset: 0 };
+        let trafficLight = { active: false, y: -200, state: 'GREEN', timer: 0, passed: false };
+        
+        const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
+
+        // ==========================================
+        // QARAJ VƏ DİZAYN
+        // ==========================================
         const CAR_SKINS = [
             { id: 'default', name: 'Neon Blue', color: '#0ea5e9', price: 0, owned: true },
             { id: 'sport', name: 'Sport Red', color: '#f43f5e', price: 5.00, owned: false },
             { id: 'taxi', name: 'City Taxi', color: '#facc15', price: 10.00, owned: false },
             { id: 'vip', name: 'VIP Stealth', color: '#0f172a', price: 25.00, owned: false }
         ];
-
         let activeSkinId = 'default';
-        let currentLang = 'az';
 
-        // AUDIO
+        // ==========================================
+        // UI YENİLƏMƏ & POPUPLAR
+        // ==========================================
+        function updateUI() {
+            localStorage.setItem('premiumDriveBalance', balance.toFixed(2));
+            const formatted = `${balance.toFixed(2)} AZN`;
+            
+            document.getElementById('balanceText').innerText = formatted;
+            document.getElementById('loginBalanceText').innerText = formatted;
+            document.getElementById('withdrawBalanceDisplay').innerText = formatted;
+            
+            document.getElementById('scoreText').innerText = `${Math.floor(score)} M`;
+            document.getElementById('livesText').innerText = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+            document.getElementById('levelText').innerText = level;
+            document.getElementById('comboText').innerText = `x${combo.toFixed(1)}`;
+            
+            // Çəkilmə Limiti (30 AZN)
+            const submitBtn = document.getElementById('submitWithdrawBtn');
+            const warning = document.getElementById('withdrawWarning');
+            if (balance < 30) { submitBtn.disabled = true; submitBtn.classList.add('opacity-50'); warning.classList.remove('hidden'); } 
+            else { submitBtn.disabled = false; submitBtn.classList.remove('opacity-50'); warning.classList.add('hidden'); }
+        }
+
+        function createHtmlPopup(text, colorClass) {
+            const container = document.getElementById('popupContainer');
+            const el = document.createElement('div');
+            el.className = `absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-black text-xl text-center w-full animate-float ${colorClass}`;
+            el.innerText = text;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 1500);
+        }
+
+        // ==========================================
+        // GÜNDƏLİK BONUS SİSTEMİ
+        // ==========================================
+        function checkDailyBonus() {
+            const lastClaim = localStorage.getItem('dailyBonusTime');
+            const now = Date.now();
+            // 86400000 ms = 24 saat
+            if (!lastClaim || now - parseInt(lastClaim) > 86400000) {
+                document.getElementById('dailyBonusModal').classList.remove('hidden');
+            }
+        }
+        
+        document.getElementById('claimDailyBtn').addEventListener('click', () => {
+            balance += 1.00;
+            localStorage.setItem('dailyBonusTime', Date.now());
+            updateUI();
+            document.getElementById('dailyBonusModal').classList.add('hidden');
+            createHtmlPopup("+1.00 AZN Gündəlik Bonus!", "text-[#FFDD00]");
+        });
+
+        // ==========================================
+        // AUDIO SİSTEMİ
+        // ==========================================
         let audioCtx = null; let engineOsc = null; let engineGain = null;
         function initAudio() {
             if (audioCtx) return;
@@ -189,162 +262,162 @@
             engineGain.gain.setValueAtTime(0.08, audioCtx.currentTime); 
             engineOsc.connect(engineGain); engineGain.connect(audioCtx.destination); engineOsc.start();
         }
+
         function playTone(freq, type, duration, vol = 0.1) {
             if (!audioCtx) return;
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime); gain.gain.setValueAtTime(vol, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
             osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
         }
+
         function playCrashSound() { playTone(150, 'sawtooth', 0.5, 0.4); setTimeout(() => playTone(50, 'square', 0.8, 0.4), 100); }
         function playSuccessSound() { playTone(660, 'sine', 0.1, 0.2); setTimeout(() => playTone(880, 'sine', 0.3, 0.2), 100); }
-        function playFineSound() { playTone(200, 'square', 0.3, 0.3); setTimeout(() => playTone(150, 'square', 0.4, 0.3), 150); }
-        function playBuySound() { playTone(523.25, 'sine', 0.1, 0.2); setTimeout(() => playTone(659.25, 'sine', 0.2, 0.2), 100); setTimeout(() => playTone(783.99, 'sine', 0.3, 0.2), 200); }
+        function playPenaltySound() { playTone(200, 'square', 0.3, 0.3); setTimeout(() => playTone(150, 'square', 0.4, 0.3), 150); }
 
-        function getSpeechData(text) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); 
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = LANGUAGES[currentLang].tts; utterance.rate = 1.1; 
-                utterance.onstart = () => { document.getElementById("aiIcon").innerText = "🔊"; };
-                utterance.onend = () => { document.getElementById("aiIcon").innerText = "🤖"; };
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        // AI
-        const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
-        const genAI = new GoogleGenerativeAI(API_KEY);
-        async function getDrivingAdvice(scenario) {
-            const aiTipEl = document.getElementById("aiTipText");
-            try {
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const prompt = `Sən oyunda səsli köməkçisən. Ssenari: ${scenario}. Şən və maksimum 5 sözlük cavab ver. Dil: Azərbaycanca.`;
-                const result = await model.generateContent(prompt);
-                const text = await result.response.text();
-                aiTipEl.innerText = text; getSpeechData(text);
-            } catch (error) { console.error(error); }
-        }
-
-        // OYUN DƏYİŞƏNLƏRİ
-        const LOGICAL_WIDTH = 400; const LOGICAL_HEIGHT = 600;
-        const CAR_WIDTH = 48; const CAR_HEIGHT = 86; const PLAYER_Y = LOGICAL_HEIGHT - 130;
-        const LANES = [100, 200, 300]; const BIOMES = [{ ground: '#020617', road: '#0f172a', curb: '#1e293b' }];
-
-        let isGameRunning = false; let isBraking = false; let isGameOver = false;
-        let savedBalance = localStorage.getItem('premiumDriveBalance');
-        let balance = savedBalance !== null ? parseFloat(savedBalance) : 0.30;
-        
-        let score = 0; let trafficCars = []; let speedMultiplier = 1; let animatedPopups = []; 
-        let gameState = { carX: LANES[1] - CAR_WIDTH / 2, targetX: LANES[1] - CAR_WIDTH / 2, linesOffset: 0 };
-        let trafficLight = { active: false, y: -200, state: 'GREEN', timer: 0, passed: false };
-        const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
-
-        function updateUI() {
-            localStorage.setItem('premiumDriveBalance', balance.toFixed(2));
-            const formatted = `${balance.toFixed(2)} AZN`;
-            
-            document.getElementById('balanceText').innerText = formatted;
-            document.getElementById('loginBalanceText').innerText = formatted;
-            document.getElementById('garageBalanceText').innerText = formatted;
-            document.getElementById('withdrawBalanceDisplay').innerText = formatted;
-            document.getElementById('scoreText').innerText = `${Math.floor(score)} M`;
-            document.getElementById('hiddenBalanceInput').value = formatted;
-            
-            const submitBtn = document.getElementById('submitWithdrawBtn');
-            const warning = document.getElementById('withdrawWarning');
-            if (balance < 30) {
-                submitBtn.disabled = true; submitBtn.classList.add('opacity-50', 'cursor-not-allowed'); warning.classList.remove('hidden');
-            } else {
-                submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); warning.classList.add('hidden');
-            }
-        }
-
-        function spawnPopup(text, color, x, y) { animatedPopups.push({ text, color, x, y, alpha: 1, life: 60 }); }
-
-        // QARAJ
-        window.selectCar = (id) => { activeSkinId = id; playSuccessSound(); renderGarage(); };
-        window.buyCar = (id) => {
-            const car = CAR_SKINS.find(c => c.id === id);
-            if (car && balance >= car.price) {
-                balance -= car.price; car.owned = true; activeSkinId = id;
-                playBuySound(); updateUI(); renderGarage(); getDrivingAdvice("Yeni maşın xeyirli olsun!");
-            }
-        };
-
-        function renderGarage() {
-            const list = document.getElementById('garageList'); list.innerHTML = '';
-            CAR_SKINS.forEach(car => {
-                const item = document.createElement('div'); item.className = "glass-panel p-4 rounded-[20px] flex items-center justify-between";
-                const isSelected = activeSkinId === car.id; let btnHTML = '';
-                if (car.owned) {
-                    btnHTML = isSelected ? `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-500">Seçilib</button>` 
-                    : `<button onclick="window.selectCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300">Seç</button>`;
-                } else {
-                    const priceF = car.price.toFixed(2) + " AZN";
-                    btnHTML = balance >= car.price ? `<button onclick="window.buyCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-400">Al (${priceF})</button>`
-                    : `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-slate-800/50 text-slate-500">Al (${priceF})</button>`;
-                }
-                item.innerHTML = `<div class="flex items-center gap-4"><div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background-color: ${car.color}"><div class="w-6 h-10 bg-black/20"></div></div><div><p class="font-bold text-sm">${car.name}</p></div></div><div>${btnHTML}</div>`;
-                list.appendChild(item);
-            });
-        }
-
-        // MƏNTİQ
+        // ==========================================
+        // OYUN MƏNTİQİ VƏ DİNAMİKA
+        // ==========================================
         function startGame() {
-            document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('gameScreen').classList.remove('hidden'); document.getElementById('gameOverScreen').classList.add('hidden');
-            initAudio(); isGameRunning = true; isGameOver = false; score = 0; speedMultiplier = 1; trafficCars = []; animatedPopups = [];
-            gameState.carX = LANES[1] - CAR_WIDTH / 2; gameState.targetX = LANES[1] - CAR_WIDTH / 2; trafficLight.active = false;
-            updateUI(); getDrivingAdvice("Uğurlar!"); requestAnimationFrame(gameLoop);
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            
+            initAudio(); isGameRunning = true; isGameOver = false;
+            score = 0; lives = 3; level = 1; combo = 1.0; speedMultiplier = 0.8; // İlk 1 dəqiqə üçün asan (yavaş)
+            trafficCars = []; currentBiome = 0;
+            gameState.carX = LANES[1] - CAR_WIDTH / 2; gameState.targetX = LANES[1] - CAR_WIDTH / 2;
+            trafficLight.active = false;
+            
+            updateUI(); requestAnimationFrame(gameLoop);
+            createHtmlPopup("Uğurlar! Ehtiyatlı sür.", "text-cyan-400");
         }
 
-        function gameOver() {
-            isGameOver = true; document.getElementById('gameOverScreen').classList.remove('hidden'); document.getElementById('finalScore').innerText = Math.floor(score);
-            getDrivingAdvice("Oyunçu uduzdu."); if (engineGain) engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+        function gameOver(reason) {
+            isGameOver = true;
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            document.getElementById('finalScore').innerText = Math.floor(score) + " M";
+            document.getElementById('finalLevel').innerText = level;
+            
+            if (reason === 'lives') {
+                document.getElementById('gameOverReason').innerText = "Çox qəza etdiniz! Maşın yararsız haldadır.";
+            } else if (reason === 'balance') {
+                document.getElementById('gameOverReason').innerText = "Cərimələr səbəbilə müflis oldunuz!";
+            }
+
+            if (engineGain) engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+        }
+
+        function checkLevelUp() {
+            // Hər 500 metrdə bir level atlayır
+            let newLevel = Math.floor(score / 500) + 1;
+            if (newLevel > level) {
+                level = newLevel;
+                balance += level * 0.50; // Hər leveldə balans artır
+                speedMultiplier = Math.min(1.5, 0.8 + (level * 0.1)); // Sürət tədricən artır
+                currentBiome = (level - 1) % 3; // Biome dəyişir
+                
+                playSuccessSound();
+                createHtmlPopup(`LEVEL UP! +${(level*0.50).toFixed(2)} AZN`, "text-amber-400 text-3xl");
+                updateUI();
+            }
+        }
+
+        function spawnTrafficCar() {
+            const lane = LANES[Math.floor(Math.random() * LANES.length)];
+            const isSafe = trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150);
+            if (isSafe && !trafficLight.active) { 
+                trafficCars.push({ x: lane - CAR_WIDTH / 2, y: -100, speed: Math.random() * 2 + 2, color: '#f43f5e' });
+            }
         }
 
         function update() {
             if (!isGameRunning || isGameOver) return;
             const baseSpeed = isBraking ? 0 : 5 * speedMultiplier; 
 
-            if (!isBraking) { score += 0.1 * speedMultiplier; if(speedMultiplier < 1.5) speedMultiplier += 0.0001; }
-            gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80; gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
+            if (!isBraking) {
+                // Xal artımı combodan asılıdır
+                score += (0.1 * speedMultiplier) * combo; 
+                checkLevelUp();
+            }
 
-            if (!trafficLight.active && Math.random() < 0.003 && score > 50) { trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false; trafficLight.timer = 300; trafficLight.state = 'GREEN'; }
+            gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80;
+            gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
+
+            // Svetofor Sistemi (Bir az daha nadir çıxsın)
+            if (!trafficLight.active && Math.random() < 0.002 && score > 50) {
+                trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false;
+                trafficLight.timer = 250; trafficLight.state = 'GREEN';
+            }
+
             if (trafficLight.active) {
-                trafficLight.y += baseSpeed; trafficLight.timer--;
-                if (trafficLight.timer === 200) trafficLight.state = 'YELLOW';
-                if (trafficLight.timer === 140) trafficLight.state = 'RED';
+                trafficLight.y += baseSpeed;
+                trafficLight.timer--;
+
+                if (trafficLight.timer === 150) trafficLight.state = 'YELLOW';
+                if (trafficLight.timer === 80) trafficLight.state = 'RED';
                 if (trafficLight.timer === 0) trafficLight.state = 'GREEN';
 
                 if (trafficLight.y > PLAYER_Y + CAR_HEIGHT && !trafficLight.passed) {
                     trafficLight.passed = true;
-                    if (trafficLight.state === 'RED' && !isBraking) { balance -= 0.20; playFineSound(); spawnPopup("-0.20 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); getDrivingAdvice("Qırmızı işıq! Cərimə."); } 
-                    else if (trafficLight.state === 'GREEN') { balance += 0.50; playSuccessSound(); spawnPopup("+0.50 AZN", "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); getDrivingAdvice("Yaşıl işıq bonusu!"); }
-                    updateUI(); if (balance <= 0) { balance = 0; gameOver(); }
+                    if (trafficLight.state === 'RED' && !isBraking) {
+                        // QIRMIZI İŞIQ CƏRİMƏSİ
+                        balance -= 0.20; 
+                        combo = 1.0; // Combo sıfırlanır
+                        playPenaltySound();
+                        createHtmlPopup("Qırmızı işıqda keçdiniz – Cərimə tətbiq olundu!", "text-rose-500 text-sm");
+                    } else if (trafficLight.state === 'GREEN') {
+                        // YAŞIL İŞIQ BONUSU
+                        balance += 0.50; 
+                        combo = Math.min(3.0, combo + 0.2); // Combo artır
+                        playSuccessSound();
+                        createHtmlPopup("Mükəmməl! +0.50 AZN", "text-emerald-400");
+                    }
+                    updateUI();
+                    if (balance <= 0) { balance = 0; updateUI(); gameOver('balance'); }
                 }
                 if (trafficLight.y > LOGICAL_HEIGHT) trafficLight.active = false;
             }
 
-            if (Math.random() < 0.02 * speedMultiplier && !isBraking && !trafficLight.active) {
-                const lane = LANES[Math.floor(Math.random() * LANES.length)];
-                if (trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150)) trafficCars.push({ x: lane - CAR_WIDTH / 2, y: -100, speed: Math.random() * 2 + 2, color: '#f43f5e' });
-            }
+            // Düşmən maşınlar və Qəza (3 Can)
+            let trafficProbability = Math.min(0.03, 0.01 + (level * 0.005)); // Level artdıqca trafik artır
+            if (Math.random() < trafficProbability && !isBraking && !trafficLight.active) spawnTrafficCar();
 
             for (let i = trafficCars.length - 1; i >= 0; i--) {
-                let car = trafficCars[i]; car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
+                let car = trafficCars[i];
+                car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
+                
+                // QƏZA YOXLANIŞI
                 if (gameState.carX < car.x + CAR_WIDTH - 5 && gameState.carX + CAR_WIDTH - 5 > car.x && PLAYER_Y < car.y + CAR_HEIGHT - 5 && PLAYER_Y + CAR_HEIGHT - 5 > car.y) {
-                    balance -= 1.00; playCrashSound(); spawnPopup("-1.00 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y); trafficCars.splice(i, 1); getDrivingAdvice("Qəza etdin!"); updateUI(); 
-                    if (balance <= 0) { balance = 0; gameOver(); return; }
+                    lives--; 
+                    balance -= 1.00;
+                    combo = 1.0; 
+                    playCrashSound();
+                    trafficCars.splice(i, 1);
+                    createHtmlPopup("QƏZA! -1 Can & -1.00 AZN", "text-rose-500");
+                    updateUI(); 
+
+                    if (lives <= 0) { gameOver('lives'); return; }
+                    if (balance <= 0) { balance = 0; updateUI(); gameOver('balance'); return; }
                 } else if (car.y > LOGICAL_HEIGHT) { trafficCars.splice(i, 1); }
             }
 
-            animatedPopups.forEach(p => { p.y -= 1.5; p.alpha -= 0.015; p.life--; }); animatedPopups = animatedPopups.filter(p => p.life > 0);
-            if (engineGain && audioCtx) { engineOsc.frequency.setTargetAtTime(isBraking ? 30 : 40 * speedMultiplier, audioCtx.currentTime, 0.1); engineGain.gain.setTargetAtTime(isBraking ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier), audioCtx.currentTime, 0.1); }
+            // Motivasiya
+            if (Date.now() - lastComboTime > 15000 && combo >= 1.5 && !isBraking) {
+                lastComboTime = Date.now();
+                const msgs = ["Əla sürüş!", "Peşəkar sürücü!", "Davam et!", "Möhtəşəm!"];
+                createHtmlPopup(msgs[Math.floor(Math.random() * msgs.length)], "text-cyan-300");
+            }
+
+            if (engineGain && audioCtx) {
+                engineOsc.frequency.setTargetAtTime(isBraking ? 30 : 40 * speedMultiplier, audioCtx.currentTime, 0.1);
+                engineGain.gain.setTargetAtTime(isBraking ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier), audioCtx.currentTime, 0.1);
+            }
         }
 
+        // ==========================================
         // ÇİZİM
+        // ==========================================
         function drawCar(x, y, color, isPlayer, braking) {
             ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 10; ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect(x, y, CAR_WIDTH, CAR_HEIGHT, 12); ctx.fill(); ctx.shadowColor = 'transparent'; 
             ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 15, CAR_WIDTH - 8, 18, 4); ctx.fill(); ctx.beginPath(); ctx.roundRect(x + 6, y + CAR_HEIGHT - 25, CAR_WIDTH - 12, 12, 3); ctx.fill();
@@ -354,7 +427,7 @@
         }
 
         function draw() {
-            if (!ctx) return; const biome = BIOMES[0];
+            if (!ctx) return; const biome = BIOMES[currentBiome];
             ctx.fillStyle = biome.ground; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); ctx.fillStyle = biome.curb; ctx.fillRect(50, 0, 10, LOGICAL_HEIGHT); ctx.fillRect(LOGICAL_WIDTH - 60, 0, 10, LOGICAL_HEIGHT); ctx.fillStyle = biome.road; ctx.fillRect(60, 0, LOGICAL_WIDTH - 120, LOGICAL_HEIGHT);
             ctx.setLineDash([30, 40]); ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 4; ctx.lineDashOffset = -gameState.linesOffset; ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); ctx.stroke();
 
@@ -366,53 +439,25 @@
 
             trafficCars.forEach(car => drawCar(car.x, car.y, car.color, false, false));
             drawCar(gameState.carX, PLAYER_Y, CAR_SKINS.find(c => c.id === activeSkinId).color, true, isBraking); 
-
-            animatedPopups.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.alpha); ctx.font = '900 24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(p.text, p.x, p.y); ctx.restore(); });
         }
 
         function gameLoop() { update(); draw(); if (isGameRunning) requestAnimationFrame(gameLoop); }
 
-        // EVENTLƏR
+        // ==========================================
+        // İDARƏETMƏ VƏ KLİKLƏR
+        // ==========================================
+        window.onload = checkDailyBonus; // Açılışda gündəlik bonus yoxlanışı
         document.getElementById('loginBtn').addEventListener('click', startGame);
         document.getElementById('restartBtn').addEventListener('click', startGame);
-        document.getElementById('buyMeCoffeeBtn').addEventListener('click', () => { window.open('https://buymeacoffee.com/surwin', '_blank'); });
 
-        // ÖDƏNİŞİ YOXLA SİMULYASİYASI (DEMO MƏQSƏDLİ)
-        document.getElementById('verifyPaymentBtn').addEventListener('click', (e) => {
-            const btn = e.currentTarget;
-            btn.innerHTML = `⏳ Yoxlanılır...`;
-            btn.disabled = true;
-
-            // 3 saniyəlik saxta server gecikməsi
-            setTimeout(() => {
-                // 2 USD təxminən 3.40 AZN edir. Demo məqsədilə balansa əlavə olunur.
-                balance += 3.40;
-                updateUI();
-                playSuccessSound();
-                
-                btn.innerHTML = `✅ Təsdiqləndi (+2 USD)`;
-                btn.classList.replace('text-emerald-400', 'text-white');
-                btn.classList.replace('bg-emerald-500/10', 'bg-emerald-600');
-
-                // 2 saniyə sonra düyməni əvvəlki halına qaytar və modalı bağla
-                setTimeout(() => {
-                    document.getElementById('topUpModal').classList.add('hidden');
-                    btn.innerHTML = `🔄 Ödənişi Yoxla / Təsdiqlə`;
-                    btn.disabled = false;
-                    btn.classList.replace('text-white', 'text-emerald-400');
-                    btn.classList.replace('bg-emerald-600', 'bg-emerald-500/10');
-                }, 2000);
-            }, 3000);
-        });
-
-        const toggleModal = (btnId, modalId, show) => document.getElementById(btnId).addEventListener('click', () => { document.getElementById(modalId).classList[show ? 'remove' : 'add']('hidden'); updateUI(); if(show && modalId==='garageModal') renderGarage(); });
-        toggleModal('loginTopupBtn', 'topUpModal', true); toggleModal('topupBtn', 'topUpModal', true); toggleModal('closeTopUpBtn', 'topUpModal', false);
+        const toggleModal = (btnId, modalId, show) => { const btn = document.getElementById(btnId); if(btn) btn.addEventListener('click', () => { document.getElementById(modalId).classList[show ? 'remove' : 'add']('hidden'); updateUI(); }); };
         toggleModal('withdrawBtn', 'withdrawModal', true); toggleModal('closeWithdrawBtn', 'withdrawModal', false);
         toggleModal('garageBtn', 'garageModal', true); toggleModal('closeGarageBtn', 'garageModal', false);
 
         const brakeBtn = document.getElementById('brakeBtn');
         const startBraking = (e) => { e.preventDefault(); isBraking = true; }; const stopBraking = (e) => { e.preventDefault(); isBraking = false; };
-        brakeBtn.addEventListener('mousedown', startBraking); brakeBtn.addEventListener('mouseup', stopBraking); brakeBtn.addEventListener('touchstart', startBraking, {passive: false}); brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
+        brakeBtn.addEventListener('mousedown', startBraking); brakeBtn.addEventListener('mouseup', stopBraking);
+        brakeBtn.addEventListener('touchstart', startBraking, {passive: false}); brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
         
         const goLeft = (e) => { e.preventDefault(); if(gameState.targetX > LANES[0] - CAR_WIDTH/2) gameState.targetX -= 100; };
         const goRight = (e) => { e.preventDefault(); if(gameState.targetX < LANES[2] - CAR_WIDTH/2) gameState.targetX += 100; };

@@ -1,14 +1,11 @@
 <!DOCTYPE html>
-<html lang="az" id="htmlTag">
+<html lang="az">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Premium Drive - Tam Gəlir Sistemi</title>
+    <title>Premium Drive - Play & Earn</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="importmap">
-      { "imports": { "@google/generative-ai": "https://esm.run/@google/generative-ai" } }
-    </script>
     <style>
         body { 
             height: 100vh; height: 100dvh; 
@@ -23,10 +20,10 @@
         [dir="rtl"] .pl-4 { padding-right: 1rem; padding-left: 0; }
         
         .glass-panel {
-            background: rgba(15, 23, 42, 0.7);
+            background: rgba(15, 23, 42, 0.75);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
         }
         .neon-cyan { text-shadow: 0 0 10px rgba(34, 211, 238, 0.8); }
@@ -49,7 +46,7 @@
         .shake-effect { animation: shake 0.3s; }
     </style>
 </head>
-<body class="text-white flex flex-col font-sans relative transition-all duration-300" dir="ltr">
+<body class="text-white flex flex-col font-sans relative" dir="ltr">
 
     <div class="fixed top-4 right-4 z-[9999]">
         <div id="langBtn" class="glass-panel px-3 py-2 rounded-[16px] flex items-center gap-2 cursor-pointer border border-white/10 active:scale-95 transition-transform bg-[#020617]/90">
@@ -59,7 +56,7 @@
         </div>
     </div>
 
-    <div id="registrationScreen" class="h-full w-full flex items-center justify-center p-4 z-[60] absolute inset-0 bg-[#020617] overflow-y-auto hidden">
+    <div id="registrationScreen" class="h-full w-full flex items-center justify-center p-4 z-[60] absolute inset-0 bg-[#020617] overflow-y-auto">
         <div class="glass-panel p-6 sm:p-8 rounded-[32px] w-full max-w-md relative overflow-hidden my-auto mt-16">
             <div class="absolute -top-10 -left-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-[40px]"></div>
             
@@ -69,12 +66,12 @@
                 <p class="text-rose-400 font-bold mb-1" data-i18n="regAttention">DİQQƏT - Vacib Qaydalar:</p>
                 <ul class="list-disc pl-4 space-y-1.5">
                     <li data-i18n="rule1">Hər bir istifadəçi yalnız <b>1 dəfə</b> qeydiyyatdan keçə bilər.</li>
-                    <li data-i18n="rule2">Eyni cihazdan birdən çox hesab yaradılarsa, sistem avtomatik aşkarlayıb <b>ban edəcək</b>.</li>
-                    <li data-i18n="rule3">Qeydiyyatdan dərhal sonra balansınıza <b>0.50 AZN</b> başlanğıc hədiyyə əlavə olunacaq və oyuna davam edə biləcəksiniz.</li>
+                    <li data-i18n="rule2">Eyni cihazdan birdən çox hesab yaradılarsa, sistem avtomatik <b>ban edəcək</b>.</li>
+                    <li data-i18n="rule3">Qeydiyyatdan dərhal sonra balansınıza <b>0.50 AZN</b> başlanğıc hədiyyə əlavə olunacaq.</li>
                     <li data-i18n="rule4">Qaydalara (işıqfor, polis) riayət edərək qazanc əldə edə bilərsiniz.</li>
                     <li data-i18n="rule5">Oyuna davam etmək üçün balans 0 olduqda mütləq minimum 3 AZN artırmalısınız.</li>
                 </ul>
-                <p class="text-emerald-400 font-bold mt-3 text-center text-sm" data-i18n="regWish">Oyunda sizə uğurlar arzulayırıq! 🏁</p>
+                <p class="text-emerald-400 font-bold mt-3 text-center text-sm" data-i18n="regWish">Uğurlar arzulayırıq! 🏁</p>
             </div>
 
             <form id="regForm" class="flex flex-col gap-3 relative z-10">
@@ -108,7 +105,7 @@
         
         <div class="p-4 flex justify-between items-center z-30 shrink-0">
             <div class="flex gap-2">
-                <div class="glass-panel p-2 px-4 rounded-[20px] transition-all">
+                <div class="glass-panel p-2 px-4 rounded-[20px]">
                     <p data-i18n="garBal" class="text-[9px] font-black text-cyan-400 uppercase tracking-[2px] mb-0.5 opacity-80">Balans</p>
                     <p id="balanceText" class="text-base font-black neon-cyan">0.50 AZN</p>
                 </div>
@@ -146,7 +143,7 @@
                 
                 <div id="gameOverMessage" class="hidden mb-6 bg-rose-500/10 p-4 rounded-xl border border-rose-500/30 text-left">
                     <p class="text-rose-400 text-sm font-bold mb-1" data-i18n="goMsgTitle">Balansınız 0.00 oldu!</p>
-                    <p class="text-slate-300 text-xs" data-i18n="goMsgDesc">Cərimələr səbəbindən balansınız bitdi. Oyuna davam etmək və yenidən qazanmaq üçün mütləq balansınızı artırmalısınız. Heç bir ikinci şans verilmir.</p>
+                    <p class="text-slate-300 text-xs" data-i18n="goMsgDesc">Cərimələr səbəbindən balansınız bitdi. Oyuna davam etmək üçün mütləq balansınızı artırmalısınız. Heç bir ikinci şans verilmir.</p>
                 </div>
                 
                 <button id="restartBtn" data-i18n="btnRestart" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] mb-3 active:scale-95 transition-all">YENİDƏN BAŞLA</button>
@@ -205,25 +202,11 @@
     </div>
 
     <script type="module">
-        import { GoogleGenerativeAI } from "@google/generative-ai";
+        // Import map əvəzinə birbaşa URL istifadə edirik ki, brauzerlərdə xəta olmasın
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
         // ==========================================
-        // Polyfill (Maşınların görünməsi üçün mütləqdir)
-        // ==========================================
-        if (!CanvasRenderingContext2D.prototype.roundRect) {
-            CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-                if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2;
-                this.beginPath(); this.moveTo(x + r, y);
-                this.arcTo(x + w, y, x + w, y + h, r);
-                this.arcTo(x + w, y + h, x, y + h, r);
-                this.arcTo(x, y + h, x, y, r);
-                this.arcTo(x, y, x + r, y, r);
-                this.closePath(); return this;
-            }
-        }
-
-        // ==========================================
-        // 🌍 MULTI-LANGUAGE & CURRENCY
+        // DİLLƏR VƏ VALYUTALAR
         // ==========================================
         const LANGUAGES = {
             az: { 
@@ -231,21 +214,550 @@
                 t: {
                     regTitle: "Qeydiyyat & Qaydalar", regAttention: "DİQQƏT - Vacib Qaydalar:",
                     rule1: "Hər bir istifadəçi yalnız <b>1 dəfə</b> qeydiyyatdan keçə bilər.",
-                    rule2: "Eyni cihazdan birdən çox hesab yaradılarsa, sistem <b>ban edəcək</b>.",
+                    rule2: "Eyni cihazdan birdən çox hesab yaradılarsa, sistem avtomatik <b>ban edəcək</b>.",
                     rule3: "Qeydiyyatdan dərhal sonra balansınıza <b>0.50 AZN</b> başlanğıc hədiyyə əlavə olunacaq.",
                     rule4: "Qaydalara riayət edərək qazanc əldə edə bilərsiniz.",
                     rule5: "Oyuna davam etmək üçün balans bitdikdə mütləq artırmalısınız.",
-                    regWish: "Oyunda sizə uğurlar arzulayırıq! 🏁", phName: "Ad və Soyad", phUsername: "İstifadəçi adı", phAge: "Yaş", phPass: "Şifrə",
+                    regWish: "Uğurlar arzulayırıq! 🏁", phName: "Ad və Soyad", phUsername: "İstifadəçi adı", phAge: "Yaş", phPass: "Şifrə",
                     btnReg: "Qeydiyyatı Tamamla", lblLoginBal: "Cari Balans:", btnPlay: "Oyuna Başla", btnTopup: "Balansı Artır",
                     garBal: "Balans", lblDist: "Məsafə", aiTipLoad: "Süni intellekt məsləhəti yüklənir...",
-                    goTitle: "GAME OVER", goMsgTitle: "Balansınız sıfırlandı!", goMsgDesc: "Cərimələr səbəbindən balansınız bitdi. Oyuna davam etmək və yenidən qazanmaq üçün mütləq balansınızı artırmalısınız. Heç bir ikinci şans verilmir.",
+                    goTitle: "GAME OVER", goMsgTitle: "Balansınız sıfırlandı!", goMsgDesc: "Cərimələr səbəbindən balansınız bitdi. Oyuna davam etmək üçün mütləq balansınızı artırmalısınız. İkinci şans verilmir.",
                     btnRestart: "YENİDƏN BAŞLA", btnGoTopup: "BALANSI ARTIR", btnBrake: "TORMOZ",
-                    tuTitle: "Balansı Artır", tuRule1: "Balans artırmaq üçün (buymeacoffee.com/surwin) minimum <b>3 AZN</b> ödəniş edin.", tuRule2: "Ödəniş təsdiqləndikdən sonra məbləğ oyun balansınıza əlavə olunacaq.", tuRule3: "Sıfır balansla oyuna başlamaq qadağandır. İkinci şans verilmir.",
+                    tuTitle: "Balansı Artır", tuRule1: "Balans artırmaq üçün (buymeacoffee.com/surwin) minimum <b>3 AZN</b> ödəniş edin.", tuRule2: "Ödəniş təsdiqləndikdən sonra məbləğ balansınıza əlavə olunacaq.", tuRule3: "Sıfır balansla oyuna başlamaq qadağandır.",
                     btnPay: "Ödəniş Et", btnVerify: "Ödənişi Yoxla", btnClose: "Bağla",
-                    wdTitle: "Nağdlaşdır", wdCurBal: "Cari Balansınız", wdPhName: "Ad və Soyadınız", wdPhCard: "Kart və ya Hesab Nömrəsi", wdWarn: "Balansınız minimum limitdən (30 AZN) azdır.", btnSubmitWd: "Sorğu Göndər", btnBack: "Geri", garTitle: "QARAJ",
+                    wdTitle: "Nağdlaşdır", wdCurBal: "Cari Balansınız", wdPhName: "Ad və Soyadınız", wdPhCard: "Kart və ya Hesab Nömrəsi", wdWarn: "Balansınız limitdən (30 AZN) azdır.", btnSubmitWd: "Sorğu Göndər", btnBack: "Geri", garTitle: "QARAJ",
                     btnSelected: "Seçilib", btnSelect: "Seç", btnBuy: "Al",
-                    aiScenStart: "Oyuna başlayır. Həvəsləndir.", aiScenEmpty: "Balansı bitib, artırmalıdır.", aiScenRed: "Qırmızı işıq, cərimə.", aiScenGreen: "Yaşıl işıq, qazanc!", aiScenCrash: "Qəza, cərimə.", aiScenNear: "Təhlükəli keçiş, qazanc.", aiScenPoliceRun: "Polisdən qaçdı, cərimə!", aiScenPoliceEarly: "Polis get deməmiş getdi, cərimə.", aiScenPoliceOk: "Polis yoxladı, getdi, qazanc."
+                    aiScenStart: "Oyuna başlayır. Həvəsləndir.", aiScenEmpty: "Balansı bitib.", aiScenRed: "Qırmızı işıq, cərimə.", aiScenGreen: "Yaşıl işıq, qazanc!", aiScenCrash: "Qəza, cərimə.", aiScenNear: "Təhlükəli keçiş, qazanc.", aiScenPoliceRun: "Polisdən qaçdı, cərimə!", aiScenPoliceEarly: "Erken hərəkət, cərimə.", aiScenPoliceOk: "Polis yoxladı, qazanc."
                 }
             },
             en: { 
-                code: 'en', flag: '🇬🇧', name
+                code: 'en', flag: '🇬🇧', name: 'English', currency: 'USD', rate: 0.59, tts: 'en-US', aiLang: 'English', dir: 'ltr',
+                t: {
+                    regTitle: "Registration & Rules", regAttention: "ATTENTION - Rules:",
+                    rule1: "Each user can register only <b>1 time</b>.",
+                    rule2: "Multiple accounts from the same device will be <b>blocked</b>.",
+                    rule3: "After registration, a <b>0.50 AZN</b> bonus will be added instantly.",
+                    rule4: "You can earn by following the platform rules.",
+                    rule5: "If your balance reaches zero, you must top up.",
+                    regWish: "Good luck! 🏁", phName: "Full Name", phUsername: "Username", phAge: "Age", phPass: "Password",
+                    btnReg: "Complete Registration", lblLoginBal: "Current Balance:", btnPlay: "Start Game", btnTopup: "Top Up Balance",
+                    garBal: "Balance", lblDist: "Distance", aiTipLoad: "Loading AI advice...",
+                    goTitle: "GAME OVER", goMsgTitle: "Balance reached zero!", goMsgDesc: "Your balance is empty. You must top up to continue and earn again. No second chances.",
+                    btnRestart: "RESTART", btnGoTopup: "TOP UP BALANCE", btnBrake: "BRAKE",
+                    tuTitle: "Top Up Balance", tuRule1: "Make a payment of min. <b>$2 USD</b> via link to top up.", tuRule2: "Once verified, the amount will be added to your balance.", tuRule3: "Playing with zero balance is strictly forbidden.",
+                    btnPay: "Pay Now", btnVerify: "Verify Payment", btnClose: "Close",
+                    wdTitle: "Withdraw", wdCurBal: "Current Balance", wdPhName: "Full Name", wdPhCard: "Card/Account", wdWarn: "Balance is below minimum.", btnSubmitWd: "Submit", btnBack: "Back", garTitle: "GARAGE",
+                    btnSelected: "Selected", btnSelect: "Select", btnBuy: "Buy",
+                    aiScenStart: "Starts the game. Encourage.", aiScenEmpty: "Balance empty.", aiScenRed: "Red light, fine.", aiScenGreen: "Green light, reward!", aiScenCrash: "Crash, fine.", aiScenNear: "Near miss, reward.", aiScenPoliceRun: "Ran from police, fine!", aiScenPoliceEarly: "Early start, fine.", aiScenPoliceOk: "Police clear, reward."
+                }
+            },
+            ru: { 
+                code: 'ru', flag: '🇷🇺', name: 'Русский', currency: 'RUB', rate: 55.0, tts: 'ru-RU', aiLang: 'Russian', dir: 'ltr',
+                t: {
+                    regTitle: "Регистрация и Правила", regAttention: "ВНИМАНИЕ - Правила:",
+                    rule1: "Регистрация разрешена только <b>1 раз</b>.",
+                    rule2: "Множественные аккаунты будут <b>заблокированы</b>.",
+                    rule3: "После регистрации вы мгновенно получите бонус <b>0.50 AZN</b>.",
+                    rule4: "Соблюдайте правила, чтобы зарабатывать.",
+                    rule5: "При нулевом балансе необходимо пополнить счет.",
+                    regWish: "Желаем удачи! 🏁", phName: "Имя и Фамилия", phUsername: "Имя пользователя", phAge: "Возраст", phPass: "Пароль",
+                    btnReg: "Завершить", lblLoginBal: "Баланс:", btnPlay: "Начать игру", btnTopup: "Пополнить баланс",
+                    garBal: "Баланс", lblDist: "Дистанция", aiTipLoad: "Загрузка ИИ...",
+                    goTitle: "ИГРА ОКОНЧЕНА", goMsgTitle: "Баланс ноль!", goMsgDesc: "Пополните баланс для продолжения. Второго шанса нет.",
+                    btnRestart: "ЗАНОВО", btnGoTopup: "ПОПОЛНИТЬ БАЛАНС", btnBrake: "ТОРМОЗ",
+                    tuTitle: "Пополнить баланс", tuRule1: "Сделайте перевод от <b>$2 USD</b> по ссылке.", tuRule2: "После проверки сумма будет добавлена.", tuRule3: "Игра с нулевым балансом запрещена.",
+                    btnPay: "Оплатить", btnVerify: "Проверить оплату", btnClose: "Закрыть",
+                    wdTitle: "Вывод", wdCurBal: "Баланс", wdPhName: "Имя", wdPhCard: "Счет", wdWarn: "Баланс ниже лимита.", btnSubmitWd: "Отправить", btnBack: "Назад", garTitle: "ГАРАЖ",
+                    btnSelected: "Выбрано", btnSelect: "Выбрать", btnBuy: "Купить",
+                    aiScenStart: "Начинает игру.", aiScenEmpty: "Баланс пуст.", aiScenRed: "Красный, штраф.", aiScenGreen: "Зеленый, награда!", aiScenCrash: "Авария, штраф.", aiScenNear: "Опасный обгон, награда.", aiScenPoliceRun: "Побег, штраф!", aiScenPoliceEarly: "Ранний старт, штраф.", aiScenPoliceOk: "Полиция отпустила, награда."
+                }
+            },
+            tr: { 
+                code: 'tr', flag: '🇹🇷', name: 'Türkçe', currency: 'TRY', rate: 19.5, tts: 'tr-TR', aiLang: 'Turkish', dir: 'ltr',
+                t: {
+                    regTitle: "Kayıt & Kurallar", regAttention: "DİKKAT - Kurallar:",
+                    rule1: "Herkes yalnızca <b>1 kez</b> kayıt olabilir.",
+                    rule2: "Aynı cihazdan birden fazla hesap <b>engellenir</b>.",
+                    rule3: "Kayıttan hemen sonra <b>0.50 AZN</b> başlangıç hediyesi eklenir.",
+                    rule4: "Kurallara uyarak kazanç elde edebilirsiniz.",
+                    rule5: "Bakiye sıfırlandığında yükleme yapmalısınız.",
+                    regWish: "Başarılar! 🏁", phName: "Ad ve Soyad", phUsername: "Kullanıcı Adı", phAge: "Yaş", phPass: "Şifre",
+                    btnReg: "Kaydı Tamamla", lblLoginBal: "Mevcut Bakiye:", btnPlay: "Oyuna Başla", btnTopup: "Bakiye Yükle",
+                    garBal: "Bakiye", lblDist: "Mesafe", aiTipLoad: "Yapay zeka yükleniyor...",
+                    goTitle: "OYUN BİTTİ", goMsgTitle: "Bakiye sıfırlandı!", goMsgDesc: "Devam etmek için bakiye yüklemelisiniz. İkinci şans verilmez.",
+                    btnRestart: "YENİDEN BAŞLA", btnGoTopup: "BAKİYE YÜKLE", btnBrake: "FREN",
+                    tuTitle: "Bakiye Yükle", tuRule1: "Minimum <b>$2 USD</b> ödeme yapın.", tuRule2: "Ödeme onaylandıktan sonra eklenecektir.", tuRule3: "Sıfır bakiye ile oynamak yasaktır.",
+                    btnPay: "Ödeme Yap", btnVerify: "Ödemeyi Doğrula", btnClose: "Kapat",
+                    wdTitle: "Para Çek", wdCurBal: "Bakiye", wdPhName: "Ad ve Soyad", wdPhCard: "Hesap No", wdWarn: "Bakiye limitin altında.", btnSubmitWd: "Gönder", btnBack: "Geri", garTitle: "GARAJ",
+                    btnSelected: "Seçildi", btnSelect: "Seç", btnBuy: "Satın Al",
+                    aiScenStart: "Başlıyor.", aiScenEmpty: "Bakiye bitti.", aiScenRed: "Kırmızı, ceza.", aiScenGreen: "Yeşil, ödül!", aiScenCrash: "Kaza, ceza.", aiScenNear: "Sıyrıldı, ödül.", aiScenPoliceRun: "Kaçtı, ceza!", aiScenPoliceEarly: "Erken kalkış, ceza.", aiScenPoliceOk: "Polis onay verdi, ödül."
+                }
+            }
+        };
+
+        const CAR_SKINS = [
+            { id: 'default', name: 'Neon Blue', color: '#0ea5e9', priceAZN: 0, owned: true },
+            { id: 'sport', name: 'Sport Red', color: '#f43f5e', priceAZN: 5.00, owned: false },
+            { id: 'taxi', name: 'City Taxi', color: '#facc15', priceAZN: 10.00, owned: false },
+            { id: 'vip', name: 'VIP Stealth', color: '#0f172a', priceAZN: 25.00, owned: false }
+        ];
+        const TRAFFIC_COLORS = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#cbd5e1', '#ea580c'];
+
+        let currentLang = localStorage.getItem('premiumDriveLang') || 'az';
+        let activeSkinId = 'default';
+        let balanceAZN = 0.00; 
+        
+        let isRegistered = localStorage.getItem('premiumDriveRegistered') === 'true';
+        let savedBalance = localStorage.getItem('premiumDriveBalance');
+
+        // ==========================================
+        // UI & EKRAN İDARƏSİ
+        // ==========================================
+        function initLanguage() {
+            const langBtn = document.getElementById('langBtn');
+            const langDropdown = document.getElementById('langDropdown');
+            langDropdown.innerHTML = '';
+            Object.values(LANGUAGES).forEach(l => {
+                const opt = document.createElement('div');
+                opt.className = "flex items-center gap-2 px-3 py-2 hover:bg-white/10 rounded-lg cursor-pointer transition-colors";
+                opt.innerHTML = `<span>${l.flag}</span> <span class="text-xs font-bold">${l.name}</span>`;
+                opt.onclick = () => { changeLanguage(l.code); langDropdown.classList.add('hidden'); };
+                langDropdown.appendChild(opt);
+            });
+            langBtn.onclick = () => langDropdown.classList.toggle('hidden');
+            changeLanguage(currentLang);
+        }
+
+        function changeLanguage(code) {
+            currentLang = code;
+            localStorage.setItem('premiumDriveLang', code);
+            const lang = LANGUAGES[code];
+            
+            document.getElementById('currentFlag').innerText = lang.flag;
+            document.getElementById('currentLangName').innerText = lang.code;
+            document.body.setAttribute('dir', lang.dir);
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (lang.t[key]) {
+                    if (el.tagName === 'INPUT') el.placeholder = lang.t[key];
+                    else el.innerHTML = lang.t[key];
+                }
+            });
+            
+            updateUI();
+            if(!document.getElementById('garageModal').classList.contains('hidden')) renderGarage();
+        }
+
+        function formatMoney(amountAZN) {
+            const lang = LANGUAGES[currentLang];
+            const converted = (amountAZN * lang.rate).toFixed(2);
+            if(lang.dir === 'rtl') return `${lang.currency} ${converted}`;
+            return `${converted} ${lang.currency}`;
+        }
+
+        function setupScreens() {
+            if (isRegistered) {
+                document.getElementById('registrationScreen').classList.add('hidden');
+                document.getElementById('loginScreen').classList.remove('hidden');
+                balanceAZN = savedBalance !== null ? parseFloat(savedBalance) : 0.00;
+            } else {
+                document.getElementById('registrationScreen').classList.remove('hidden');
+                document.getElementById('loginScreen').classList.add('hidden');
+            }
+            updateUI();
+        }
+
+        document.getElementById('regForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            localStorage.setItem('premiumDriveRegistered', 'true');
+            if (savedBalance === null) {
+                balanceAZN = 0.50; // Başlanğıc hədiyyə
+                localStorage.setItem('premiumDriveBalance', '0.50');
+            }
+            document.getElementById('registrationScreen').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            updateUI();
+        });
+
+        // ==========================================
+        // GÜVƏNLİ CANVAS DRAW FUNKSİYASI
+        // ==========================================
+        // Polyfill əvəzinə birbaşa path istifadə edirik ki, köhnə telefonlarda donmasın.
+        function drawRoundedRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // ==========================================
+        // AUDIO & AI (Təhlükəsiz)
+        // ==========================================
+        let audioCtx = null; 
+        function initAudio() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch(e) {}
+        }
+        function playTone(freq, type, duration, vol = 0.1) {
+            try {
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e){}
+        }
+        function playCrashSound() { playTone(150, 'sawtooth', 0.5, 0.4); setTimeout(() => playTone(50, 'square', 0.8, 0.4), 100); }
+        function playSuccessSound() { playTone(660, 'sine', 0.1, 0.2); setTimeout(() => playTone(880, 'sine', 0.3, 0.2), 100); }
+        function playFineSound() { playTone(200, 'square', 0.3, 0.3); setTimeout(() => playTone(150, 'square', 0.4, 0.3), 150); }
+        function playNitroSound() { playTone(300, 'square', 0.1, 0.1); setTimeout(() => playTone(500, 'sawtooth', 0.5, 0.2), 100); }
+        function playPoliceSiren() { playTone(800, 'sine', 0.3, 0.2); setTimeout(() => playTone(600, 'sine', 0.3, 0.2), 300); }
+
+        const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
+        const genAI = new GoogleGenerativeAI(API_KEY);
+        async function getDrivingAdvice(scenarioKey) {
+            const lang = LANGUAGES[currentLang];
+            const aiTipEl = document.getElementById("aiTipText");
+            try {
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const prompt = `You are an in-game voice assistant. Scenario: ${lang.t[scenarioKey] || scenarioKey}. Reply very excitedly and in max 4 words. Language: ${lang.aiLang}.`;
+                const result = await model.generateContent(prompt);
+                aiTipEl.innerText = await result.response.text();
+            } catch (error) { 
+                // Əgər API yoxdursa, default mətn göstər
+                aiTipEl.innerText = lang.t[scenarioKey] || "Sürətli ol!"; 
+            }
+        }
+
+        // ==========================================
+        // OYUN MƏNTİQİ
+        // ==========================================
+        const LOGICAL_WIDTH = 400; const LOGICAL_HEIGHT = 600;
+        const CAR_WIDTH = 48; const CAR_HEIGHT = 86; const PLAYER_Y = LOGICAL_HEIGHT - 130;
+        const LANES = [100, 200, 300]; 
+        
+        let isGameRunning = false; let isBraking = false; let isGameOver = false;
+        let score = 0; let trafficCars = []; let speedMultiplier = 1; let animatedPopups = []; 
+        let nitroTimer = 0; let screenShake = 0;
+        let gameState = { carX: LANES[1] - CAR_WIDTH / 2, targetX: LANES[1] - CAR_WIDTH / 2, linesOffset: 0 };
+        let trafficLight = { active: false, y: -200, state: 'GREEN', timer: 0, passed: false };
+        let policeEvent = { active: false, y: -200, state: 'APPROACHING', waitTimer: 180 };
+
+        const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
+
+        function updateUI() {
+            localStorage.setItem('premiumDriveBalance', balanceAZN.toFixed(2));
+            const formatted = formatMoney(balanceAZN);
+            
+            document.getElementById('balanceText').innerText = formatted;
+            document.getElementById('loginBalanceText').innerText = formatted;
+            document.getElementById('garageBalanceText').innerText = formatted;
+            document.getElementById('withdrawBalanceDisplay').innerText = formatted;
+            document.getElementById('scoreText').innerText = `${Math.floor(score)} M`;
+            document.getElementById('hiddenBalanceInput').value = formatted;
+            
+            const submitBtn = document.getElementById('submitWithdrawBtn');
+            const warning = document.getElementById('withdrawWarning');
+            if (balanceAZN < 30) {
+                submitBtn.disabled = true; submitBtn.classList.add('opacity-50', 'cursor-not-allowed'); warning.classList.remove('hidden');
+            } else {
+                submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); warning.classList.add('hidden');
+            }
+        }
+
+        function spawnPopup(text, color, x, y) { animatedPopups.push({ text, color, x, y, alpha: 1, life: 60 }); }
+
+        window.selectCar = (id) => { activeSkinId = id; playSuccessSound(); renderGarage(); };
+        window.buyCar = (id) => {
+            const car = CAR_SKINS.find(c => c.id === id);
+            if (car && balanceAZN >= car.priceAZN) {
+                balanceAZN -= car.priceAZN; car.owned = true; activeSkinId = id;
+                playSuccessSound(); updateUI(); renderGarage();
+            }
+        };
+
+        function renderGarage() {
+            const list = document.getElementById('garageList'); list.innerHTML = '';
+            const lang = LANGUAGES[currentLang];
+            CAR_SKINS.forEach(car => {
+                const item = document.createElement('div'); item.className = "glass-panel p-4 rounded-[20px] flex items-center justify-between";
+                const isSelected = activeSkinId === car.id; let btnHTML = '';
+                if (car.owned) {
+                    btnHTML = isSelected ? `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-500">${lang.t.btnSelected}</button>` 
+                    : `<button onclick="window.selectCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300">${lang.t.btnSelect}</button>`;
+                } else {
+                    const priceF = formatMoney(car.priceAZN);
+                    btnHTML = balanceAZN >= car.priceAZN ? `<button onclick="window.buyCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-400">${lang.t.btnBuy} (${priceF})</button>`
+                    : `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-slate-800/50 text-slate-500">${lang.t.btnBuy} (${priceF})</button>`;
+                }
+                item.innerHTML = `<div class="flex items-center gap-4"><div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background-color: ${car.color}"><div class="w-6 h-10 bg-black/20"></div></div><div><p class="font-bold text-sm text-left">${car.name}</p></div></div><div>${btnHTML}</div>`;
+                list.appendChild(item);
+            });
+        }
+
+        function startGame() {
+            if (balanceAZN <= 0) {
+                document.getElementById('topUpModal').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('loginScreen').classList.add('hidden'); 
+            document.getElementById('gameScreen').classList.remove('hidden'); 
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            
+            initAudio(); 
+            isGameRunning = true; isGameOver = false; score = 0; speedMultiplier = 1; trafficCars = []; animatedPopups = [];
+            nitroTimer = 0; screenShake = 0;
+            gameState.carX = LANES[1] - CAR_WIDTH / 2; gameState.targetX = LANES[1] - CAR_WIDTH / 2; 
+            trafficLight.active = false; policeEvent.active = false;
+            
+            updateUI(); 
+            getDrivingAdvice("aiScenStart"); 
+            requestAnimationFrame(gameLoop);
+        }
+
+        function gameOver() {
+            isGameOver = true; isGameRunning = false; 
+            document.getElementById('gameOverScreen').classList.remove('hidden'); 
+            document.getElementById('finalScore').innerText = Math.floor(score);
+            
+            const restartBtn = document.getElementById('restartBtn');
+            const topupBtn = document.getElementById('gameOverTopupBtn');
+            const msg = document.getElementById('gameOverMessage');
+            
+            if (balanceAZN <= 0) {
+                restartBtn.classList.add('hidden'); topupBtn.classList.remove('hidden'); msg.classList.remove('hidden');
+            } else {
+                restartBtn.classList.remove('hidden'); topupBtn.classList.add('hidden'); msg.classList.add('hidden');
+            }
+        }
+
+        function checkBankruptcy() {
+            if (balanceAZN <= 0) { balanceAZN = 0; updateUI(); gameOver(); return true; }
+            return false;
+        }
+
+        function update() {
+            if (!isGameRunning || isGameOver) return;
+            
+            let currentBaseSpeed = 5;
+            if (nitroTimer > 0) { currentBaseSpeed += 6; nitroTimer--; }
+
+            const baseSpeed = isBraking ? 0 : currentBaseSpeed * speedMultiplier; 
+            if (!isBraking) { score += (nitroTimer > 0 ? 0.3 : 0.1) * speedMultiplier; } 
+            gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80; gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
+
+            if (screenShake > 0) screenShake--;
+
+            // İŞIQFOR
+            if (!trafficLight.active && !policeEvent.active && Math.random() < 0.005 && score > 10) { 
+                trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false; trafficLight.timer = 300; trafficLight.state = 'GREEN'; 
+            }
+            if (trafficLight.active) {
+                trafficLight.y += baseSpeed; trafficLight.timer--;
+                if (trafficLight.timer === 200) trafficLight.state = 'YELLOW';
+                if (trafficLight.timer === 140) trafficLight.state = 'RED';
+                if (trafficLight.timer === 0) trafficLight.state = 'GREEN';
+
+                if (trafficLight.y > PLAYER_Y + CAR_HEIGHT && !trafficLight.passed) {
+                    trafficLight.passed = true;
+                    if (trafficLight.state === 'RED' && !isBraking) { 
+                        balanceAZN -= 0.60; playFineSound(); screenShake = 15;
+                        spawnPopup("- " + formatMoney(0.60), "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
+                        if (checkBankruptcy()) return; getDrivingAdvice("aiScenRed"); 
+                    } else if (trafficLight.state === 'GREEN') { 
+                        balanceAZN += 0.40; nitroTimer = 60; playSuccessSound(); playNitroSound();
+                        spawnPopup("🚀 + " + formatMoney(0.40), "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
+                    }
+                    updateUI(); 
+                }
+                if (trafficLight.y > LOGICAL_HEIGHT) trafficLight.active = false;
+            }
+
+            // POLİS
+            if (!policeEvent.active && !trafficLight.active && Math.random() < 0.003 && score > 30) {
+                policeEvent = { active: true, y: -200, state: 'APPROACHING', waitTimer: 180 }; playPoliceSiren();
+            }
+            if (policeEvent.active) {
+                if (policeEvent.state === 'APPROACHING') {
+                    policeEvent.y += baseSpeed;
+                    if (policeEvent.y > PLAYER_Y - 20) {
+                        if (!isBraking) {
+                            balanceAZN -= 0.60; playFineSound(); screenShake = 20;
+                            spawnPopup("🚓 - " + formatMoney(0.60), "#f43f5e", LOGICAL_WIDTH/2, PLAYER_Y - 30);
+                            if (checkBankruptcy()) return;
+                            getDrivingAdvice("aiScenPoliceRun"); policeEvent.state = 'PASSED';
+                        } else {
+                            policeEvent.state = 'WAITING'; policeEvent.y = PLAYER_Y - 20;
+                        }
+                        updateUI();
+                    }
+                } else if (policeEvent.state === 'WAITING') {
+                    policeEvent.y = PLAYER_Y - 20; 
+                    if (!isBraking) {
+                        balanceAZN -= 0.60; playFineSound(); screenShake = 20;
+                        spawnPopup("❌ - " + formatMoney(0.60), "#f43f5e", LOGICAL_WIDTH/2, PLAYER_Y - 30);
+                        if (checkBankruptcy()) return;
+                        getDrivingAdvice("aiScenPoliceEarly"); policeEvent.state = 'PASSED'; updateUI();
+                    } else {
+                        policeEvent.waitTimer--;
+                        if (policeEvent.waitTimer <= 0) {
+                            policeEvent.state = 'GO'; balanceAZN += 0.30; playSuccessSound();
+                            spawnPopup("✅ + " + formatMoney(0.30), "#10b981", LOGICAL_WIDTH/2, PLAYER_Y - 30);
+                            getDrivingAdvice("aiScenPoliceOk"); updateUI();
+                        }
+                    }
+                } else if (policeEvent.state === 'GO' || policeEvent.state === 'PASSED') {
+                    policeEvent.y += baseSpeed;
+                    if (policeEvent.y > LOGICAL_HEIGHT) policeEvent.active = false;
+                }
+            }
+
+            // TRAFİK
+            if (Math.random() < 0.008 * speedMultiplier && !isBraking && !trafficLight.active && !policeEvent.active) {
+                const lane = LANES[Math.floor(Math.random() * LANES.length)];
+                if (trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150)) {
+                    trafficCars.push({ 
+                        x: lane - CAR_WIDTH / 2, y: -150, speed: Math.random() * 0.5 + 1.0, 
+                        color: TRAFFIC_COLORS[Math.floor(Math.random() * TRAFFIC_COLORS.length)], nearMissed: false, crashed: false 
+                    });
+                }
+            }
+
+            for (let i = trafficCars.length - 1; i >= 0; i--) {
+                let car = trafficCars[i]; car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
+                
+                if (!car.crashed && gameState.carX < car.x + CAR_WIDTH - 12 && gameState.carX + CAR_WIDTH - 12 > car.x && PLAYER_Y < car.y + CAR_HEIGHT - 12 && PLAYER_Y + CAR_HEIGHT - 12 > car.y) {
+                    balanceAZN -= 0.10; playCrashSound(); screenShake = 20;
+                    spawnPopup("- " + formatMoney(0.10), "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y); 
+                    car.crashed = true; trafficCars.splice(i, 1); 
+                    if (checkBankruptcy()) return; getDrivingAdvice("aiScenCrash"); updateUI(); 
+                } 
+                else if (!car.crashed && !car.nearMissed && car.y > PLAYER_Y - CAR_HEIGHT && car.y < PLAYER_Y + CAR_HEIGHT) {
+                    if (Math.abs((gameState.carX + CAR_WIDTH/2) - (car.x + CAR_WIDTH/2)) < CAR_WIDTH + 20) {
+                        car.nearMissed = true; balanceAZN += 0.05; playTone(800, 'sine', 0.1, 0.1); 
+                        spawnPopup("⚡ + " + formatMoney(0.05), "#facc15", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); updateUI();
+                    }
+                }
+                else if (car.y > LOGICAL_HEIGHT) { trafficCars.splice(i, 1); }
+            }
+
+            animatedPopups.forEach(p => { p.y -= (nitroTimer > 0 ? 3 : 1.5); p.alpha -= 0.015; p.life--; }); 
+            animatedPopups = animatedPopups.filter(p => p.life > 0);
+            
+            if (engineGain && audioCtx) { 
+                let freq = isBraking ? 30 : 40 * speedMultiplier; if (nitroTimer > 0) freq = 80; 
+                engineOsc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.1); 
+                engineGain.gain.setTargetAtTime(isBraking ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier), audioCtx.currentTime, 0.1); 
+            }
+        }
+
+        function drawCar(x, y, color, isPlayer, braking) {
+            ctx.save(); ctx.fillStyle = color; 
+            drawRoundedRect(ctx, x, y, CAR_WIDTH, CAR_HEIGHT, 12);
+            
+            ctx.fillStyle = '#020617'; 
+            drawRoundedRect(ctx, x + 4, y + 15, CAR_WIDTH - 8, 18, 4); 
+            drawRoundedRect(ctx, x + 6, y + CAR_HEIGHT - 25, CAR_WIDTH - 12, 12, 3); 
+
+            if (isPlayer && braking) { ctx.fillStyle = '#f43f5e'; ctx.fillRect(x + 4, y + CAR_HEIGHT - 6, 12, 4); ctx.fillRect(x + CAR_WIDTH - 16, y + CAR_HEIGHT - 6, 12, 4); } 
+            else if (!isPlayer) { ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(x + 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(x + CAR_WIDTH - 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); }
+            ctx.restore();
+        }
+
+        function draw() {
+            if (!ctx) return; 
+            ctx.save();
+            if (screenShake > 0) { ctx.translate(Math.random() * 10 - 5, Math.random() * 10 - 5); }
+
+            ctx.fillStyle = '#020617'; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); 
+            ctx.fillStyle = '#1e293b'; ctx.fillRect(50, 0, 10, LOGICAL_HEIGHT); ctx.fillRect(LOGICAL_WIDTH - 60, 0, 10, LOGICAL_HEIGHT); 
+            ctx.fillStyle = '#0f172a'; ctx.fillRect(60, 0, LOGICAL_WIDTH - 120, LOGICAL_HEIGHT);
+            
+            let dashLength = nitroTimer > 0 ? 60 : 30;
+            ctx.setLineDash([dashLength, 40]); ctx.strokeStyle = nitroTimer > 0 ? 'rgba(34, 211, 238, 0.4)' : 'rgba(255,255,255,0.15)'; ctx.lineWidth = 4; ctx.lineDashOffset = -gameState.linesOffset; ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); ctx.stroke();
+
+            if (trafficLight.active) {
+                ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(60, trafficLight.y, LOGICAL_WIDTH - 120, 8); ctx.fillStyle = '#0f172a'; 
+                drawRoundedRect(ctx, LOGICAL_WIDTH - 45, trafficLight.y - 70, 26, 75, 8);
+                const drawLight = (yOff, color, active) => { ctx.fillStyle = active ? color : '#1e293b'; ctx.beginPath(); ctx.arc(LOGICAL_WIDTH - 32, trafficLight.y - 70 + yOff, 8, 0, Math.PI*2); ctx.fill(); };
+                drawLight(16, '#f43f5e', trafficLight.state === 'RED'); drawLight(38, '#facc15', trafficLight.state === 'YELLOW'); drawLight(60, '#10b981', trafficLight.state === 'GREEN');
+            }
+
+            if (policeEvent.active) {
+                let px = LOGICAL_WIDTH - 55;
+                drawCar(px, policeEvent.y, '#ffffff', false, false);
+                ctx.fillStyle = Date.now() % 400 < 200 ? '#f43f5e' : '#3b82f6'; ctx.fillRect(px + 10, policeEvent.y + 20, CAR_WIDTH - 20, 6);
+                ctx.font = '900 20px sans-serif'; ctx.textAlign = 'right';
+                
+                let stopTxt = "🛑 SAXLA!"; let goTxt = "✅ GET!";
+                if(currentLang==='en'){ stopTxt="🛑 STOP!"; goTxt="✅ GO!"; } else if(currentLang==='ru'){ stopTxt="🛑 СТОП!"; goTxt="✅ ЕДЬ!"; } else if(currentLang==='tr'){ stopTxt="🛑 DUR!"; goTxt="✅ GİT!"; }
+                
+                if (policeEvent.state === 'APPROACHING' || policeEvent.state === 'WAITING') { ctx.fillStyle = '#f43f5e'; ctx.fillText(stopTxt, px - 10, policeEvent.y + CAR_HEIGHT / 2); } 
+                else if (policeEvent.state === 'GO') { ctx.fillStyle = '#10b981'; ctx.fillText(goTxt, px - 10, policeEvent.y + CAR_HEIGHT / 2); }
+            }
+
+            trafficCars.forEach(car => drawCar(car.x, car.y, car.color, false, false));
+            drawCar(gameState.carX, PLAYER_Y, CAR_SKINS.find(c => c.id === activeSkinId).color, true, isBraking); 
+
+            animatedPopups.forEach(p => { ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.alpha); ctx.font = '900 24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(p.text, p.x, p.y); ctx.globalAlpha = 1; });
+            
+            if (nitroTimer > 0) { ctx.fillStyle = 'rgba(34, 211, 238, ' + (nitroTimer/60 * 0.1) + ')'; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); }
+            ctx.restore();
+        }
+
+        function gameLoop() { update(); draw(); if (isGameRunning) requestAnimationFrame(gameLoop); }
+
+        // ==========================================
+        // DÜYMƏLƏR VƏ EVENTLƏR
+        // ==========================================
+        document.getElementById('loginBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+        
+        document.getElementById('gameOverTopupBtn').addEventListener('click', () => { document.getElementById('gameOverScreen').classList.add('hidden'); document.getElementById('topUpModal').classList.remove('hidden'); });
+        document.getElementById('buyMeCoffeeBtn').addEventListener('click', () => { window.open('https://buymeacoffee.com/surwin', '_blank'); });
+
+        // ÖDƏNİŞİ YOXLA - (TEST ÜÇÜN 3 AZN ƏLAVƏ EDİR)
+        document.getElementById('verifyPaymentBtn').addEventListener('click', (e) => {
+            const btn = e.currentTarget; btn.innerHTML = `⏳ ...`; btn.disabled = true;
+            setTimeout(() => {
+                balanceAZN += 3.00; updateUI(); playSuccessSound();
+                btn.innerHTML = `✅ + ${formatMoney(3.00)}`; btn.classList.replace('text-emerald-400', 'text-white'); btn.classList.replace('bg-emerald-500/10', 'bg-emerald-600');
+                setTimeout(() => { document.getElementById('topUpModal').classList.add('hidden'); btn.innerHTML = `🔄 ${LANGUAGES[currentLang].t.btnVerify}`; btn.disabled = false; btn.classList.replace('text-white', 'text-emerald-400'); btn.classList.replace('bg-emerald-600', 'bg-emerald-500/10'); }, 2000);
+            }, 3000);
+        });
+
+        const toggleModal = (btnId, modalId, show) => document.getElementById(btnId).addEventListener('click', () => { document.getElementById(modalId).classList[show ? 'remove' : 'add']('hidden'); updateUI(); if(show && modalId==='garageModal') renderGarage(); });
+        toggleModal('loginTopupBtn', 'topUpModal', true); toggleModal('topupBtn', 'topUpModal', true); toggleModal('closeTopUpBtn', 'topUpModal', false);
+        toggleModal('withdrawBtn', 'withdrawModal', true); toggleModal('closeWithdrawBtn', 'withdrawModal', false);
+        toggleModal('garageBtn', 'garageModal', true); toggleModal('closeGarageBtn', 'garageModal', false);
+
+        const brakeBtn = document.getElementById('brakeBtn');
+        const startBraking = (e) => { e.preventDefault(); isBraking = true; }; const stopBraking = (e) => { e.preventDefault(); isBraking = false; };
+        brakeBtn.addEventListener('mousedown', startBraking); brakeBtn.addEventListener('mouseup', stopBraking); brakeBtn.addEventListener('touchstart', startBraking, {passive: false}); brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
+        
+        const goLeft = (e) => { e.preventDefault(); if(gameState.targetX > LANES[0] - CAR_WIDTH/2) gameState.targetX -= 100; };
+        const goRight = (e) => { e.preventDefault(); if(gameState.targetX < LANES[2] - CAR_WIDTH/2) gameState.targetX += 100; };
+        document.getElementById('laneLeft').addEventListener('mousedown', goLeft); document.getElementById('laneLeft').addEventListener('touchstart', goLeft, {passive: false});
+        document.getElementById('laneRight').addEventListener('mousedown', goRight); document.getElementById('laneRight').addEventListener('touchstart', goRight, {passive: false});
+
+        // BAŞLANĞIC QURAŞDIRMA
+        try {
+            initLanguage();
+            setupScreens();
+        } catch(e) { console.error("Başlanğıc xətası", e); }
+
+    </script>
+</body>
+</html>

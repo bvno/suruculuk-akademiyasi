@@ -171,7 +171,6 @@
             { id: 'vip', name: 'VIP Stealth', color: '#0f172a', price: 25.00, owned: false }
         ];
         
-        // Trafik üçün rənglər
         const TRAFFIC_COLORS = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#cbd5e1', '#ea580c'];
 
         let activeSkinId = 'default';
@@ -213,7 +212,6 @@
             }
         }
 
-        // AI
         const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
         const genAI = new GoogleGenerativeAI(API_KEY);
         async function getDrivingAdvice(scenario) {
@@ -240,8 +238,6 @@
         const LANES = [100, 200, 300]; const BIOMES = [{ ground: '#020617', road: '#0f172a', curb: '#1e293b' }];
 
         let isGameRunning = false; let isBraking = false; let isGameOver = false;
-        
-        // Yeni başlayanlar üçün 0.60 AZN (60 qəpik) hədiyyə balansı
         let savedBalance = localStorage.getItem('premiumDriveBalance');
         let balance = savedBalance !== null ? parseFloat(savedBalance) : 0.60; 
         
@@ -249,16 +245,14 @@
         let nitroTimer = 0; let screenShake = 0;
         let gameState = { carX: LANES[1] - CAR_WIDTH / 2, targetX: LANES[1] - CAR_WIDTH / 2, linesOffset: 0 };
         
-        // İşıqfor və Polis hadisələri
         let trafficLight = { active: false, y: -200, state: 'GREEN', timer: 0, passed: false };
-        let policeEvent = { active: false, y: -200, passed: false };
+        let policeEvent = { active: false, y: -200, passed: false, isWaiting: false };
 
         const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
 
         function updateUI() {
             localStorage.setItem('premiumDriveBalance', balance.toFixed(2));
             const formatted = `${balance.toFixed(2)} AZN`;
-            
             document.getElementById('balanceText').innerText = formatted;
             document.getElementById('loginBalanceText').innerText = formatted;
             document.getElementById('garageBalanceText').innerText = formatted;
@@ -277,7 +271,6 @@
 
         function spawnPopup(text, color, x, y) { animatedPopups.push({ text, color, x, y, alpha: 1, life: 60 }); }
 
-        // QARAJ
         window.selectCar = (id) => { activeSkinId = id; playSuccessSound(); renderGarage(); };
         window.buyCar = (id) => {
             const car = CAR_SKINS.find(c => c.id === id);
@@ -306,32 +299,26 @@
         }
 
         function startGame() {
-            // Əgər balans 0-dırsa, oyuna başlamağa icazə vermə və balansı artır pəncərəsini aç
             if (balance <= 0) {
                 document.getElementById('topUpModal').classList.remove('hidden');
                 getDrivingAdvice("Balans bitib, artırmalısan!");
                 return;
             }
-
             document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('gameScreen').classList.remove('hidden'); document.getElementById('gameOverScreen').classList.add('hidden');
             initAudio(); isGameRunning = true; isGameOver = false; score = 0; speedMultiplier = 1; trafficCars = []; animatedPopups = [];
             nitroTimer = 0; screenShake = 0;
             gameState.carX = LANES[1] - CAR_WIDTH / 2; gameState.targetX = LANES[1] - CAR_WIDTH / 2; 
-            trafficLight.active = false; policeEvent.active = false;
+            trafficLight.active = false; policeEvent.active = false; policeEvent.isWaiting = false;
             updateUI(); getDrivingAdvice("Qaza bas!"); requestAnimationFrame(gameLoop);
         }
 
-        // Oyun bitmə funksiyası (Balans 0 olanda çağırılır)
         function gameOver() {
             isGameOver = true; 
             document.getElementById('gameOverScreen').classList.remove('hidden'); 
             document.getElementById('finalScore').innerText = Math.floor(score);
-            
             const restartBtn = document.getElementById('restartBtn');
             const topupBtn = document.getElementById('gameOverTopupBtn');
             const msg = document.getElementById('gameOverMessage');
-            
-            // Əgər balans sıfırlanıbsa, Yenidən Başla düyməsini gizlət, Balansı Artır düyməsini göstər
             if (balance <= 0) {
                 restartBtn.classList.add('hidden');
                 topupBtn.classList.remove('hidden');
@@ -352,14 +339,16 @@
             let currentBaseSpeed = 5;
             if (nitroTimer > 0) { currentBaseSpeed += 6; nitroTimer--; }
 
-            const baseSpeed = isBraking ? 0 : currentBaseSpeed * speedMultiplier; 
-            if (!isBraking) { score += (nitroTimer > 0 ? 0.3 : 0.1) * speedMultiplier; } 
+            const baseSpeed = (isBraking || policeEvent.isWaiting) ? 0 : currentBaseSpeed * speedMultiplier; 
+            if (!isBraking && !policeEvent.isWaiting) { score += (nitroTimer > 0 ? 0.3 : 0.1) * speedMultiplier; } 
             gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80; gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
 
             if (screenShake > 0) screenShake--;
 
             // İŞIQFOR MƏNTİQİ
-            if (!trafficLight.active && !policeEvent.active && Math.random() < 0.005 && score > 10) { trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false; trafficLight.timer = 300; trafficLight.state = 'GREEN'; }
+            if (!trafficLight.active && !policeEvent.active && Math.random() < 0.005 && score > 10) { 
+                trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false; trafficLight.timer = 300; trafficLight.state = 'GREEN'; 
+            }
             if (trafficLight.active) {
                 trafficLight.y += baseSpeed; trafficLight.timer--;
                 if (trafficLight.timer === 200) trafficLight.state = 'YELLOW';
@@ -369,16 +358,12 @@
                 if (trafficLight.y > PLAYER_Y + CAR_HEIGHT && !trafficLight.passed) {
                     trafficLight.passed = true;
                     if (trafficLight.state === 'RED' && !isBraking) { 
-                        // Qırmızı işıqda keçəndə 60 qəpik cərimə
                         balance -= 0.60; 
                         playFineSound(); triggerScreenShake(); screenShake = 15;
                         spawnPopup("-0.60 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
-                        
-                        // ƏGƏR BALANS BİTƏRSƏ OYUNU DAYANDIR
                         if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; }
                         getDrivingAdvice("Qırmızı işıq cəriməsi!"); 
                     } else if (trafficLight.state === 'GREEN') { 
-                        // Yaşıl işıqda keçəndə 40 qəpik qazanc
                         balance += 0.40; 
                         nitroTimer = 60; 
                         playSuccessSound(); playNitroSound();
@@ -389,34 +374,50 @@
                 if (trafficLight.y > LOGICAL_HEIGHT) trafficLight.active = false;
             }
 
-            // POLİS MƏNTİQİ
+            // POLİS MƏNTİQİ (İstədiyin Yeni Məntiq)
             if (!policeEvent.active && !trafficLight.active && Math.random() < 0.003 && score > 30) {
-                policeEvent.active = true; policeEvent.y = -200; policeEvent.passed = false;
+                policeEvent.active = true; policeEvent.y = -200; policeEvent.passed = false; policeEvent.isWaiting = false;
                 playPoliceSiren();
             }
             if (policeEvent.active) {
-                policeEvent.y += baseSpeed;
-                if (policeEvent.y > PLAYER_Y + CAR_HEIGHT && !policeEvent.passed) {
-                    policeEvent.passed = true;
-                    if (!isBraking) {
-                        // Polisə tabe olmadıqda 50 qəpik cərimə
-                        balance -= 0.50; 
+                if (!policeEvent.isWaiting) {
+                    policeEvent.y += baseSpeed;
+                }
+
+                // Saxla əmri verilən nöqtə (oyunçunun qarşısı)
+                if (policeEvent.y > PLAYER_Y - 50 && !policeEvent.passed) {
+                    if (isBraking && !policeEvent.isWaiting) {
+                        // OYUNÇU DAYANDI (Mükafat)
+                        policeEvent.isWaiting = true;
+                        balance += 0.30; 
+                        playSuccessSound();
+                        spawnPopup("👮 +0.30 AZN", "#10b981", LOGICAL_WIDTH/2, PLAYER_Y - 30);
+                        updateUI();
+                        getDrivingAdvice("Gözlə, yoxlanış...");
+
+                        // 3 saniyə sonra "Davam et"
+                        setTimeout(() => {
+                            if (policeEvent.active) {
+                                policeEvent.isWaiting = false;
+                                policeEvent.passed = true;
+                                getDrivingAdvice("Davam et!");
+                                playSuccessSound();
+                                spawnPopup("✅ DAVAM ET!", "#34d399", LOGICAL_WIDTH/2, PLAYER_Y - 50);
+                            }
+                        }, 3000);
+
+                    } else if (policeEvent.y > PLAYER_Y + CAR_HEIGHT && !policeEvent.isWaiting) {
+                        // DAYANMADAN KEÇDİ (Cərimə)
+                        policeEvent.passed = true;
+                        balance -= 0.60;
                         playFineSound(); triggerScreenShake(); screenShake = 20;
-                        spawnPopup("🚓 -0.50 AZN", "#f43f5e", LOGICAL_WIDTH/2, PLAYER_Y - 30);
-                        
-                        // ƏGƏR BALANS BİTƏRSƏ OYUNU DAYANDIR
+                        spawnPopup("🚓 -0.60 AZN", "#f43f5e", LOGICAL_WIDTH/2, PLAYER_Y - 30);
                         if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; }
                         getDrivingAdvice("Polisə tabe olmadın!");
-                    } else {
-                        // Polisə tabe olduqda 50 qəpik qazanc
-                        balance += 0.50;
-                        playSuccessSound();
-                        spawnPopup("👍 +0.50 AZN", "#10b981", LOGICAL_WIDTH/2, PLAYER_Y - 30);
-                        getDrivingAdvice("Əla sürücüsən!");
+                        updateUI();
                     }
-                    updateUI();
                 }
-                if (policeEvent.y > LOGICAL_HEIGHT) policeEvent.active = false;
+                if (policeEvent.y > LOGICAL_HEIGHT && policeEvent.passed) policeEvent.active = false;
             }
 
             // TRAFİK MAŞINLARI
@@ -439,20 +440,14 @@
 
             for (let i = trafficCars.length - 1; i >= 0; i--) {
                 let car = trafficCars[i]; car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
-                
-                // Qəza yoxlanışı 
                 if (!car.crashed && gameState.carX < car.x + CAR_WIDTH - 12 && gameState.carX + CAR_WIDTH - 12 > car.x && PLAYER_Y < car.y + car.height - 12 && PLAYER_Y + CAR_HEIGHT - 12 > car.y) {
                     balance -= 0.10; 
                     playCrashSound(); triggerScreenShake(); screenShake = 20;
                     spawnPopup("-0.10 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y); 
                     car.crashed = true; trafficCars.splice(i, 1); 
-                    
-                    // ƏGƏR BALANS BİTƏRSƏ OYUNU DAYANDIR
                     if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; }
-                    
                     getDrivingAdvice("Qəza!"); updateUI(); 
                 } 
-                // Near-Miss
                 else if (!car.crashed && !car.nearMissed && car.y > PLAYER_Y - car.height && car.y < PLAYER_Y + CAR_HEIGHT) {
                     if (Math.abs((gameState.carX + CAR_WIDTH/2) - (car.x + CAR_WIDTH/2)) < CAR_WIDTH + 20) {
                         car.nearMissed = true; balance += 0.05;
@@ -466,33 +461,25 @@
 
             animatedPopups.forEach(p => { p.y -= (nitroTimer > 0 ? 3 : 1.5); p.alpha -= 0.015; p.life--; }); animatedPopups = animatedPopups.filter(p => p.life > 0);
             if (engineGain && audioCtx) { 
-                let freq = isBraking ? 30 : 40 * speedMultiplier;
+                let freq = (isBraking || policeEvent.isWaiting) ? 30 : 40 * speedMultiplier;
                 if (nitroTimer > 0) freq = 80; 
                 engineOsc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.1); 
-                engineGain.gain.setTargetAtTime(isBraking ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier), audioCtx.currentTime, 0.1); 
+                engineGain.gain.setTargetAtTime((isBraking || policeEvent.isWaiting) ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier), audioCtx.currentTime, 0.1); 
             }
         }
 
-        // Maşın Çizimi (Maşın, Yük maşını, Polis)
         function drawCar(x, y, color, isPlayer, braking, type = 'car', height = CAR_HEIGHT) {
             ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 10; ctx.fillStyle = color; 
-            
             ctx.beginPath(); ctx.roundRect(x, y, CAR_WIDTH, height, 12); ctx.fill(); ctx.shadowColor = 'transparent'; 
-            
             if (type === 'car' || type === 'police') {
                 ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 15, CAR_WIDTH - 8, 18, 4); ctx.fill(); 
                 ctx.beginPath(); ctx.roundRect(x + 6, y + height - 25, CAR_WIDTH - 12, 12, 3); ctx.fill();
             } else if (type === 'truck') {
-                ctx.fillStyle = '#0f172a'; // Yük hissəsi
-                ctx.beginPath(); ctx.roundRect(x + 2, y + 25, CAR_WIDTH - 4, height - 30, 4); ctx.fill();
-                ctx.fillStyle = '#020617'; // Şüşə
-                ctx.beginPath(); ctx.roundRect(x + 4, y + 5, CAR_WIDTH - 8, 15, 4); ctx.fill();
+                ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.roundRect(x + 2, y + 25, CAR_WIDTH - 4, height - 30, 4); ctx.fill();
+                ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 5, CAR_WIDTH - 8, 15, 4); ctx.fill();
             }
-
-            if (isPlayer && braking) { ctx.fillStyle = '#f43f5e'; ctx.fillRect(x + 4, y + height - 6, 12, 4); ctx.fillRect(x + CAR_WIDTH - 16, y + height - 6, 12, 4); } 
+            if (isPlayer && (braking || policeEvent.isWaiting)) { ctx.fillStyle = '#f43f5e'; ctx.fillRect(x + 4, y + height - 6, 12, 4); ctx.fillRect(x + CAR_WIDTH - 16, y + height - 6, 12, 4); } 
             else if (!isPlayer) { ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(x + 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(x + CAR_WIDTH - 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); }
-            
-            // Nitro İzi
             if (isPlayer && nitroTimer > 0) {
                 ctx.fillStyle = 'rgba(34, 211, 238, 0.5)';
                 ctx.beginPath(); ctx.roundRect(x + 10, y + height, CAR_WIDTH - 20, Math.random() * 40 + 20, 5); ctx.fill();
@@ -504,46 +491,34 @@
             if (!ctx) return; 
             ctx.save();
             if (screenShake > 0) { ctx.translate(Math.random() * 10 - 5, Math.random() * 10 - 5); }
-
             const biome = BIOMES[0];
             ctx.fillStyle = biome.ground; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); 
             ctx.fillStyle = biome.curb; ctx.fillRect(50, 0, 10, LOGICAL_HEIGHT); ctx.fillRect(LOGICAL_WIDTH - 60, 0, 10, LOGICAL_HEIGHT); 
             ctx.fillStyle = biome.road; ctx.fillRect(60, 0, LOGICAL_WIDTH - 120, LOGICAL_HEIGHT);
-            
             let dashLength = nitroTimer > 0 ? 60 : 30;
             ctx.setLineDash([dashLength, 40]); ctx.strokeStyle = nitroTimer > 0 ? 'rgba(34, 211, 238, 0.4)' : 'rgba(255,255,255,0.15)'; ctx.lineWidth = 4; ctx.lineDashOffset = -gameState.linesOffset; ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); ctx.stroke();
 
-            // İşıqfor Çizimi
             if (trafficLight.active) {
                 ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(60, trafficLight.y, LOGICAL_WIDTH - 120, 8); ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.roundRect(LOGICAL_WIDTH - 45, trafficLight.y - 70, 26, 75, 8); ctx.fill();
                 const drawLight = (yOff, color, active) => { ctx.save(); ctx.fillStyle = active ? color : '#1e293b'; ctx.beginPath(); ctx.arc(LOGICAL_WIDTH - 32, trafficLight.y - 70 + yOff, 8, 0, Math.PI*2); ctx.fill(); ctx.restore(); };
                 drawLight(16, '#f43f5e', trafficLight.state === 'RED'); drawLight(38, '#facc15', trafficLight.state === 'YELLOW'); drawLight(60, '#10b981', trafficLight.state === 'GREEN');
             }
 
-            // Polis Çizimi
             if (policeEvent.active) {
-                let px = LOGICAL_WIDTH - 55; // Yolun sağ kənarı
+                let px = LOGICAL_WIDTH - 55;
                 drawCar(px, policeEvent.y, '#ffffff', false, false, 'police', CAR_HEIGHT);
-                // Polis işıqları
                 let isRed = Date.now() % 400 < 200;
                 ctx.fillStyle = isRed ? '#f43f5e' : '#3b82f6';
                 ctx.fillRect(px + 10, policeEvent.y + 20, CAR_WIDTH - 20, 6);
-                
-                // "SAXLA" mətni
                 ctx.fillStyle = '#f43f5e';
                 ctx.font = '900 20px sans-serif';
                 ctx.textAlign = 'right';
                 ctx.fillText("🛑 SAXLA!", px - 10, policeEvent.y + CAR_HEIGHT / 2);
             }
 
-            // Trafik Maşınları
             trafficCars.forEach(car => drawCar(car.x, car.y, car.color, false, false, car.type, car.height));
-            
-            // Oyunçu Maşını
             drawCar(gameState.carX, PLAYER_Y, CAR_SKINS.find(c => c.id === activeSkinId).color, true, isBraking, 'car', CAR_HEIGHT); 
-
             animatedPopups.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.alpha); ctx.font = '900 24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(p.text, p.x, p.y); ctx.restore(); });
-            
             if (nitroTimer > 0) { ctx.fillStyle = 'rgba(34, 211, 238, ' + (nitroTimer/60 * 0.1) + ')'; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); }
             ctx.restore();
         }
@@ -552,15 +527,11 @@
 
         document.getElementById('loginBtn').addEventListener('click', startGame);
         document.getElementById('restartBtn').addEventListener('click', startGame);
-        
-        // GameOver ekranında Balansı Artır düyməsinə basıldıqda modulu açır
         document.getElementById('gameOverTopupBtn').addEventListener('click', () => {
             document.getElementById('gameOverScreen').classList.add('hidden');
             document.getElementById('topUpModal').classList.remove('hidden');
         });
-
         document.getElementById('buyMeCoffeeBtn').addEventListener('click', () => { window.open('https://buymeacoffee.com/surwin', '_blank'); });
-
         document.getElementById('verifyPaymentBtn').addEventListener('click', (e) => {
             const btn = e.currentTarget; btn.innerHTML = `⏳ Yoxlanılır...`; btn.disabled = true;
             setTimeout(() => {

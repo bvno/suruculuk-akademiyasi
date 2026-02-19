@@ -30,6 +30,22 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.3); border-radius: 10px; }
+
+        /* Titrəmə animasiyası üçün köməkçi sinif */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake-effect { animation: shake 0.3s; }
     </style>
 </head>
 <body class="text-white h-screen flex flex-col font-sans relative transition-all duration-300">
@@ -76,7 +92,7 @@
             </div>
         </div>
 
-        <div class="flex-1 w-full max-w-[400px] mx-auto relative glass-panel neon-box-cyan rounded-[40px] overflow-hidden z-10 flex shrink">
+        <div class="flex-1 w-full max-w-[400px] mx-auto relative glass-panel neon-box-cyan rounded-[40px] overflow-hidden z-10 flex shrink" id="gameContainer">
             <canvas id="gameCanvas" width="400" height="600" class="w-full h-full object-contain bg-[#0f172a]"></canvas>
             <div class="absolute inset-0 flex">
                 <div id="laneLeft" class="flex-1 active:bg-white/5 cursor-pointer"></div>
@@ -201,6 +217,7 @@
         function playSuccessSound() { playTone(660, 'sine', 0.1, 0.2); setTimeout(() => playTone(880, 'sine', 0.3, 0.2), 100); }
         function playFineSound() { playTone(200, 'square', 0.3, 0.3); setTimeout(() => playTone(150, 'square', 0.4, 0.3), 150); }
         function playBuySound() { playTone(523.25, 'sine', 0.1, 0.2); setTimeout(() => playTone(659.25, 'sine', 0.2, 0.2), 100); setTimeout(() => playTone(783.99, 'sine', 0.3, 0.2), 200); }
+        function playNitroSound() { playTone(300, 'square', 0.1, 0.1); setTimeout(() => playTone(500, 'sawtooth', 0.5, 0.2), 100); }
 
         function getSpeechData(text) {
             if ('speechSynthesis' in window) {
@@ -220,11 +237,18 @@
             const aiTipEl = document.getElementById("aiTipText");
             try {
                 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const prompt = `Sən oyunda səsli köməkçisən. Ssenari: ${scenario}. Şən və maksimum 5 sözlük cavab ver. Dil: Azərbaycanca.`;
+                const prompt = `Sən oyunda səsli köməkçisən. Ssenari: ${scenario}. Çox həyəcanlı və maksimum 4 sözlük cavab ver. Dil: Azərbaycanca.`;
                 const result = await model.generateContent(prompt);
                 const text = await result.response.text();
                 aiTipEl.innerText = text; getSpeechData(text);
             } catch (error) { console.error(error); }
+        }
+
+        function triggerScreenShake() {
+            const container = document.getElementById('gameContainer');
+            container.classList.remove('shake-effect');
+            void container.offsetWidth; // trigger reflow
+            container.classList.add('shake-effect');
         }
 
         // OYUN DƏYİŞƏNLƏRİ
@@ -236,8 +260,8 @@
         let savedBalance = localStorage.getItem('premiumDriveBalance');
         let balance = savedBalance !== null ? parseFloat(savedBalance) : 0.30;
         
-        // Sürət artımı ləğv edildi, sabit qaldı
         let score = 0; let trafficCars = []; let speedMultiplier = 1; let animatedPopups = []; 
+        let nitroTimer = 0; let screenShake = 0;
         let gameState = { carX: LANES[1] - CAR_WIDTH / 2, targetX: LANES[1] - CAR_WIDTH / 2, linesOffset: 0 };
         let trafficLight = { active: false, y: -200, state: 'GREEN', timer: 0, passed: false };
         const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
@@ -292,15 +316,14 @@
             });
         }
 
-        // MƏNTİQ
         function startGame() {
             document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('gameScreen').classList.remove('hidden'); document.getElementById('gameOverScreen').classList.add('hidden');
             initAudio(); isGameRunning = true; isGameOver = false; score = 0; speedMultiplier = 1; trafficCars = []; animatedPopups = [];
+            nitroTimer = 0; screenShake = 0;
             gameState.carX = LANES[1] - CAR_WIDTH / 2; gameState.targetX = LANES[1] - CAR_WIDTH / 2; trafficLight.active = false;
-            updateUI(); getDrivingAdvice("Uğurlar!"); requestAnimationFrame(gameLoop);
+            updateUI(); getDrivingAdvice("Qaza bas!"); requestAnimationFrame(gameLoop);
         }
 
-        // gameOver funksiyası saxlanılır, lakin oyun içində avtomatik çağırılmır
         function gameOver() {
             isGameOver = true; document.getElementById('gameOverScreen').classList.remove('hidden'); document.getElementById('finalScore').innerText = Math.floor(score);
             getDrivingAdvice("Oyun dayandırıldı."); if (engineGain) engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
@@ -308,13 +331,21 @@
 
         function update() {
             if (!isGameRunning || isGameOver) return;
-            const baseSpeed = isBraking ? 0 : 5 * speedMultiplier; 
+            
+            // Nitro aktivdirsə daha sürətli get
+            let currentBaseSpeed = 5;
+            if (nitroTimer > 0) {
+                currentBaseSpeed += 6; // Sürəti artırır
+                nitroTimer--;
+            }
 
-            // YENİLƏNDİ: Çətinləşməsi (sürət artımı) dayandırıldı. Həmişə eyni rahat sürətdə qalır.
-            if (!isBraking) { score += 0.1 * speedMultiplier; } 
+            const baseSpeed = isBraking ? 0 : currentBaseSpeed * speedMultiplier; 
+
+            if (!isBraking) { score += (nitroTimer > 0 ? 0.3 : 0.1) * speedMultiplier; } 
             gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80; gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
 
-            // YENİLƏNDİ: Yaşıl işıq daha tez-tez çıxır
+            if (screenShake > 0) screenShake--;
+
             if (!trafficLight.active && Math.random() < 0.01 && score > 10) { trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false; trafficLight.timer = 300; trafficLight.state = 'GREEN'; }
             if (trafficLight.active) {
                 trafficLight.y += baseSpeed; trafficLight.timer--;
@@ -324,63 +355,101 @@
 
                 if (trafficLight.y > PLAYER_Y + CAR_HEIGHT && !trafficLight.passed) {
                     trafficLight.passed = true;
-                    // YENİLƏNDİ: Qırmızı işıqda sadəcə cərimə çıxılır, oyun davam edir.
                     if (trafficLight.state === 'RED' && !isBraking) { 
                         balance -= 0.10; 
                         if (balance < 0) balance = 0;
                         playFineSound(); 
+                        triggerScreenShake();
+                        screenShake = 15;
                         spawnPopup("-0.10 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
-                        getDrivingAdvice("Diqqətli ol!"); 
+                        getDrivingAdvice("Qırmızı işıq!"); 
                     } 
                     else if (trafficLight.state === 'GREEN') { 
                         balance += 1.00; 
+                        nitroTimer = 60; // 1 saniyəlik Nitro
                         playSuccessSound(); 
-                        spawnPopup("+1.00 AZN", "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
-                        getDrivingAdvice("Əla gəlir!"); 
+                        playNitroSound();
+                        spawnPopup("🚀 NITRO! +1.00", "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
+                        getDrivingAdvice("Uçuruq!"); 
                     }
                     updateUI(); 
                 }
                 if (trafficLight.y > LOGICAL_HEIGHT) trafficLight.active = false;
             }
 
-            // YENİLƏNDİ: Trafik həm nadir çıxır, həm də çox yavaş gəlir
             if (Math.random() < 0.003 * speedMultiplier && !isBraking && !trafficLight.active) {
                 const lane = LANES[Math.floor(Math.random() * LANES.length)];
-                if (trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150)) trafficCars.push({ x: lane - CAR_WIDTH / 2, y: -100, speed: Math.random() * 0.5 + 1.0, color: '#f43f5e' });
+                if (trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150)) trafficCars.push({ x: lane - CAR_WIDTH / 2, y: -100, speed: Math.random() * 0.5 + 1.0, color: '#f43f5e', nearMissed: false, crashed: false });
             }
 
             for (let i = trafficCars.length - 1; i >= 0; i--) {
                 let car = trafficCars[i]; car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
                 
-                // YENİLƏNDİ: Qəza etdikdə yalnız cərimə edilir, oyun HƏR ZAMAN davam edir
-                if (gameState.carX < car.x + CAR_WIDTH - 12 && gameState.carX + CAR_WIDTH - 12 > car.x && PLAYER_Y < car.y + CAR_HEIGHT - 12 && PLAYER_Y + CAR_HEIGHT - 12 > car.y) {
-                    balance -= 0.10; // Qəza cəriməsi də 0.10 AZN oldu
-                    if (balance < 0) balance = 0; // Mənfiyə düşməsinin qarşısı alınır
+                // Qəza yoxlanışı
+                if (!car.crashed && gameState.carX < car.x + CAR_WIDTH - 12 && gameState.carX + CAR_WIDTH - 12 > car.x && PLAYER_Y < car.y + CAR_HEIGHT - 12 && PLAYER_Y + CAR_HEIGHT - 12 > car.y) {
+                    balance -= 0.10; 
+                    if (balance < 0) balance = 0; 
                     playCrashSound(); 
+                    triggerScreenShake();
+                    screenShake = 20;
                     spawnPopup("-0.10 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y); 
+                    car.crashed = true;
                     trafficCars.splice(i, 1); 
-                    getDrivingAdvice("Qəza! Eybi yox, davam et."); 
+                    getDrivingAdvice("Partladı!"); 
                     updateUI(); 
-                } else if (car.y > LOGICAL_HEIGHT) { trafficCars.splice(i, 1); }
+                } 
+                // Təhlükəli keçiş (Near-Miss) yoxlanışı - çox yaxından sıyrılma
+                else if (!car.crashed && !car.nearMissed && car.y > PLAYER_Y - CAR_HEIGHT && car.y < PLAYER_Y + CAR_HEIGHT) {
+                    if (Math.abs((gameState.carX + CAR_WIDTH/2) - (car.x + CAR_WIDTH/2)) < CAR_WIDTH + 20) {
+                        car.nearMissed = true;
+                        balance += 0.05;
+                        playTone(800, 'sine', 0.1, 0.1); 
+                        spawnPopup("⚡ Təhlükəli! +0.05", "#facc15", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20);
+                        getDrivingAdvice("Əla sıyrıldın!");
+                        updateUI();
+                    }
+                }
+                else if (car.y > LOGICAL_HEIGHT) { trafficCars.splice(i, 1); }
             }
 
-            animatedPopups.forEach(p => { p.y -= 1.5; p.alpha -= 0.015; p.life--; }); animatedPopups = animatedPopups.filter(p => p.life > 0);
-            if (engineGain && audioCtx) { engineOsc.frequency.setTargetAtTime(isBraking ? 30 : 40 * speedMultiplier, audioCtx.currentTime, 0.1); engineGain.gain.setTargetAtTime(isBraking ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier), audioCtx.currentTime, 0.1); }
+            animatedPopups.forEach(p => { p.y -= (nitroTimer > 0 ? 3 : 1.5); p.alpha -= 0.015; p.life--; }); animatedPopups = animatedPopups.filter(p => p.life > 0);
+            if (engineGain && audioCtx) { 
+                let freq = isBraking ? 30 : 40 * speedMultiplier;
+                if (nitroTimer > 0) freq = 80; // Nitro səs efekti
+                engineOsc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.1); 
+                engineGain.gain.setTargetAtTime(isBraking ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier), audioCtx.currentTime, 0.1); 
+            }
         }
 
-        // ÇİZİM
         function drawCar(x, y, color, isPlayer, braking) {
             ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 10; ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect(x, y, CAR_WIDTH, CAR_HEIGHT, 12); ctx.fill(); ctx.shadowColor = 'transparent'; 
             ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 15, CAR_WIDTH - 8, 18, 4); ctx.fill(); ctx.beginPath(); ctx.roundRect(x + 6, y + CAR_HEIGHT - 25, CAR_WIDTH - 12, 12, 3); ctx.fill();
             if (isPlayer && braking) { ctx.fillStyle = '#f43f5e'; ctx.fillRect(x + 4, y + CAR_HEIGHT - 6, 12, 4); ctx.fillRect(x + CAR_WIDTH - 16, y + CAR_HEIGHT - 6, 12, 4); } 
             else if (!isPlayer) { ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(x + 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(x + CAR_WIDTH - 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); }
+            
+            // Nitro İzi
+            if (isPlayer && nitroTimer > 0) {
+                ctx.fillStyle = 'rgba(34, 211, 238, 0.5)';
+                ctx.beginPath(); ctx.roundRect(x + 10, y + CAR_HEIGHT, CAR_WIDTH - 20, Math.random() * 40 + 20, 5); ctx.fill();
+            }
             ctx.restore();
         }
 
         function draw() {
-            if (!ctx) return; const biome = BIOMES[0];
+            if (!ctx) return; 
+            
+            ctx.save();
+            // Ekran titrəməsi effekti (Canvas daxili)
+            if (screenShake > 0) {
+                ctx.translate(Math.random() * 10 - 5, Math.random() * 10 - 5);
+            }
+
+            const biome = BIOMES[0];
             ctx.fillStyle = biome.ground; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); ctx.fillStyle = biome.curb; ctx.fillRect(50, 0, 10, LOGICAL_HEIGHT); ctx.fillRect(LOGICAL_WIDTH - 60, 0, 10, LOGICAL_HEIGHT); ctx.fillStyle = biome.road; ctx.fillRect(60, 0, LOGICAL_WIDTH - 120, LOGICAL_HEIGHT);
-            ctx.setLineDash([30, 40]); ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 4; ctx.lineDashOffset = -gameState.linesOffset; ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); ctx.stroke();
+            
+            // Nitro modunda xətlər vizual olaraq uzanır
+            let dashLength = nitroTimer > 0 ? 60 : 30;
+            ctx.setLineDash([dashLength, 40]); ctx.strokeStyle = nitroTimer > 0 ? 'rgba(34, 211, 238, 0.4)' : 'rgba(255,255,255,0.15)'; ctx.lineWidth = 4; ctx.lineDashOffset = -gameState.linesOffset; ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); ctx.stroke();
 
             if (trafficLight.active) {
                 ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(60, trafficLight.y, LOGICAL_WIDTH - 120, 8); ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.roundRect(LOGICAL_WIDTH - 45, trafficLight.y - 70, 26, 75, 8); ctx.fill();
@@ -392,6 +461,14 @@
             drawCar(gameState.carX, PLAYER_Y, CAR_SKINS.find(c => c.id === activeSkinId).color, true, isBraking); 
 
             animatedPopups.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.alpha); ctx.font = '900 24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(p.text, p.x, p.y); ctx.restore(); });
+            
+            // Nitro kənar ekran effekti
+            if (nitroTimer > 0) {
+                ctx.fillStyle = 'rgba(34, 211, 238, ' + (nitroTimer/60 * 0.1) + ')';
+                ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+            }
+
+            ctx.restore();
         }
 
         function gameLoop() { update(); draw(); if (isGameRunning) requestAnimationFrame(gameLoop); }

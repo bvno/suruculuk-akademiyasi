@@ -308,10 +308,11 @@
             if (!isGameRunning || isGameOver) return;
             const baseSpeed = isBraking ? 0 : 5 * speedMultiplier; 
 
-            if (!isBraking) { score += 0.1 * speedMultiplier; if(speedMultiplier < 1.5) speedMultiplier += 0.0001; }
+            if (!isBraking) { score += 0.1 * speedMultiplier; if(speedMultiplier < 1.3) speedMultiplier += 0.00005; } // YENİLƏNDİ: Sürət daha gec artır
             gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80; gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
 
-            if (!trafficLight.active && Math.random() < 0.003 && score > 50) { trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false; trafficLight.timer = 300; trafficLight.state = 'GREEN'; }
+            // YENİLƏNDİ: Yaşıl işıq şansı çoxaldıldı
+            if (!trafficLight.active && Math.random() < 0.005 && score > 20) { trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false; trafficLight.timer = 300; trafficLight.state = 'GREEN'; }
             if (trafficLight.active) {
                 trafficLight.y += baseSpeed; trafficLight.timer--;
                 if (trafficLight.timer === 200) trafficLight.state = 'YELLOW';
@@ -320,22 +321,24 @@
 
                 if (trafficLight.y > PLAYER_Y + CAR_HEIGHT && !trafficLight.passed) {
                     trafficLight.passed = true;
-                    if (trafficLight.state === 'RED' && !isBraking) { balance -= 0.20; playFineSound(); spawnPopup("-0.20 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); getDrivingAdvice("Qırmızı işıq! Cərimə."); } 
-                    else if (trafficLight.state === 'GREEN') { balance += 0.50; playSuccessSound(); spawnPopup("+0.50 AZN", "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); getDrivingAdvice("Yaşıl işıq bonusu!"); }
+                    if (trafficLight.state === 'RED' && !isBraking) { balance -= 0.10; playFineSound(); spawnPopup("-0.10 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); getDrivingAdvice("Qırmızı işıq! Cərimə."); } 
+                    else if (trafficLight.state === 'GREEN') { balance += 1.00; playSuccessSound(); spawnPopup("+1.00 AZN", "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); getDrivingAdvice("Yaşıl işıq bonusu!"); } // YENİLƏNDİ: Qazanc artırıldı
                     updateUI(); if (balance <= 0) { balance = 0; gameOver(); }
                 }
                 if (trafficLight.y > LOGICAL_HEIGHT) trafficLight.active = false;
             }
 
-            if (Math.random() < 0.02 * speedMultiplier && !isBraking && !trafficLight.active) {
+            // YENİLƏNDİ: Trafik daha az çıxır və yavaş hərəkət edir
+            if (Math.random() < 0.01 * speedMultiplier && !isBraking && !trafficLight.active) {
                 const lane = LANES[Math.floor(Math.random() * LANES.length)];
-                if (trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150)) trafficCars.push({ x: lane - CAR_WIDTH / 2, y: -100, speed: Math.random() * 2 + 2, color: '#f43f5e' });
+                if (trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150)) trafficCars.push({ x: lane - CAR_WIDTH / 2, y: -100, speed: Math.random() * 1.5 + 1.5, color: '#f43f5e' });
             }
 
             for (let i = trafficCars.length - 1; i >= 0; i--) {
                 let car = trafficCars[i]; car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
-                if (gameState.carX < car.x + CAR_WIDTH - 5 && gameState.carX + CAR_WIDTH - 5 > car.x && PLAYER_Y < car.y + CAR_HEIGHT - 5 && PLAYER_Y + CAR_HEIGHT - 5 > car.y) {
-                    balance -= 1.00; playCrashSound(); spawnPopup("-1.00 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y); trafficCars.splice(i, 1); getDrivingAdvice("Qəza etdin!"); updateUI(); 
+                // YENİLƏNDİ: Toqquşma sahəsi (- 12) kiçildildi, oyunçu daha asan yayına bilsin
+                if (gameState.carX < car.x + CAR_WIDTH - 12 && gameState.carX + CAR_WIDTH - 12 > car.x && PLAYER_Y < car.y + CAR_HEIGHT - 12 && PLAYER_Y + CAR_HEIGHT - 12 > car.y) {
+                    balance -= 0.30; playCrashSound(); spawnPopup("-0.30 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y); trafficCars.splice(i, 1); getDrivingAdvice("Qəza etdin!"); updateUI(); // YENİLƏNDİ: Qəza cəriməsi 1.00 AZN-dən 0.30 AZN-ə endirildi
                     if (balance <= 0) { balance = 0; gameOver(); return; }
                 } else if (car.y > LOGICAL_HEIGHT) { trafficCars.splice(i, 1); }
             }

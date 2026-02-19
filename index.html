@@ -140,12 +140,13 @@
                 <div id="laneLeft" class="flex-1 active:bg-white/5 cursor-pointer"></div>
                 <div id="laneRight" class="flex-1 active:bg-white/5 cursor-pointer"></div>
             </div>
+            
             <div id="gameOverScreen" class="hidden absolute inset-0 bg-[#020617]/90 backdrop-blur-xl flex-col items-center justify-center p-8 text-center z-40">
                 <div class="w-20 h-20 rounded-full bg-rose-500/20 flex items-center justify-center mb-4 blur-[2px] mx-auto"><span class="text-4xl">⚠️</span></div>
                 <h2 id="gameOverTitle" class="text-3xl font-black text-rose-500 mb-2 neon-rose tracking-wider">GAME OVER</h2>
                 <p class="text-slate-400 text-sm mb-2">Məsafə: <span id="finalScore" class="font-bold text-white">0</span> M</p>
                 
-                <p id="gameOverMessage" class="text-rose-400 text-xs mb-6 hidden font-bold bg-rose-500/10 p-2 rounded-lg border border-rose-500/30">Balansınız bitdi! Davam etmək üçün balansı artırın.</p>
+                <p id="gameOverMessage" class="text-rose-400 text-xs mb-6 hidden font-bold bg-rose-500/10 p-2 rounded-lg border border-rose-500/30">Balansınız bitdi! Oyun kilidləndi. Davam etmək üçün balansı artırın.</p>
                 
                 <button id="restartBtn" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] mb-4 active:scale-95 transition-all">YENİDƏN BAŞLA</button>
                 <button id="gameOverTopupBtn" class="hidden w-full py-4 bg-[#FFDD00] text-black rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(255,221,0,0.3)] mb-4 active:scale-95 transition-all flex items-center justify-center gap-2"><span class="text-xl">☕</span> BALANSI ARTIR</button>
@@ -275,13 +276,13 @@
             container.classList.add('shake-effect');
         }
 
-        // YENİ ƏLAVƏ EDİLMİŞ QEYDİYYAT VƏ GİRİŞ DƏYİŞƏNLƏRİ 
+        // QEYDİYYAT VƏ GİRİŞ DƏYİŞƏNLƏRİ 
         let savedBalance = localStorage.getItem('premiumDriveBalance');
-        let balance = savedBalance !== null ? parseFloat(savedBalance) : 0.00; // Balans artıq 0-dan başlayır
+        let balance = savedBalance !== null ? parseFloat(savedBalance) : 0.00;
 
         const authScreen = document.getElementById('authScreen');
         const loginFormScreen = document.getElementById('loginFormScreen');
-        const mainAppScreen = document.getElementById('loginScreen'); // Oyunun ana menyusu
+        const mainAppScreen = document.getElementById('loginScreen'); 
         const banScreen = document.getElementById('banScreen');
 
         let currentUser = JSON.parse(localStorage.getItem('premiumDriveUser'));
@@ -298,7 +299,6 @@
             mainAppScreen.classList.remove('hidden');
         }
 
-        // Qeydiyyat və Giriş ekranları arasında keçid
         document.getElementById('showLoginBtn').addEventListener('click', () => {
             authScreen.classList.add('hidden');
             loginFormScreen.classList.remove('hidden');
@@ -308,11 +308,9 @@
             authScreen.classList.remove('hidden');
         });
 
-        // Qeydiyyat Prosesi
         document.getElementById('registerForm').addEventListener('submit', (e) => {
             e.preventDefault();
             
-            // Cihazda artıq hesab varsa və yenisini açmağa çalışırsa BAN
             if (localStorage.getItem('premiumDriveUser') !== null) {
                 localStorage.setItem('premiumDriveBan', 'true');
                 authScreen.classList.add('hidden');
@@ -335,7 +333,6 @@
             updateUI();
         });
 
-        // Giriş Prosesi
         document.getElementById('loginUserForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const user = document.getElementById('logUsername').value;
@@ -431,19 +428,30 @@
             updateUI(); getDrivingAdvice("Qaza bas!"); requestAnimationFrame(gameLoop);
         }
 
+        // BÖHRAN VƏZİYYƏTİ MƏNTİQİ: KİLİDLƏNMƏ VƏ YENİDƏN BAŞLAMANIN LƏĞVİ
         function gameOver() {
             isGameOver = true; 
             document.getElementById('gameOverScreen').classList.remove('hidden'); 
             document.getElementById('finalScore').innerText = Math.floor(score);
+            
             const restartBtn = document.getElementById('restartBtn');
             const topupBtn = document.getElementById('gameOverTopupBtn');
             const msg = document.getElementById('gameOverMessage');
+            const title = document.getElementById('gameOverTitle');
+
             if (balance <= 0) {
-                restartBtn.classList.add('hidden');
-                topupBtn.classList.remove('hidden');
+                title.innerText = "KİLİDLƏNDİ";
+                title.classList.replace('text-rose-500', 'text-red-600'); 
+                
+                restartBtn.classList.add('hidden'); // İkinci şans ləğv edilir
+                topupBtn.classList.remove('hidden'); // Yalnız "Balansı Artır" görünür
+                msg.innerText = "Balansınız bitdi! Oyun kilidləndi. Davam etmək üçün balansı artırın.";
                 msg.classList.remove('hidden');
-                getDrivingAdvice("Balansın bitdi!"); 
+                getDrivingAdvice("Oyun kilidləndi!"); 
             } else {
+                title.innerText = "GAME OVER";
+                title.classList.replace('text-red-600', 'text-rose-500');
+                
                 restartBtn.classList.remove('hidden');
                 topupBtn.classList.add('hidden');
                 msg.classList.add('hidden');
@@ -480,7 +488,7 @@
                         balance -= 0.60; 
                         playFineSound(); triggerScreenShake(); screenShake = 15;
                         spawnPopup("-0.60 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
-                        if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; }
+                        if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } // Balans sıfırlandıqda birbaşa donur və kilidlənir
                         getDrivingAdvice("Qırmızı işıq cəriməsi!"); 
                     } else if (trafficLight.state === 'GREEN') { 
                         balance += 0.40; 
@@ -527,7 +535,7 @@
                         balance -= 0.60;
                         playFineSound(); triggerScreenShake(); screenShake = 20;
                         spawnPopup("🚓 -0.60 AZN", "#f43f5e", LOGICAL_WIDTH/2, PLAYER_Y - 30);
-                        if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; }
+                        if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } // Oyunçu dərhal dayandırılır
                         getDrivingAdvice("Polisə tabe olmadın!");
                         updateUI();
                     }
@@ -560,7 +568,7 @@
                     playCrashSound(); triggerScreenShake(); screenShake = 20;
                     spawnPopup("-0.10 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y); 
                     car.crashed = true; trafficCars.splice(i, 1); 
-                    if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; }
+                    if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } // Dərhal kilidlənir
                     getDrivingAdvice("Qəza!"); updateUI(); 
                 } 
                 else if (!car.crashed && !car.nearMissed && car.y > PLAYER_Y - car.height && car.y < PLAYER_Y + CAR_HEIGHT) {
@@ -643,12 +651,11 @@
         document.getElementById('loginBtn').addEventListener('click', startGame);
         document.getElementById('restartBtn').addEventListener('click', startGame);
         document.getElementById('gameOverTopupBtn').addEventListener('click', () => {
-            document.getElementById('gameOverScreen').classList.add('hidden');
+            // Kilidlənmə vəziyyətində Topup basıldıqda kilid ekranı arxa planda qalır ki, oyunçu geri qayıda bilməsin.
             document.getElementById('topUpModal').classList.remove('hidden');
         });
         document.getElementById('buyMeCoffeeBtn').addEventListener('click', () => { window.open('https://buymeacoffee.com/surwin', '_blank'); });
         
-        // BONUS və ÖDƏNİŞ YOXLANMASI MƏNTİQİ (Yeniləndi)
         document.getElementById('verifyPaymentBtn').addEventListener('click', (e) => {
             const btn = e.currentTarget; btn.innerHTML = `⏳ Yoxlanılır...`; btn.disabled = true;
             setTimeout(() => {
@@ -665,7 +672,29 @@
                 }
                 
                 btn.classList.replace('text-emerald-400', 'text-white'); btn.classList.replace('bg-emerald-500/10', 'bg-emerald-600');
-                setTimeout(() => { document.getElementById('topUpModal').classList.add('hidden'); btn.innerHTML = `🔄 Ödənişi Yoxla`; btn.disabled = false; btn.classList.replace('text-white', 'text-emerald-400'); btn.classList.replace('bg-emerald-600', 'bg-emerald-500/10'); }, 2000);
+                
+                setTimeout(() => { 
+                    document.getElementById('topUpModal').classList.add('hidden'); 
+                    btn.innerHTML = `🔄 Ödənişi Yoxla`; 
+                    btn.disabled = false; 
+                    btn.classList.replace('text-white', 'text-emerald-400'); 
+                    btn.classList.replace('bg-emerald-600', 'bg-emerald-500/10'); 
+                    
+                    // Ödəniş gəldisə, kilidi aç və restart düyməsini bərpa et
+                    if (isGameOver && balance > 0) {
+                        const title = document.getElementById('gameOverTitle');
+                        const restartBtn = document.getElementById('restartBtn');
+                        const topupBtn = document.getElementById('gameOverTopupBtn');
+                        const msg = document.getElementById('gameOverMessage');
+                        
+                        title.innerText = "GAME OVER";
+                        title.classList.replace('text-red-600', 'text-rose-500');
+                        restartBtn.classList.remove('hidden');
+                        topupBtn.classList.add('hidden');
+                        msg.classList.add('hidden');
+                        getDrivingAdvice("Ödəniş uğurlu! Davam et!");
+                    }
+                }, 2000);
             }, 3000);
         });
 

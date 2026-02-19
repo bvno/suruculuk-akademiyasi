@@ -65,12 +65,11 @@
             <div class="bg-[#0f172a]/80 p-4 rounded-[20px] mb-6 border border-white/5 text-[11px] sm:text-xs text-slate-300 space-y-2 max-h-40 overflow-y-auto custom-scrollbar text-left">
                 <p class="text-rose-400 font-bold mb-1" data-i18n="regAttention">DİQQƏT - Vacib Qaydalar:</p>
                 <ul class="list-disc pl-4 space-y-1.5">
-                    <li data-i18n="rule1">Hər bir şəxs sistemdə yalnız <b>1 dəfə</b> qeydiyyatdan keçə bilər.</li>
-                    <li data-i18n="rule2">Bir telefon nömrəsi ilə yalnız <b>1 hesab</b> yaradıla bilər.</li>
-                    <li data-i18n="rule3">Eyni cihazdan və ya telefon nömrəsindən birdən çox hesab aşkar edilərsə, sistem həmin hesabları <b>avtomatik blok edəcək (ban)</b>.</li>
-                    <li data-i18n="rule4">Platforma qaydalarına və oyun daxilindəki yol hərəkəti qaydalarına riayət edərək qazanc əldə edə bilərsiniz.</li>
-                    <li data-i18n="rule5">Qazanılmış vəsaitlər göstərilən şərtlərə uyğun olaraq nağdlaşdırıla bilər.</li>
-                    <li data-i18n="rule6">Oyuna davam etmək üçün balans bitdikdə balansı artırmalısınız. Ödəniş təsdiqləndikdən sonra oyuna davam edə bilərsiniz.</li>
+                    <li data-i18n="rule1">Hər bir istifadəçi yalnız <b>1 dəfə</b> qeydiyyatdan keçə bilər.</li>
+                    <li data-i18n="rule2">Eyni cihazdan birdən çox hesab yaradılarsa, sistem avtomatik aşkarlayıb <b>ban edəcək</b>.</li>
+                    <li data-i18n="rule3">Qeydiyyatdan sonra balansınıza <b>0.50 AZN</b> başlanğıc hədiyyə əlavə olunacaq və oyuna davam edə biləcəksiniz.</li>
+                    <li data-i18n="rule4">Qaydalara riayət edərək qazanc əldə edə bilərsiniz.</li>
+                    <li data-i18n="rule5">Oyuna davam etmək üçün balans bitdikdə mütləq artırmalısınız.</li>
                 </ul>
                 <p class="text-emerald-400 font-bold mt-3 text-center text-sm" data-i18n="regWish">Oyunda sizə uğurlar arzulayırıq! 🏁</p>
             </div>
@@ -78,10 +77,7 @@
             <form id="regForm" class="flex flex-col gap-3 relative z-10">
                 <input type="text" id="regName" data-i18n="phName" placeholder="Ad və Soyad" required class="w-full p-3 rounded-xl bg-[#020617] border border-slate-700 text-white outline-none focus:border-cyan-500 text-sm">
                 <input type="text" id="regUsername" data-i18n="phUsername" placeholder="İstifadəçi adı" required class="w-full p-3 rounded-xl bg-[#020617] border border-slate-700 text-white outline-none focus:border-cyan-500 text-sm">
-                <div class="flex gap-3">
-                    <input type="number" id="regAge" data-i18n="phAge" placeholder="Yaş" required min="10" max="99" class="w-1/3 p-3 rounded-xl bg-[#020617] border border-slate-700 text-white outline-none focus:border-cyan-500 text-sm">
-                    <input type="tel" id="regPhone" data-i18n="phPhone" placeholder="Telefon nömrəsi" required class="w-2/3 p-3 rounded-xl bg-[#020617] border border-slate-700 text-white outline-none focus:border-cyan-500 text-sm">
-                </div>
+                <input type="number" id="regAge" data-i18n="phAge" placeholder="Yaş" required min="10" max="99" class="w-full p-3 rounded-xl bg-[#020617] border border-slate-700 text-white outline-none focus:border-cyan-500 text-sm">
                 <input type="password" id="regPassword" data-i18n="phPass" placeholder="Şifrə" required minlength="6" class="w-full p-3 rounded-xl bg-[#020617] border border-slate-700 text-white outline-none focus:border-cyan-500 text-sm">
                 
                 <button type="submit" data-i18n="btnReg" class="w-full py-4 mt-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all">Qeydiyyatı Tamamla</button>
@@ -214,13 +210,12 @@
                 code: 'az', flag: '🇦🇿', name: 'Azərbaycanca', currency: 'AZN', rate: 1, tts: 'tr-TR', aiLang: 'Azerbaijani', dir: 'ltr',
                 t: {
                     regTitle: "Qeydiyyat & Qaydalar", regAttention: "DİQQƏT - Vacib Qaydalar:",
-                    rule1: "Hər bir şəxs sistemdə yalnız <b>1 dəfə</b> qeydiyyatdan keçə bilər.",
-                    rule2: "Bir telefon nömrəsi ilə yalnız <b>1 hesab</b> yaradıla bilər.",
-                    rule3: "Eyni cihazdan/nömrədən birdən çox hesab aşkar edilərsə, <b>avtomatik ban</b> olunacaq.",
+                    rule1: "Hər bir istifadəçi yalnız <b>1 dəfə</b> qeydiyyatdan keçə bilər.",
+                    rule2: "Eyni cihazdan birdən çox hesab yaradılarsa, sistem avtomatik aşkarlayıb <b>ban edəcək</b>.",
+                    rule3: "Qeydiyyatdan sonra balansınıza <b>0.50 AZN</b> başlanğıc hədiyyə əlavə olunacaq və oyuna davam edə biləcəksiniz.",
                     rule4: "Qaydalara riayət edərək qazanc əldə edə bilərsiniz.",
-                    rule5: "Qazanılmış vəsaitlər şərtlərə uyğun olaraq nağdlaşdırıla bilər.",
-                    rule6: "Oyuna davam etmək üçün balans bitdikdə mütləq artırmalısınız.",
-                    regWish: "Oyunda sizə uğurlar arzulayırıq! 🏁", phName: "Ad və Soyad", phUsername: "İstifadəçi adı", phAge: "Yaş", phPhone: "Telefon nömrəsi", phPass: "Şifrə",
+                    rule5: "Oyuna davam etmək üçün balans bitdikdə mütləq artırmalısınız.",
+                    regWish: "Oyunda sizə uğurlar arzulayırıq! 🏁", phName: "Ad və Soyad", phUsername: "İstifadəçi adı", phAge: "Yaş", phPass: "Şifrə",
                     btnReg: "Qeydiyyatı Tamamla", lblLoginBal: "Cari Balans:", btnPlay: "Oyuna Başla", btnTopup: "Balansı Artır",
                     garBal: "Balans", lblDist: "Məsafə", aiTipLoad: "Süni intellekt məsləhəti yüklənir...",
                     goTitle: "GAME OVER", goMsgTitle: "Balansınız sıfırlandı!", goMsgDesc: "Cərimələr səbəbindən balansınız bitdi. Oyuna davam etmək və yenidən qazanmaq üçün mütləq balansınızı artırmalısınız. Heç bir ikinci şans verilmir.",
@@ -236,18 +231,17 @@
                 code: 'en', flag: '🇬🇧', name: 'English', currency: 'USD', rate: 0.59, tts: 'en-US', aiLang: 'English', dir: 'ltr',
                 t: {
                     regTitle: "Registration & Rules", regAttention: "ATTENTION - Important Rules:",
-                    rule1: "Each person is allowed to register only <b>1 time</b>.",
-                    rule2: "Only <b>1 account</b> can be created per phone number.",
-                    rule3: "Multiple accounts from the same device will be <b>automatically banned</b>.",
-                    rule4: "You can earn by following the platform and traffic rules.",
-                    rule5: "Earned funds can be withdrawn according to conditions.",
-                    rule6: "If balance reaches zero, you must top up to continue playing.",
-                    regWish: "We wish you success in the game! 🏁", phName: "Full Name", phUsername: "Username", phAge: "Age", phPhone: "Phone Number", phPass: "Password",
+                    rule1: "Each user can register only <b>1 time</b>.",
+                    rule2: "Multiple accounts from the same device will be <b>automatically blocked</b>.",
+                    rule3: "After registration, a <b>0.50 AZN</b> starting bonus will be added, and you can play.",
+                    rule4: "You can earn by following the platform rules.",
+                    rule5: "If your balance reaches zero, you must top up to continue.",
+                    regWish: "We wish you success in the game! 🏁", phName: "Full Name", phUsername: "Username", phAge: "Age", phPass: "Password",
                     btnReg: "Complete Registration", lblLoginBal: "Current Balance:", btnPlay: "Start Game", btnTopup: "Top Up Balance",
                     garBal: "Balance", lblDist: "Distance", aiTipLoad: "Loading AI advice...",
                     goTitle: "GAME OVER", goMsgTitle: "Balance reached zero!", goMsgDesc: "Your balance is empty due to penalties. You must top up to continue and earn again. No second chances are given.",
                     btnRestart: "RESTART", btnGoTopup: "TOP UP BALANCE", btnBrake: "BRAKE",
-                    tuTitle: "Top Up Balance", tuRule1: "Make a payment of minimum <b>$2 USD</b> via link (buymeacoffee.com/surwin) to top up.", tuRule2: "Once verified, the amount will be added to your balance.", tuRule3: "Playing with zero balance is strictly forbidden. No second chance.",
+                    tuTitle: "Top Up Balance", tuRule1: "Make a payment of min. <b>$2 USD</b> via link (buymeacoffee.com/surwin) to top up.", tuRule2: "Once verified, the amount will be added to your balance.", tuRule3: "Playing with zero balance is strictly forbidden. No second chance.",
                     btnPay: "Pay Now", btnVerify: "Verify Payment", btnClose: "Close",
                     wdTitle: "Withdraw", wdCurBal: "Current Balance", wdPhName: "Full Name", wdPhCard: "Card or Account Number", wdWarn: "Balance is below the minimum limit.", btnSubmitWd: "Submit Request", btnBack: "Back", garTitle: "GARAGE",
                     btnSelected: "Selected", btnSelect: "Select", btnBuy: "Buy",
@@ -258,13 +252,12 @@
                 code: 'ru', flag: '🇷🇺', name: 'Русский', currency: 'RUB', rate: 55.0, tts: 'ru-RU', aiLang: 'Russian', dir: 'ltr',
                 t: {
                     regTitle: "Регистрация и Правила", regAttention: "ВНИМАНИЕ - Важные правила:",
-                    rule1: "Каждому разрешено регистрироваться только <b>1 раз</b>.",
-                    rule2: "На один номер можно создать только <b>1 аккаунт</b>.",
-                    rule3: "Множественные аккаунты с одного устройства будут <b>забанены</b>.",
-                    rule4: "Соблюдайте правила платформы и ПДД, чтобы зарабатывать.",
-                    rule5: "Заработанные средства можно вывести согласно условиям.",
-                    rule6: "При нулевом балансе необходимо пополнить счет для продолжения.",
-                    regWish: "Желаем удачи в игре! 🏁", phName: "Имя и Фамилия", phUsername: "Имя пользователя", phAge: "Возраст", phPhone: "Номер телефона", phPass: "Пароль",
+                    rule1: "Каждый пользователь может зарегистрироваться только <b>1 раз</b>.",
+                    rule2: "Множественные аккаунты с одного устройства будут <b>автоматически заблокированы</b>.",
+                    rule3: "После регистрации вы получите стартовый бонус <b>0.50 AZN</b> для игры.",
+                    rule4: "Соблюдайте правила платформы, чтобы зарабатывать.",
+                    rule5: "При нулевом балансе необходимо пополнить счет для продолжения.",
+                    regWish: "Желаем удачи в игре! 🏁", phName: "Имя и Фамилия", phUsername: "Имя пользователя", phAge: "Возраст", phPass: "Пароль",
                     btnReg: "Завершить регистрацию", lblLoginBal: "Текущий баланс:", btnPlay: "Начать игру", btnTopup: "Пополнить баланс",
                     garBal: "Баланс", lblDist: "Дистанция", aiTipLoad: "Загрузка совета ИИ...",
                     goTitle: "ИГРА ОКОНЧЕНА", goMsgTitle: "Баланс равен нулю!", goMsgDesc: "Ваш баланс исчерпан из-за штрафов. Пополните баланс для продолжения. Второго шанса нет.",
@@ -280,13 +273,12 @@
                 code: 'tr', flag: '🇹🇷', name: 'Türkçe', currency: 'TRY', rate: 19.5, tts: 'tr-TR', aiLang: 'Turkish', dir: 'ltr',
                 t: {
                     regTitle: "Kayıt & Kurallar", regAttention: "DİKKAT - Önemli Kurallar:",
-                    rule1: "Her kişi yalnızca <b>1 kez</b> kayıt olabilir.",
-                    rule2: "Bir telefon numarasıyla sadece <b>1 hesap</b> açılabilir.",
-                    rule3: "Aynı cihazdan birden fazla hesap tespit edilirse <b>otomatik ban</b> atılır.",
-                    rule4: "Trafik kurallarına uyarak kazanç elde edebilirsiniz.",
-                    rule5: "Kazanılan tutarlar şartlara uygun olarak çekilebilir.",
-                    rule6: "Bakiye sıfırlandığında oyuna devam etmek için yükleme yapmalısınız.",
-                    regWish: "Oyunda başarılar dileriz! 🏁", phName: "Ad ve Soyad", phUsername: "Kullanıcı Adı", phAge: "Yaş", phPhone: "Telefon Numarası", phPass: "Şifre",
+                    rule1: "Her kullanıcı yalnızca <b>1 kez</b> kayıt olabilir.",
+                    rule2: "Aynı cihazdan birden fazla hesap tespit edilirse <b>otomatik engellenir</b>.",
+                    rule3: "Kayıttan sonra bakiyenize <b>0.50 AZN</b> başlangıç hediyesi eklenecektir.",
+                    rule4: "Kurallara uyarak kazanç elde edebilirsiniz.",
+                    rule5: "Bakiye sıfırlandığında oyuna devam etmek için yükleme yapmalısınız.",
+                    regWish: "Oyunda başarılar dileriz! 🏁", phName: "Ad ve Soyad", phUsername: "Kullanıcı Adı", phAge: "Yaş", phPass: "Şifre",
                     btnReg: "Kaydı Tamamla", lblLoginBal: "Mevcut Bakiye:", btnPlay: "Oyuna Başla", btnTopup: "Bakiye Yükle",
                     garBal: "Bakiye", lblDist: "Mesafe", aiTipLoad: "Yapay zeka tavsiyesi yükleniyor...",
                     goTitle: "OYUN BİTTİ", goMsgTitle: "Bakiyeniz sıfırlandı!", goMsgDesc: "Cezalar nedeniyle bakiyeniz bitti. Devam etmek için bakiye yüklemelisiniz. İkinci bir şans verilmez.",
@@ -298,10 +290,10 @@
                     aiScenStart: "Oyuna başlıyor. Motive et.", aiScenEmpty: "Bakiye bitti, yükleme yapmalı.", aiScenRed: "Kırmızıda geçti, ceza.", aiScenGreen: "Yeşilde geçti, ödül, nitro!", aiScenCrash: "Kaza yaptı, ceza.", aiScenNear: "Tehlikeli geçiş, ödül.", aiScenPoliceRun: "Polisten kaçtı, ceza!", aiScenPoliceEarly: "Polis bekle derken gitti, ceza.", aiScenPoliceOk: "Polis onay verdi, ödül."
                 }
             },
-            de: { code: 'de', flag: '🇩🇪', name: 'Deutsch', currency: 'EUR', rate: 0.55, tts: 'de-DE', aiLang: 'German', dir: 'ltr', t: { regTitle: "Registrierung & Regeln", regAttention: "ACHTUNG - Wichtige Regeln:", rule1: "Jede Person darf sich nur <b>einmal</b> registrieren.", rule2: "Pro Telefonnummer ist nur <b>1 Konto</b> erlaubt.", rule3: "Mehrere Konten vom selben Gerät werden <b>gebannt</b>.", rule4: "Beachten Sie die Verkehrsregeln, um zu verdienen.", rule5: "Verdientes Geld kann ausgezahlt werden.", rule6: "Wenn das Guthaben leer ist, müssen Sie aufladen.", regWish: "Viel Erfolg im Spiel! 🏁", phName: "Vollständiger Name", phUsername: "Benutzername", phAge: "Alter", phPhone: "Telefonnummer", phPass: "Passwort", btnReg: "Registrierung abschließen", lblLoginBal: "Aktuelles Guthaben:", btnPlay: "Spiel Starten", btnTopup: "Guthaben Aufladen", garBal: "Guthaben", lblDist: "Distanz", aiTipLoad: "KI-Tipp wird geladen...", goTitle: "SPIEL VORBEI", goMsgTitle: "Guthaben ist null!", goMsgDesc: "Ihr Guthaben ist aufgrund von Strafen aufgebraucht. Sie müssen aufladen, um fortzufahren.", btnRestart: "NEUSTART", btnGoTopup: "GUTHABEN AUFLADEN", btnBrake: "BREMSE", tuTitle: "Aufladen", tuRule1: "Zahlen Sie min. <b>$2 USD</b>, um aufzuladen.", tuRule2: "Nach Überprüfung wird der Betrag hinzugefügt.", tuRule3: "Spielen mit Null-Guthaben ist strengstens verboten.", btnPay: "Bezahlen", btnVerify: "Zahlung prüfen", btnClose: "Schließen", wdTitle: "Auszahlen", wdCurBal: "Aktuelles Guthaben", wdPhName: "Vollständiger Name", wdPhCard: "Karten- oder Kontonummer", wdWarn: "Guthaben ist unter dem Limit.", btnSubmitWd: "Anfrage senden", btnBack: "Zurück", garTitle: "GARAGE", btnSelected: "Ausgewählt", btnSelect: "Wählen", btnBuy: "Kaufen", aiScenStart: "Startet das Spiel. Ermutigen.", aiScenEmpty: "Guthaben leer.", aiScenRed: "Rotlicht, Strafe.", aiScenGreen: "Grünlicht, Belohnung!", aiScenCrash: "Unfall, Strafe.", aiScenNear: "Knapper Vorbeiflug, Belohnung.", aiScenPoliceRun: "Vor Polizei geflohen, Strafe!", aiScenPoliceEarly: "Zu früh losgefahren, Strafe.", aiScenPoliceOk: "Polizei okay, Belohnung." } },
-            fr: { code: 'fr', flag: '🇫🇷', name: 'Français', currency: 'EUR', rate: 0.55, tts: 'fr-FR', aiLang: 'French', dir: 'ltr', t: { regTitle: "Inscription & Règles", regAttention: "ATTENTION - Règles:", rule1: "Une seule inscription <b>par personne</b>.", rule2: "<b>1 compte</b> par numéro de téléphone.", rule3: "Les comptes multiples seront <b>bannis</b>.", rule4: "Respectez les règles pour gagner.", rule5: "Les fonds peuvent être retirés.", rule6: "Rechargez si le solde est nul.", regWish: "Bonne chance ! 🏁", phName: "Nom Complet", phUsername: "Nom d'utilisateur", phAge: "Âge", phPhone: "Numéro de téléphone", phPass: "Mot de passe", btnReg: "S'inscrire", lblLoginBal: "Solde actuel :", btnPlay: "Commencer", btnTopup: "Recharger", garBal: "Solde", lblDist: "Distance", aiTipLoad: "Chargement de l'IA...", goTitle: "FIN DE PARTIE", goMsgTitle: "Solde à zéro !", goMsgDesc: "Vous devez recharger pour continuer. Aucune seconde chance.", btnRestart: "RECOMMENCER", btnGoTopup: "RECHARGER", btnBrake: "FREIN", tuTitle: "Recharger", tuRule1: "Payez min. <b>$2 USD</b> pour recharger.", tuRule2: "Le montant sera ajouté après vérification.", tuRule3: "Jouer avec un solde nul est interdit.", btnPay: "Payer", btnVerify: "Vérifier", btnClose: "Fermer", wdTitle: "Retirer", wdCurBal: "Solde", wdPhName: "Nom", wdPhCard: "Carte/Compte", wdWarn: "Solde insuffisant.", btnSubmitWd: "Envoyer", btnBack: "Retour", garTitle: "GARAGE", btnSelected: "Sélectionné", btnSelect: "Choisir", btnBuy: "Acheter", aiScenStart: "Commence le jeu.", aiScenEmpty: "Solde vide.", aiScenRed: "Feu rouge, amende.", aiScenGreen: "Feu vert, récompense!", aiScenCrash: "Accident, amende.", aiScenNear: "Presque, récompense.", aiScenPoliceRun: "Fuite, amende!", aiScenPoliceEarly: "Départ anticipé, amende.", aiScenPoliceOk: "Police OK, récompense." } },
-            es: { code: 'es', flag: '🇪🇸', name: 'Español', currency: 'EUR', rate: 0.55, tts: 'es-ES', aiLang: 'Spanish', dir: 'ltr', t: { regTitle: "Registro y Reglas", regAttention: "ATENCIÓN - Reglas:", rule1: "Solo <b>1 registro</b> por persona.", rule2: "<b>1 cuenta</b> por número.", rule3: "Múltiples cuentas serán <b>baneadas</b>.", rule4: "Sigue las reglas para ganar.", rule5: "Los fondos se pueden retirar.", rule6: "Recarga si el saldo es cero.", regWish: "¡Buena suerte! 🏁", phName: "Nombre completo", phUsername: "Usuario", phAge: "Edad", phPhone: "Teléfono", phPass: "Contraseña", btnReg: "Completar Registro", lblLoginBal: "Saldo actual:", btnPlay: "Jugar", btnTopup: "Recargar", garBal: "Saldo", lblDist: "Distancia", aiTipLoad: "Cargando IA...", goTitle: "FIN DEL JUEGO", goMsgTitle: "¡Saldo cero!", goMsgDesc: "Recarga para continuar. Sin segundas oportunidades.", btnRestart: "REINICIAR", btnGoTopup: "RECARGAR", btnBrake: "FRENO", tuTitle: "Recargar Saldo", tuRule1: "Paga min. <b>$2 USD</b> para recargar.", tuRule2: "Se añadirá tras verificación.", tuRule3: "Prohibido jugar con saldo cero.", btnPay: "Pagar", btnVerify: "Verificar", btnClose: "Cerrar", wdTitle: "Retirar", wdCurBal: "Saldo", wdPhName: "Nombre", wdPhCard: "Tarjeta/Cuenta", wdWarn: "Saldo insuficiente.", btnSubmitWd: "Enviar", btnBack: "Atrás", garTitle: "GARAJE", btnSelected: "Seleccionado", btnSelect: "Elegir", btnBuy: "Comprar", aiScenStart: "Inicia el juego.", aiScenEmpty: "Saldo vacío.", aiScenRed: "Luz roja, multa.", aiScenGreen: "Luz verde, premio!", aiScenCrash: "Choque, multa.", aiScenNear: "Casi, premio.", aiScenPoliceRun: "Fuga, multa!", aiScenPoliceEarly: "Salida temprana, multa.", aiScenPoliceOk: "Policía OK, premio." } },
-            ar: { code: 'ar', flag: '🇸🇦', name: 'العربية', currency: 'SAR', rate: 2.2, tts: 'ar-SA', aiLang: 'Arabic', dir: 'rtl', t: { regTitle: "التسجيل والقواعد", regAttention: "تنبيه - قواعد هامة:", rule1: "يُسمح بالتسجيل <b>مرة واحدة</b> فقط.", rule2: "<b>حساب واحد</b> لكل رقم.", rule3: "سيتم <b>حظر</b> الحسابات المتعددة.", rule4: "اتبع القواعد لكسب المال.", rule5: "يمكن سحب الأموال المكتسبة.", rule6: "إذا كان الرصيد صفراً، يجب عليك الشحن.", regWish: "حظا سعيدا! 🏁", phName: "الاسم الكامل", phUsername: "اسم المستخدم", phAge: "العمر", phPhone: "رقم الهاتف", phPass: "كلمة المرور", btnReg: "إكمال التسجيل", lblLoginBal: "الرصيد الحالي:", btnPlay: "ابدأ اللعبة", btnTopup: "شحن الرصيد", garBal: "الرصيد", lblDist: "المسافة", aiTipLoad: "تحميل الذكاء الاصطناعي...", goTitle: "انتهت اللعبة", goMsgTitle: "الرصيد صفر!", goMsgDesc: "انتهى رصيدك. اشحن للاستمرار. لا توجد فرصة ثانية.", btnRestart: "إعادة البدء", btnGoTopup: "شحن الرصيد", btnBrake: "فرامل", tuTitle: "شحن الرصيد", tuRule1: "ادفع <b>$2 USD</b> كحد أدنى للشحن.", tuRule2: "سيتم إضافة المبلغ بعد التحقق.", tuRule3: "يمنع اللعب برصيد صفر.", btnPay: "ادفع الآن", btnVerify: "التحقق من الدفع", btnClose: "إغلاق", wdTitle: "سحب الأموال", wdCurBal: "الرصيد الحالي", wdPhName: "الاسم", wdPhCard: "رقم البطاقة", wdWarn: "الرصيد أقل من الحد الأدنى.", btnSubmitWd: "إرسال الطلب", btnBack: "رجوع", garTitle: "المرآب", btnSelected: "محدد", btnSelect: "اختر", btnBuy: "شراء", aiScenStart: "يبدأ اللعبة.", aiScenEmpty: "الرصيد فارغ.", aiScenRed: "ضوء أحمر، غرامة.", aiScenGreen: "ضوء أخضر، مكافأة!", aiScenCrash: "حادث، غرامة.", aiScenNear: "مرور قريب، مكافأة.", aiScenPoliceRun: "هروب، غرامة!", aiScenPoliceEarly: "انطلاق مبكر، غرامة.", aiScenPoliceOk: "شرطة موافق، مكافأة." } }
+            de: { code: 'de', flag: '🇩🇪', name: 'Deutsch', currency: 'EUR', rate: 0.55, tts: 'de-DE', aiLang: 'German', dir: 'ltr', t: { regTitle: "Registrierung & Regeln", regAttention: "ACHTUNG - Wichtige Regeln:", rule1: "Jeder darf sich nur <b>einmal</b> registrieren.", rule2: "Mehrere Konten vom selben Gerät werden <b>blockiert</b>.", rule3: "Nach der Registrierung erhalten Sie <b>0.50 AZN</b> Startbonus.", rule4: "Beachten Sie die Regeln, um zu verdienen.", rule5: "Wenn das Guthaben null ist, müssen Sie aufladen.", regWish: "Viel Erfolg im Spiel! 🏁", phName: "Vollständiger Name", phUsername: "Benutzername", phAge: "Alter", phPass: "Passwort", btnReg: "Registrierung abschließen", lblLoginBal: "Aktuelles Guthaben:", btnPlay: "Spiel Starten", btnTopup: "Guthaben Aufladen", garBal: "Guthaben", lblDist: "Distanz", aiTipLoad: "KI-Tipp wird geladen...", goTitle: "SPIEL VORBEI", goMsgTitle: "Guthaben ist null!", goMsgDesc: "Ihr Guthaben ist aufgrund von Strafen aufgebraucht. Sie müssen aufladen, um fortzufahren.", btnRestart: "NEUSTART", btnGoTopup: "GUTHABEN AUFLADEN", btnBrake: "BREMSE", tuTitle: "Aufladen", tuRule1: "Zahlen Sie min. <b>$2 USD</b>, um aufzuladen.", tuRule2: "Nach Überprüfung wird der Betrag hinzugefügt.", tuRule3: "Spielen mit Null-Guthaben ist verboten.", btnPay: "Bezahlen", btnVerify: "Zahlung prüfen", btnClose: "Schließen", wdTitle: "Auszahlen", wdCurBal: "Aktuelles Guthaben", wdPhName: "Vollständiger Name", wdPhCard: "Karten- oder Kontonummer", wdWarn: "Guthaben ist unter dem Limit.", btnSubmitWd: "Anfrage senden", btnBack: "Zurück", garTitle: "GARAGE", btnSelected: "Ausgewählt", btnSelect: "Wählen", btnBuy: "Kaufen", aiScenStart: "Startet das Spiel. Ermutigen.", aiScenEmpty: "Guthaben leer.", aiScenRed: "Rotlicht, Strafe.", aiScenGreen: "Grünlicht, Belohnung!", aiScenCrash: "Unfall, Strafe.", aiScenNear: "Knapper Vorbeiflug, Belohnung.", aiScenPoliceRun: "Vor Polizei geflohen, Strafe!", aiScenPoliceEarly: "Zu früh losgefahren, Strafe.", aiScenPoliceOk: "Polizei okay, Belohnung." } },
+            fr: { code: 'fr', flag: '🇫🇷', name: 'Français', currency: 'EUR', rate: 0.55, tts: 'fr-FR', aiLang: 'French', dir: 'ltr', t: { regTitle: "Inscription & Règles", regAttention: "ATTENTION - Règles:", rule1: "Une seule inscription <b>par personne</b>.", rule2: "Les comptes multiples du même appareil seront <b>bloqués</b>.", rule3: "Un bonus de <b>0.50 AZN</b> est ajouté après l'inscription.", rule4: "Respectez les règles pour gagner.", rule5: "Rechargez si le solde est nul.", regWish: "Bonne chance ! 🏁", phName: "Nom Complet", phUsername: "Nom d'utilisateur", phAge: "Âge", phPass: "Mot de passe", btnReg: "S'inscrire", lblLoginBal: "Solde actuel :", btnPlay: "Commencer", btnTopup: "Recharger", garBal: "Solde", lblDist: "Distance", aiTipLoad: "Chargement de l'IA...", goTitle: "FIN DE PARTIE", goMsgTitle: "Solde à zéro !", goMsgDesc: "Vous devez recharger pour continuer. Aucune seconde chance.", btnRestart: "RECOMMENCER", btnGoTopup: "RECHARGER", btnBrake: "FREIN", tuTitle: "Recharger", tuRule1: "Payez min. <b>$2 USD</b> pour recharger.", tuRule2: "Le montant sera ajouté après vérification.", tuRule3: "Jouer avec un solde nul est interdit.", btnPay: "Payer", btnVerify: "Vérifier", btnClose: "Fermer", wdTitle: "Retirer", wdCurBal: "Solde", wdPhName: "Nom", wdPhCard: "Carte/Compte", wdWarn: "Solde insuffisant.", btnSubmitWd: "Envoyer", btnBack: "Retour", garTitle: "GARAGE", btnSelected: "Sélectionné", btnSelect: "Choisir", btnBuy: "Acheter", aiScenStart: "Commence le jeu.", aiScenEmpty: "Solde vide.", aiScenRed: "Feu rouge, amende.", aiScenGreen: "Feu vert, récompense!", aiScenCrash: "Accident, amende.", aiScenNear: "Presque, récompense.", aiScenPoliceRun: "Fuite, amende!", aiScenPoliceEarly: "Départ anticipé, amende.", aiScenPoliceOk: "Police OK, récompense." } },
+            es: { code: 'es', flag: '🇪🇸', name: 'Español', currency: 'EUR', rate: 0.55, tts: 'es-ES', aiLang: 'Spanish', dir: 'ltr', t: { regTitle: "Registro y Reglas", regAttention: "ATENCIÓN - Reglas:", rule1: "Solo <b>1 registro</b> por usuario.", rule2: "Múltiples cuentas del mismo dispositivo serán <b>bloqueadas</b>.", rule3: "Recibes <b>0.50 AZN</b> de bono tras el registro.", rule4: "Sigue las reglas para ganar.", rule5: "Recarga si el saldo llega a cero.", regWish: "¡Buena suerte! 🏁", phName: "Nombre completo", phUsername: "Usuario", phAge: "Edad", phPass: "Contraseña", btnReg: "Completar Registro", lblLoginBal: "Saldo actual:", btnPlay: "Jugar", btnTopup: "Recargar", garBal: "Saldo", lblDist: "Distancia", aiTipLoad: "Cargando IA...", goTitle: "FIN DEL JUEGO", goMsgTitle: "¡Saldo cero!", goMsgDesc: "Recarga para continuar. Sin segundas oportunidades.", btnRestart: "REINICIAR", btnGoTopup: "RECARGAR", btnBrake: "FRENO", tuTitle: "Recargar Saldo", tuRule1: "Paga min. <b>$2 USD</b> para recargar.", tuRule2: "Se añadirá tras verificación.", tuRule3: "Prohibido jugar con saldo cero.", btnPay: "Pagar", btnVerify: "Verificar", btnClose: "Cerrar", wdTitle: "Retirar", wdCurBal: "Saldo", wdPhName: "Nombre", wdPhCard: "Tarjeta/Cuenta", wdWarn: "Saldo insuficiente.", btnSubmitWd: "Enviar", btnBack: "Atrás", garTitle: "GARAJE", btnSelected: "Seleccionado", btnSelect: "Elegir", btnBuy: "Comprar", aiScenStart: "Inicia el juego.", aiScenEmpty: "Saldo vacío.", aiScenRed: "Luz roja, multa.", aiScenGreen: "Luz verde, premio!", aiScenCrash: "Choque, multa.", aiScenNear: "Casi, premio.", aiScenPoliceRun: "Fuga, multa!", aiScenPoliceEarly: "Salida temprana, multa.", aiScenPoliceOk: "Policía OK, premio." } },
+            ar: { code: 'ar', flag: '🇸🇦', name: 'العربية', currency: 'SAR', rate: 2.2, tts: 'ar-SA', aiLang: 'Arabic', dir: 'rtl', t: { regTitle: "التسجيل والقواعد", regAttention: "تنبيه - قواعد هامة:", rule1: "يُسمح لكل مستخدم بالتسجيل <b>مرة واحدة</b> فقط.", rule2: "سيتم <b>حظر</b> الحسابات المتعددة من نفس الجهاز.", rule3: "بعد التسجيل، ستحصل على مكافأة <b>0.50 AZN</b>.", rule4: "اتبع القواعد لكسب المال.", rule5: "إذا كان الرصيد صفراً، يجب عليك الشحن للاستمرار.", regWish: "حظا سعيدا! 🏁", phName: "الاسم الكامل", phUsername: "اسم المستخدم", phAge: "العمر", phPass: "كلمة المرور", btnReg: "إكمال التسجيل", lblLoginBal: "الرصيد الحالي:", btnPlay: "ابدأ اللعبة", btnTopup: "شحن الرصيد", garBal: "الرصيد", lblDist: "المسافة", aiTipLoad: "تحميل الذكاء الاصطناعي...", goTitle: "انتهت اللعبة", goMsgTitle: "الرصيد صفر!", goMsgDesc: "انتهى رصيدك. اشحن للاستمرار. لا توجد فرصة ثانية.", btnRestart: "إعادة البدء", btnGoTopup: "شحن الرصيد", btnBrake: "فرامل", tuTitle: "شحن الرصيد", tuRule1: "ادفع <b>$2 USD</b> كحد أدنى للشحن.", tuRule2: "سيتم إضافة المبلغ بعد التحقق.", tuRule3: "يمنع اللعب برصيد صفر.", btnPay: "ادفع الآن", btnVerify: "التحقق من الدفع", btnClose: "إغلاق", wdTitle: "سحب الأموال", wdCurBal: "الرصيد الحالي", wdPhName: "الاسم", wdPhCard: "رقم البطاقة", wdWarn: "الرصيد أقل من الحد الأدنى.", btnSubmitWd: "إرسال الطلب", btnBack: "رجوع", garTitle: "المرآب", btnSelected: "محدد", btnSelect: "اختر", btnBuy: "شراء", aiScenStart: "يبدأ اللعبة.", aiScenEmpty: "الرصيد فارغ.", aiScenRed: "ضوء أحمر، غرامة.", aiScenGreen: "ضوء أخضر، مكافأة!", aiScenCrash: "حادث، غرامة.", aiScenNear: "مرور قريب، مكافأة.", aiScenPoliceRun: "هروب، غرامة!", aiScenPoliceEarly: "انطلاق مبكر، غرامة.", aiScenPoliceOk: "شرطة موافق، مكافأة." } }
         };
 
         // GARAJ MAŞINLARI
@@ -346,10 +338,8 @@
             document.getElementById('currentFlag').innerText = lang.flag;
             document.getElementById('currentLangName').innerText = lang.code;
             
-            // Update RTL/LTR
             document.body.setAttribute('dir', lang.dir);
             
-            // Update all translatable elements
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (lang.t[key]) {
@@ -365,34 +355,43 @@
         function formatMoney(amountAZN) {
             const lang = LANGUAGES[currentLang];
             const converted = (amountAZN * lang.rate).toFixed(2);
-            // Handling RTL currency display
             if(lang.dir === 'rtl') return `${lang.currency} ${converted}`;
             return `${converted} ${lang.currency}`;
         }
 
-        // SİSTEM YADDAŞI (QEYDİYYAT YOXLANIŞI)
+        // ==========================================
+        // SİSTEM YADDAŞI & QEYDİYYAT
+        // ==========================================
         let isRegistered = localStorage.getItem('premiumDriveRegistered') === 'true';
         let savedBalance = localStorage.getItem('premiumDriveBalance');
 
+        // Əgər qeydiyyatdan keçibsə, qeydiyyatı gizlət, ana ekranı aç
         if (isRegistered) {
             document.getElementById('registrationScreen').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
-            balanceAZN = savedBalance !== null ? parseFloat(savedBalance) : 0.50;
+            balanceAZN = savedBalance !== null ? parseFloat(savedBalance) : 0.50; // default olaraq 0.50 yoxlayır
         }
 
+        // Qeydiyyat formu tamamlandıqda
         document.getElementById('regForm').addEventListener('submit', (e) => {
             e.preventDefault();
+            // Backend qoşulduqda form məlumatları göndərilə bilər.
             localStorage.setItem('premiumDriveRegistered', 'true');
+            
+            // Qeydiyyat anında balansı 0.50 AZN təyin et
             if (savedBalance === null) {
                 balanceAZN = 0.50;
                 localStorage.setItem('premiumDriveBalance', '0.50');
             }
+            
             document.getElementById('registrationScreen').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
             updateUI();
         });
 
-        // AUDIO
+        // ==========================================
+        // AUDIO & AI
+        // ==========================================
         let audioCtx = null; let engineOsc = null; let engineGain = null;
         function initAudio() {
             if (audioCtx) return;
@@ -428,7 +427,6 @@
             }
         }
 
-        // AI
         const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
         const genAI = new GoogleGenerativeAI(API_KEY);
         async function getDrivingAdvice(scenarioKey) {
@@ -450,7 +448,9 @@
             container.classList.add('shake-effect');
         }
 
-        // OYUN DƏYİŞƏNLƏRİ
+        // ==========================================
+        // OYUN MƏNTİQİ
+        // ==========================================
         const LOGICAL_WIDTH = 400; const LOGICAL_HEIGHT = 600;
         const CAR_WIDTH = 48; const CAR_HEIGHT = 86; const PLAYER_Y = LOGICAL_HEIGHT - 130;
         const LANES = [100, 200, 300]; const BIOMES = [{ ground: '#020617', road: '#0f172a', curb: '#1e293b' }];
@@ -493,7 +493,7 @@
             const car = CAR_SKINS.find(c => c.id === id);
             if (car && balanceAZN >= car.priceAZN) {
                 balanceAZN -= car.priceAZN; car.owned = true; activeSkinId = id;
-                playBuySound(); updateUI(); renderGarage(); getDrivingAdvice("aiScenGreen"); // generic positive
+                playBuySound(); updateUI(); renderGarage(); getDrivingAdvice("aiScenGreen"); 
             }
         };
 
@@ -602,7 +602,7 @@
                 if (trafficLight.y > LOGICAL_HEIGHT) trafficLight.active = false;
             }
 
-            // POLİS MƏNTİQİ
+            // POLİS
             if (!policeEvent.active && !trafficLight.active && Math.random() < 0.003 && score > 30) {
                 policeEvent = { active: true, y: -200, state: 'APPROACHING', waitTimer: 180 };
                 playPoliceSiren();
@@ -750,7 +750,7 @@
                 
                 ctx.font = '900 20px sans-serif';
                 ctx.textAlign = 'right';
-                // Multilingual police text mapping:
+                
                 let stopTxt = "🛑 SAXLA!"; let goTxt = "✅ GET!";
                 if(currentLang==='en') { stopTxt="🛑 STOP!"; goTxt="✅ GO!"; }
                 if(currentLang==='ru') { stopTxt="🛑 СТОП!"; goTxt="✅ ЕДЬ!"; }
@@ -796,7 +796,6 @@
             btn.disabled = true;
             
             setTimeout(() => {
-                // Heç bir balans avtomatik olaraq əlavə edilmir! Ödəniş backend tərəfindən təsdiqlənmədiyi müddətcə xəta verir.
                 btn.innerHTML = `❌ Error`; 
                 btn.classList.replace('text-emerald-400', 'text-rose-400'); 
                 btn.classList.replace('bg-emerald-500/10', 'bg-rose-500/10');
@@ -824,7 +823,6 @@
         document.getElementById('laneLeft').addEventListener('mousedown', goLeft); document.getElementById('laneLeft').addEventListener('touchstart', goLeft, {passive: false});
         document.getElementById('laneRight').addEventListener('mousedown', goRight); document.getElementById('laneRight').addEventListener('touchstart', goRight, {passive: false});
 
-        // Tətbiq Başlayanda Dili və UI-ı Hazırla
         initLanguage();
         if(isRegistered) updateUI();
 

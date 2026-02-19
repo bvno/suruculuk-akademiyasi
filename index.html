@@ -98,76 +98,44 @@
     <div id="topUpModal" class="hidden absolute inset-0 bg-[#020617]/90 backdrop-blur-2xl flex items-center justify-center p-6 z-[100] overflow-y-auto">
         <div class="glass-panel p-6 rounded-[40px] text-center w-full max-w-md relative overflow-hidden my-auto">
             <div class="absolute -top-20 -right-20 w-40 h-40 bg-[#FFDD00]/20 rounded-full blur-[50px]"></div>
-            
             <h2 class="text-2xl font-black mb-4 neon-emerald relative z-10">Balansı Artır</h2>
-            
             <div class="text-slate-300 text-xs mb-6 relative z-10 space-y-3 text-left bg-[#0f172a]/80 p-4 rounded-[20px] border border-white/5 shadow-inner">
                 <p class="flex items-start gap-2">
                     <span class="text-emerald-400 mt-0.5">✔</span>
-                    <span><a href="https://buymeacoffee.com/surwin" target="_blank" class="text-[#FFDD00] underline font-bold">buymeacoffee.com/surwin</a> linkinə daxil olaraq <b>minimum 2 USD</b> ödəniş etdikdə, vəsait təsdiqləndikdən sonra avtomatik olaraq oyun balansına əlavə olunacaq.</span>
-                </p>
-                <p class="flex items-start gap-2">
-                    <span class="text-emerald-400 mt-0.5">✔</span>
-                    <span>Balansınıza yüklənmiş məbləğlə oyunda davam edə və qazanc əldə edə bilərsiniz.</span>
-                </p>
-                <p class="flex items-start gap-2">
-                    <span class="text-emerald-400 mt-0.5">✔</span>
-                    <span>İstədiyiniz zaman balans şərtlərinə (min. 30 AZN) uyğun olaraq vəsaiti nağdlaşdıra bilərsiniz.</span>
+                    <span><a href="https://buymeacoffee.com/surwin" target="_blank" class="text-[#FFDD00] underline font-bold">buymeacoffee.com/surwin</a> linkinə daxil olaraq <b>minimum 2 USD</b> ödəniş etdikdə balans artacaq.</span>
                 </p>
             </div>
-
-            <button id="buyMeCoffeeBtn" class="w-full py-4 bg-[#FFDD00] text-black rounded-[24px] font-black shadow-[0_0_20px_rgba(255,221,0,0.3)] mb-4 active:scale-95 transition-all relative z-10 flex items-center justify-center gap-3 text-lg">
-                <span class="text-2xl">☕</span> Ödəniş Et
-            </button>
-            
-            <button id="verifyPaymentBtn" class="w-full py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-[24px] font-bold mb-4 active:scale-95 transition-all relative z-10 text-sm flex items-center justify-center gap-2">
-                🔄 Ödənişi Yoxla / Təsdiqlə
-            </button>
-
-            <button id="closeTopUpBtn" class="text-slate-400 text-[12px] font-bold uppercase tracking-widest active:text-white transition-all relative z-10">Bağla</button>
+            <button id="buyMeCoffeeBtn" class="w-full py-4 bg-[#FFDD00] text-black rounded-[24px] font-black shadow-[0_0_20px_rgba(255,221,0,0.3)] mb-4 active:scale-95 transition-all relative z-10 flex items-center justify-center gap-3 text-lg">☕ Ödəniş Et</button>
+            <button id="verifyPaymentBtn" class="w-full py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-[24px] font-bold mb-4 active:scale-95 transition-all relative z-10 text-sm">🔄 Ödənişi Yoxla</button>
+            <button id="closeTopUpBtn" class="text-slate-400 text-[12px] font-bold uppercase tracking-widest">Bağla</button>
         </div>
     </div>
 
     <div id="withdrawModal" class="hidden absolute inset-0 bg-[#020617]/90 backdrop-blur-2xl flex items-center justify-center p-6 z-[100]">
         <div class="glass-panel p-8 rounded-[40px] text-center w-full max-w-sm relative overflow-hidden">
-            <div class="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500/20 rounded-full blur-[50px]"></div>
             <h2 class="text-2xl font-black mb-2 neon-cyan relative z-10">Nağdlaşdır</h2>
-            <p class="text-white text-sm font-bold mb-2 relative z-10">Qazandığınız məbləği dərhal nağdlaşdıra bilərsiniz.</p>
-            <p class="text-slate-400 text-xs mb-6 relative z-10">Balansınız minimum 30 AZN olduqda vəsaiti dərhal nağdlaşdıra bilərsiniz.</p>
-            <div class="bg-[#0f172a] p-4 rounded-2xl mb-6 border border-white/5 relative z-10">
-                <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Cari Balansınız</p>
-                <p id="withdrawBalanceDisplay" class="text-2xl font-black text-cyan-400 neon-cyan">0.00 AZN</p>
-            </div>
-            <form id="withdrawForm" action="BURA_LİNKİ_YAPIŞDIRACAQSINIZ" method="POST" class="flex flex-col gap-3 relative z-10">
-                <input type="hidden" name="Müştərinin_Balansı" id="hiddenBalanceInput" value="">
-                <input type="text" name="Ad_Soyad" placeholder="Ad və Soyadınız" required class="w-full p-4 rounded-2xl bg-[#020617] border border-slate-700 text-white outline-none focus:border-cyan-500 text-sm">
-                <input type="text" name="Kart_Nomresi" placeholder="Kart və ya Hesab Nömrəsi" required class="w-full p-4 rounded-2xl bg-[#020617] border border-slate-700 text-white outline-none focus:border-cyan-500 text-sm">
-                <p id="withdrawWarning" class="text-rose-500 text-xs font-bold mt-1 hidden">Balansınız 30 AZN-dən azdır.</p>
-                <button type="submit" id="submitWithdrawBtn" class="w-full py-4 mt-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all">Sorğu Göndər</button>
+            <p id="withdrawBalanceDisplay" class="text-2xl font-black text-cyan-400 neon-cyan mb-6">0.00 AZN</p>
+            <form id="withdrawForm" action="#" method="POST" class="flex flex-col gap-3 relative z-10">
+                <input type="text" name="Ad_Soyad" placeholder="Ad və Soyad" required class="w-full p-4 rounded-2xl bg-[#020617] border border-slate-700 text-white outline-none">
+                <input type="text" name="Kart_Nomresi" placeholder="Kart Nömrəsi" required class="w-full p-4 rounded-2xl bg-[#020617] border border-slate-700 text-white outline-none">
+                <p id="withdrawWarning" class="text-rose-500 text-xs font-bold hidden">Minimum 30 AZN tələb olunur.</p>
+                <button type="submit" id="submitWithdrawBtn" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 rounded-[24px] font-bold uppercase">Sorğu Göndər</button>
             </form>
-            <button id="closeWithdrawBtn" class="text-slate-400 text-[12px] font-bold uppercase tracking-widest mt-6 active:text-white transition-all relative z-10">Geri</button>
+            <button id="closeWithdrawBtn" class="text-slate-400 text-[12px] font-bold uppercase mt-6">Geri</button>
         </div>
     </div>
 
     <div id="garageModal" class="hidden absolute inset-0 bg-[#020617]/90 backdrop-blur-2xl flex flex-col items-center justify-center p-6 z-[100]">
         <div class="glass-panel p-6 rounded-[32px] w-full max-w-sm relative overflow-hidden flex flex-col max-h-[90%]">
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-[40px]"></div>
-            <div class="flex justify-between items-center mb-6 relative z-10">
-                <h2 class="text-2xl font-black neon-cyan italic">QARAJ</h2>
-                <div class="text-right">
-                    <p class="text-[10px] text-cyan-400 uppercase tracking-widest">Balans</p>
-                    <p id="garageBalanceText" class="text-sm font-bold neon-cyan">0.00 AZN</p>
-                </div>
-            </div>
-            <div id="garageList" class="flex-1 overflow-y-auto pr-2 space-y-4 relative z-10 custom-scrollbar"></div>
-            <button id="closeGarageBtn" class="w-full mt-6 py-4 glass-panel rounded-[20px] text-slate-300 font-bold uppercase tracking-widest active:scale-95 transition-all relative z-10">Bağla</button>
+            <h2 class="text-2xl font-black neon-cyan italic mb-4">QARAJ</h2>
+            <div id="garageList" class="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar"></div>
+            <button id="closeGarageBtn" class="w-full mt-6 py-4 glass-panel rounded-[20px] text-slate-300 font-bold uppercase">Bağla</button>
         </div>
     </div>
 
     <script type="module">
         import { GoogleGenerativeAI } from "@google/generative-ai";
 
-        // MƏLUMATLAR
         const LANGUAGES = { az: { currency: 'AZN', rate: 1, tts: 'tr-TR' } };
         const CAR_SKINS = [
             { id: 'default', name: 'Neon Blue', color: '#0ea5e9', price: 0, owned: true },
@@ -197,24 +165,9 @@
             gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
             osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
         }
-        function playCrashSound() { playTone(150, 'sawtooth', 0.5, 0.4); setTimeout(() => playTone(50, 'square', 0.8, 0.4), 100); }
-        function playSuccessSound() { playTone(660, 'sine', 0.1, 0.2); setTimeout(() => playTone(880, 'sine', 0.3, 0.2), 100); }
-        function playFineSound() { playTone(200, 'square', 0.3, 0.3); setTimeout(() => playTone(150, 'square', 0.4, 0.3), 150); }
-        function playBuySound() { playTone(523.25, 'sine', 0.1, 0.2); setTimeout(() => playTone(659.25, 'sine', 0.2, 0.2), 100); setTimeout(() => playTone(783.99, 'sine', 0.3, 0.2), 200); }
 
-        function getSpeechData(text) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); 
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = LANGUAGES[currentLang].tts; utterance.rate = 1.1; 
-                utterance.onstart = () => { document.getElementById("aiIcon").innerText = "🔊"; };
-                utterance.onend = () => { document.getElementById("aiIcon").innerText = "🤖"; };
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        // AI
-        const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
+        // AI (Sizin açarınızı bura qoyun)
+        const API_KEY = "SİZİN_API_AÇARINIZ"; 
         const genAI = new GoogleGenerativeAI(API_KEY);
         async function getDrivingAdvice(scenario) {
             const aiTipEl = document.getElementById("aiTipText");
@@ -223,18 +176,17 @@
                 const prompt = `Sən oyunda səsli köməkçisən. Ssenari: ${scenario}. Şən və maksimum 5 sözlük cavab ver. Dil: Azərbaycanca.`;
                 const result = await model.generateContent(prompt);
                 const text = await result.response.text();
-                aiTipEl.innerText = text; getSpeechData(text);
-            } catch (error) { console.error(error); }
+                aiTipEl.innerText = text;
+            } catch (error) { aiTipEl.innerText = "Yola diqqət et!"; }
         }
 
-        // OYUN DƏYİŞƏNLƏRİ
+        // OYUN MEXANİZMİ (ASANLAŞDIRILMIŞ)
         const LOGICAL_WIDTH = 400; const LOGICAL_HEIGHT = 600;
         const CAR_WIDTH = 48; const CAR_HEIGHT = 86; const PLAYER_Y = LOGICAL_HEIGHT - 130;
-        const LANES = [100, 200, 300]; const BIOMES = [{ ground: '#020617', road: '#0f172a', curb: '#1e293b' }];
+        const LANES = [100, 200, 300];
 
         let isGameRunning = false; let isBraking = false; let isGameOver = false;
-        let savedBalance = localStorage.getItem('premiumDriveBalance');
-        let balance = savedBalance !== null ? parseFloat(savedBalance) : 0.30;
+        let balance = parseFloat(localStorage.getItem('premiumDriveBalance')) || 0.30;
         
         let score = 0; let trafficCars = []; let speedMultiplier = 1; let animatedPopups = []; 
         let gameState = { carX: LANES[1] - CAR_WIDTH / 2, targetX: LANES[1] - CAR_WIDTH / 2, linesOffset: 0 };
@@ -244,182 +196,41 @@
         function updateUI() {
             localStorage.setItem('premiumDriveBalance', balance.toFixed(2));
             const formatted = `${balance.toFixed(2)} AZN`;
-            
             document.getElementById('balanceText').innerText = formatted;
             document.getElementById('loginBalanceText').innerText = formatted;
-            document.getElementById('garageBalanceText').innerText = formatted;
             document.getElementById('withdrawBalanceDisplay').innerText = formatted;
             document.getElementById('scoreText').innerText = `${Math.floor(score)} M`;
-            document.getElementById('hiddenBalanceInput').value = formatted;
             
             const submitBtn = document.getElementById('submitWithdrawBtn');
             const warning = document.getElementById('withdrawWarning');
             if (balance < 30) {
-                submitBtn.disabled = true; submitBtn.classList.add('opacity-50', 'cursor-not-allowed'); warning.classList.remove('hidden');
+                submitBtn.disabled = true; submitBtn.classList.add('opacity-50'); warning.classList.remove('hidden');
             } else {
-                submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); warning.classList.add('hidden');
+                submitBtn.disabled = false; submitBtn.classList.remove('opacity-50'); warning.classList.add('hidden');
             }
         }
 
         function spawnPopup(text, color, x, y) { animatedPopups.push({ text, color, x, y, alpha: 1, life: 60 }); }
 
-        // QARAJ
-        window.selectCar = (id) => { activeSkinId = id; playSuccessSound(); renderGarage(); };
-        window.buyCar = (id) => {
-            const car = CAR_SKINS.find(c => c.id === id);
-            if (car && balance >= car.price) {
-                balance -= car.price; car.owned = true; activeSkinId = id;
-                playBuySound(); updateUI(); renderGarage(); getDrivingAdvice("Yeni maşın xeyirli olsun!");
-            }
-        };
-
-        function renderGarage() {
-            const list = document.getElementById('garageList'); list.innerHTML = '';
-            CAR_SKINS.forEach(car => {
-                const item = document.createElement('div'); item.className = "glass-panel p-4 rounded-[20px] flex items-center justify-between";
-                const isSelected = activeSkinId === car.id; let btnHTML = '';
-                if (car.owned) {
-                    btnHTML = isSelected ? `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-500">Seçilib</button>` 
-                    : `<button onclick="window.selectCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300">Seç</button>`;
-                } else {
-                    const priceF = car.price.toFixed(2) + " AZN";
-                    btnHTML = balance >= car.price ? `<button onclick="window.buyCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-400">Al (${priceF})</button>`
-                    : `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-slate-800/50 text-slate-500">Al (${priceF})</button>`;
-                }
-                item.innerHTML = `<div class="flex items-center gap-4"><div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background-color: ${car.color}"><div class="w-6 h-10 bg-black/20"></div></div><div><p class="font-bold text-sm">${car.name}</p></div></div><div>${btnHTML}</div>`;
-                list.appendChild(item);
-            });
-        }
-
-        // MƏNTİQ
         function startGame() {
-            document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('gameScreen').classList.remove('hidden'); document.getElementById('gameOverScreen').classList.add('hidden');
-            initAudio(); isGameRunning = true; isGameOver = false; score = 0; speedMultiplier = 1; trafficCars = []; animatedPopups = [];
-            gameState.carX = LANES[1] - CAR_WIDTH / 2; gameState.targetX = LANES[1] - CAR_WIDTH / 2; trafficLight.active = false;
-            updateUI(); getDrivingAdvice("Uğurlar!"); requestAnimationFrame(gameLoop);
+            document.getElementById('loginScreen').classList.add('hidden'); 
+            document.getElementById('gameScreen').classList.remove('hidden'); 
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            initAudio(); isGameRunning = true; isGameOver = false; score = 0; 
+            speedMultiplier = 1; trafficCars = []; animatedPopups = [];
+            gameState.carX = LANES[1] - CAR_WIDTH / 2; gameState.targetX = LANES[1] - CAR_WIDTH / 2;
+            updateUI(); requestAnimationFrame(gameLoop);
         }
 
         function gameOver() {
-            isGameOver = true; document.getElementById('gameOverScreen').classList.remove('hidden'); document.getElementById('finalScore').innerText = Math.floor(score);
-            getDrivingAdvice("Oyunçu uduzdu."); if (engineGain) engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+            isGameOver = true; document.getElementById('gameOverScreen').classList.remove('hidden'); 
+            document.getElementById('finalScore').innerText = Math.floor(score);
         }
 
         function update() {
             if (!isGameRunning || isGameOver) return;
-            const baseSpeed = isBraking ? 0 : 5 * speedMultiplier; 
+            const baseSpeed = isBraking ? 0 : 4.5 * speedMultiplier; // Sürəti bir az azaltdıq
 
-            if (!isBraking) { score += 0.1 * speedMultiplier; if(speedMultiplier < 1.5) speedMultiplier += 0.0001; }
-            gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80; gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
-
-            if (!trafficLight.active && Math.random() < 0.003 && score > 50) { trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false; trafficLight.timer = 300; trafficLight.state = 'GREEN'; }
-            if (trafficLight.active) {
-                trafficLight.y += baseSpeed; trafficLight.timer--;
-                if (trafficLight.timer === 200) trafficLight.state = 'YELLOW';
-                if (trafficLight.timer === 140) trafficLight.state = 'RED';
-                if (trafficLight.timer === 0) trafficLight.state = 'GREEN';
-
-                if (trafficLight.y > PLAYER_Y + CAR_HEIGHT && !trafficLight.passed) {
-                    trafficLight.passed = true;
-                    if (trafficLight.state === 'RED' && !isBraking) { balance -= 0.20; playFineSound(); spawnPopup("-0.20 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); getDrivingAdvice("Qırmızı işıq! Cərimə."); } 
-                    else if (trafficLight.state === 'GREEN') { balance += 0.50; playSuccessSound(); spawnPopup("+0.50 AZN", "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); getDrivingAdvice("Yaşıl işıq bonusu!"); }
-                    updateUI(); if (balance <= 0) { balance = 0; gameOver(); }
-                }
-                if (trafficLight.y > LOGICAL_HEIGHT) trafficLight.active = false;
-            }
-
-            if (Math.random() < 0.02 * speedMultiplier && !isBraking && !trafficLight.active) {
-                const lane = LANES[Math.floor(Math.random() * LANES.length)];
-                if (trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150)) trafficCars.push({ x: lane - CAR_WIDTH / 2, y: -100, speed: Math.random() * 2 + 2, color: '#f43f5e' });
-            }
-
-            for (let i = trafficCars.length - 1; i >= 0; i--) {
-                let car = trafficCars[i]; car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
-                if (gameState.carX < car.x + CAR_WIDTH - 5 && gameState.carX + CAR_WIDTH - 5 > car.x && PLAYER_Y < car.y + CAR_HEIGHT - 5 && PLAYER_Y + CAR_HEIGHT - 5 > car.y) {
-                    balance -= 1.00; playCrashSound(); spawnPopup("-1.00 AZN", "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y); trafficCars.splice(i, 1); getDrivingAdvice("Qəza etdin!"); updateUI(); 
-                    if (balance <= 0) { balance = 0; gameOver(); return; }
-                } else if (car.y > LOGICAL_HEIGHT) { trafficCars.splice(i, 1); }
-            }
-
-            animatedPopups.forEach(p => { p.y -= 1.5; p.alpha -= 0.015; p.life--; }); animatedPopups = animatedPopups.filter(p => p.life > 0);
-            if (engineGain && audioCtx) { engineOsc.frequency.setTargetAtTime(isBraking ? 30 : 40 * speedMultiplier, audioCtx.currentTime, 0.1); engineGain.gain.setTargetAtTime(isBraking ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier), audioCtx.currentTime, 0.1); }
-        }
-
-        // ÇİZİM
-        function drawCar(x, y, color, isPlayer, braking) {
-            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 10; ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect(x, y, CAR_WIDTH, CAR_HEIGHT, 12); ctx.fill(); ctx.shadowColor = 'transparent'; 
-            ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 15, CAR_WIDTH - 8, 18, 4); ctx.fill(); ctx.beginPath(); ctx.roundRect(x + 6, y + CAR_HEIGHT - 25, CAR_WIDTH - 12, 12, 3); ctx.fill();
-            if (isPlayer && braking) { ctx.fillStyle = '#f43f5e'; ctx.fillRect(x + 4, y + CAR_HEIGHT - 6, 12, 4); ctx.fillRect(x + CAR_WIDTH - 16, y + CAR_HEIGHT - 6, 12, 4); } 
-            else if (!isPlayer) { ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(x + 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(x + CAR_WIDTH - 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); }
-            ctx.restore();
-        }
-
-        function draw() {
-            if (!ctx) return; const biome = BIOMES[0];
-            ctx.fillStyle = biome.ground; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); ctx.fillStyle = biome.curb; ctx.fillRect(50, 0, 10, LOGICAL_HEIGHT); ctx.fillRect(LOGICAL_WIDTH - 60, 0, 10, LOGICAL_HEIGHT); ctx.fillStyle = biome.road; ctx.fillRect(60, 0, LOGICAL_WIDTH - 120, LOGICAL_HEIGHT);
-            ctx.setLineDash([30, 40]); ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 4; ctx.lineDashOffset = -gameState.linesOffset; ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); ctx.stroke();
-
-            if (trafficLight.active) {
-                ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(60, trafficLight.y, LOGICAL_WIDTH - 120, 8); ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.roundRect(LOGICAL_WIDTH - 45, trafficLight.y - 70, 26, 75, 8); ctx.fill();
-                const drawLight = (yOff, color, active) => { ctx.save(); ctx.fillStyle = active ? color : '#1e293b'; ctx.beginPath(); ctx.arc(LOGICAL_WIDTH - 32, trafficLight.y - 70 + yOff, 8, 0, Math.PI*2); ctx.fill(); ctx.restore(); };
-                drawLight(16, '#f43f5e', trafficLight.state === 'RED'); drawLight(38, '#facc15', trafficLight.state === 'YELLOW'); drawLight(60, '#10b981', trafficLight.state === 'GREEN');
-            }
-
-            trafficCars.forEach(car => drawCar(car.x, car.y, car.color, false, false));
-            drawCar(gameState.carX, PLAYER_Y, CAR_SKINS.find(c => c.id === activeSkinId).color, true, isBraking); 
-
-            animatedPopups.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.alpha); ctx.font = '900 24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(p.text, p.x, p.y); ctx.restore(); });
-        }
-
-        function gameLoop() { update(); draw(); if (isGameRunning) requestAnimationFrame(gameLoop); }
-
-        // EVENTLƏR
-        document.getElementById('loginBtn').addEventListener('click', startGame);
-        document.getElementById('restartBtn').addEventListener('click', startGame);
-        document.getElementById('buyMeCoffeeBtn').addEventListener('click', () => { window.open('https://buymeacoffee.com/surwin', '_blank'); });
-
-        // ÖDƏNİŞİ YOXLA SİMULYASİYASI (DEMO MƏQSƏDLİ)
-        document.getElementById('verifyPaymentBtn').addEventListener('click', (e) => {
-            const btn = e.currentTarget;
-            btn.innerHTML = `⏳ Yoxlanılır...`;
-            btn.disabled = true;
-
-            // 3 saniyəlik saxta server gecikməsi
-            setTimeout(() => {
-                // 2 USD təxminən 3.40 AZN edir. Demo məqsədilə balansa əlavə olunur.
-                balance += 3.40;
-                updateUI();
-                playSuccessSound();
-                
-                btn.innerHTML = `✅ Təsdiqləndi (+2 USD)`;
-                btn.classList.replace('text-emerald-400', 'text-white');
-                btn.classList.replace('bg-emerald-500/10', 'bg-emerald-600');
-
-                // 2 saniyə sonra düyməni əvvəlki halına qaytar və modalı bağla
-                setTimeout(() => {
-                    document.getElementById('topUpModal').classList.add('hidden');
-                    btn.innerHTML = `🔄 Ödənişi Yoxla / Təsdiqlə`;
-                    btn.disabled = false;
-                    btn.classList.replace('text-white', 'text-emerald-400');
-                    btn.classList.replace('bg-emerald-600', 'bg-emerald-500/10');
-                }, 2000);
-            }, 3000);
-        });
-
-        const toggleModal = (btnId, modalId, show) => document.getElementById(btnId).addEventListener('click', () => { document.getElementById(modalId).classList[show ? 'remove' : 'add']('hidden'); updateUI(); if(show && modalId==='garageModal') renderGarage(); });
-        toggleModal('loginTopupBtn', 'topUpModal', true); toggleModal('topupBtn', 'topUpModal', true); toggleModal('closeTopUpBtn', 'topUpModal', false);
-        toggleModal('withdrawBtn', 'withdrawModal', true); toggleModal('closeWithdrawBtn', 'withdrawModal', false);
-        toggleModal('garageBtn', 'garageModal', true); toggleModal('closeGarageBtn', 'garageModal', false);
-
-        const brakeBtn = document.getElementById('brakeBtn');
-        const startBraking = (e) => { e.preventDefault(); isBraking = true; }; const stopBraking = (e) => { e.preventDefault(); isBraking = false; };
-        brakeBtn.addEventListener('mousedown', startBraking); brakeBtn.addEventListener('mouseup', stopBraking); brakeBtn.addEventListener('touchstart', startBraking, {passive: false}); brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
-        
-        const goLeft = (e) => { e.preventDefault(); if(gameState.targetX > LANES[0] - CAR_WIDTH/2) gameState.targetX -= 100; };
-        const goRight = (e) => { e.preventDefault(); if(gameState.targetX < LANES[2] - CAR_WIDTH/2) gameState.targetX += 100; };
-        document.getElementById('laneLeft').addEventListener('mousedown', goLeft); document.getElementById('laneLeft').addEventListener('touchstart', goLeft, {passive: false});
-        document.getElementById('laneRight').addEventListener('mousedown', goRight); document.getElementById('laneRight').addEventListener('touchstart', goRight, {passive: false});
-
-        updateUI();
-    </script>
-</body>
-</html>
+            if (!isBraking) { 
+                score += 0.1 * speedMultiplier; 
+                if(speedMultiplier < 1.4) speedMultiplier += 0.00005

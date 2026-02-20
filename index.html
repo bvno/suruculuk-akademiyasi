@@ -225,17 +225,29 @@
         </div>
     </div>
 
-    <script>
-        // AI dəyişəni
-        let genAI = null;
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
         const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
-        
-        // Modulun asinxron olaraq kənar müdaxilə olmadan yüklənməsi (Bu kod oyunu dayandırmağa imkan vermir)
-        import('https://esm.run/@google/generative-ai').then(module => {
-            genAI = new module.GoogleGenerativeAI(API_KEY);
-        }).catch(err => {
-            console.warn("AI modulu yüklənmədi, oyun davam edir.", err);
-        });
+        try {
+            const genAI = new GoogleGenerativeAI(API_KEY);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            
+            // AI işini görəndə bu funksiya vasitəsilə cavab qaytaracaq
+            window.aiProcessContent = async function(promptText) {
+                const result = await model.generateContent(promptText);
+                return result.response.text();
+            };
+        } catch(e) {
+            console.warn("AI Modulu tam yüklənə bilmədi. Oyun elementsiz davam edəcək.");
+        }
+    </script>
+
+    <script>
+        // Xətalara qarşı qoruyucu event əlavə edicisi
+        function addEvt(id, event, handler) {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener(event, handler);
+        }
 
         // MULTI-LANGUAGE & CURRENCY SYSTEM
         const LANGUAGES = {
@@ -261,7 +273,7 @@
             }
         };
 
-        // QORUMA: Kəşdəki (Yaddaşdakı) xətaların səhifəni dondurmaması üçün try-catch bloku
+        // QORUNMUŞ DİL SEÇİMİ VƏ YADDAŞ YOXLANMASI
         let currentLang = null;
         try {
             currentLang = localStorage.getItem('premiumDriveLang') || null;
@@ -274,8 +286,10 @@
             document.documentElement.lang = langObj.code;
             document.documentElement.dir = langObj.dir;
             
-            document.getElementById('currentFlagIcon').innerText = langObj.flag;
-            document.getElementById('currentCurrCode').innerText = langObj.currency;
+            const flagIcon = document.getElementById('currentFlagIcon');
+            const currCode = document.getElementById('currentCurrCode');
+            if(flagIcon) flagIcon.innerText = langObj.flag;
+            if(currCode) currCode.innerText = langObj.currency;
 
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
@@ -288,18 +302,26 @@
             });
             
             updateUI();
-            if(document.getElementById('garageModal') && !document.getElementById('garageModal').classList.contains('hidden')) renderGarage();
+            const gModal = document.getElementById('garageModal');
+            if(gModal && !gModal.classList.contains('hidden')) renderGarage();
         }
 
         function changeLanguage(code) {
             currentLang = code;
             try { localStorage.setItem('premiumDriveLang', code); } catch(e){}
             applyTranslations();
+            
+            const lsModal = document.getElementById('langSelectModal');
+            const gSel = document.getElementById('globalLangSelector');
+            if(lsModal) lsModal.classList.add('hidden');
+            if(gSel) gSel.classList.remove('hidden');
+            
             checkAuthState(); 
         }
 
         function initLanguageModal() {
             const container = document.getElementById('langListContainer');
+            if (!container) return;
             Object.values(LANGUAGES).forEach(l => {
                 const btn = document.createElement('button');
                 btn.className = "p-4 glass-panel rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all text-white font-bold";
@@ -310,9 +332,11 @@
         }
         initLanguageModal();
 
-        document.getElementById('langToggleBtn').addEventListener('click', () => {
-            document.getElementById('langSelectModal').classList.remove('hidden');
-            document.getElementById('globalLangSelector').classList.add('hidden');
+        addEvt('langToggleBtn', 'click', () => {
+            const lsModal = document.getElementById('langSelectModal');
+            const gSel = document.getElementById('globalLangSelector');
+            if(lsModal) lsModal.classList.remove('hidden');
+            if(gSel) gSel.classList.add('hidden');
         });
 
         const CAR_SKINS = [
@@ -325,23 +349,27 @@
         const TRAFFIC_COLORS = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#cbd5e1', '#ea580c'];
         let activeSkinId = 'default';
 
-        // AUDIO SİSTEMİ
+        // SƏS SİSTEMİ
         let audioCtx = null; let engineOsc = null; let engineGain = null;
         function initAudio() {
             if (audioCtx) return;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            engineOsc = audioCtx.createOscillator(); engineGain = audioCtx.createGain();
-            engineOsc.type = 'sawtooth'; engineOsc.frequency.setValueAtTime(40, audioCtx.currentTime);
-            engineGain.gain.setValueAtTime(0.08, audioCtx.currentTime); 
-            engineOsc.connect(engineGain); engineGain.connect(audioCtx.destination); engineOsc.start();
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                engineOsc = audioCtx.createOscillator(); engineGain = audioCtx.createGain();
+                engineOsc.type = 'sawtooth'; engineOsc.frequency.setValueAtTime(40, audioCtx.currentTime);
+                engineGain.gain.setValueAtTime(0.08, audioCtx.currentTime); 
+                engineOsc.connect(engineGain); engineGain.connect(audioCtx.destination); engineOsc.start();
+            } catch(e){}
         }
         function playTone(freq, type, duration, vol = 0.1) {
             if (!audioCtx) return;
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
+            try {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e){}
         }
         function playCrashSound() { playTone(150, 'sawtooth', 0.5, 0.4); setTimeout(() => playTone(50, 'square', 0.8, 0.4), 100); }
         function playSuccessSound() { playTone(660, 'sine', 0.1, 0.2); setTimeout(() => playTone(880, 'sine', 0.3, 0.2), 100); }
@@ -355,42 +383,43 @@
                 window.speechSynthesis.cancel(); 
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = LANGUAGES[currentLang].tts; utterance.rate = 1.1; 
-                utterance.onstart = () => { document.getElementById("aiIcon").innerText = "🔊"; };
-                utterance.onend = () => { document.getElementById("aiIcon").innerText = "🤖"; };
+                const aiIcon = document.getElementById("aiIcon");
+                utterance.onstart = () => { if(aiIcon) aiIcon.innerText = "🔊"; };
+                utterance.onend = () => { if(aiIcon) aiIcon.innerText = "🤖"; };
                 window.speechSynthesis.speak(utterance);
             }
         }
 
+        // ASİNXRON AI YÜKLƏMƏSİ (Oyunla əlaqəsi yoxdur, çökmə yarada bilməz)
         async function getDrivingAdvice(scenario) {
             const aiTipEl = document.getElementById("aiTipText");
-            if (!genAI) {
-                aiTipEl.innerText = scenario;
-                getSpeechData(scenario);
-                return;
+            if (!aiTipEl) return;
+            
+            if (typeof window.aiProcessContent === 'function') {
+                try {
+                    const langName = currentLang ? LANGUAGES[currentLang].name : 'Azərbaycanca';
+                    const prompt = `Sən oyunda səsli köməkçisən. Ssenari: ${scenario}. Çox həyəcanlı və maksimum 4 sözlük cavab ver. Dil: ${langName}.`;
+                    const text = await window.aiProcessContent(prompt);
+                    aiTipEl.innerText = text; 
+                    getSpeechData(text);
+                    return;
+                } catch (error) { 
+                    console.warn("AI Xətası:", error); 
+                }
             }
-            try {
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const langName = currentLang ? LANGUAGES[currentLang].name : 'Azərbaycanca';
-                const prompt = `Sən oyunda səsli köməkçisən. Ssenari: ${scenario}. Çox həyəcanlı və maksimum 4 sözlük cavab ver. Dil: ${langName}.`;
-                
-                model.generateContent(prompt).then(result => {
-                    return result.response.text();
-                }).then(text => {
-                    aiTipEl.innerText = text; getSpeechData(text);
-                }).catch(err => {
-                    aiTipEl.innerText = scenario;
-                });
-            } catch (error) { 
-                console.error("AI Xətası:", error); 
-                aiTipEl.innerText = scenario;
-            }
+            
+            // AI işləməsə normal qaydada mesajı yaz
+            aiTipEl.innerText = scenario;
+            getSpeechData(scenario);
         }
 
         function triggerScreenShake() {
             const container = document.getElementById('gameContainer');
-            container.classList.remove('shake-effect');
-            void container.offsetWidth; 
-            container.classList.add('shake-effect');
+            if(container){
+                container.classList.remove('shake-effect');
+                void container.offsetWidth; 
+                container.classList.add('shake-effect');
+            }
         }
 
         // QEYDİYYAT VƏ GİRİŞ QORUMALARI
@@ -405,87 +434,120 @@
         let currentUser = null;
         try {
             let storedUser = localStorage.getItem('premiumDriveUser');
-            if(storedUser) currentUser = JSON.parse(storedUser);
+            if(storedUser && storedUser.includes("{")) {
+                currentUser = JSON.parse(storedUser);
+            }
         } catch(e) {
-            localStorage.removeItem('premiumDriveUser'); 
+            try { localStorage.removeItem('premiumDriveUser'); } catch(ex){} 
         }
         
         let isBanned = false;
         try { isBanned = localStorage.getItem('premiumDriveBan') === 'true'; } catch(e){}
 
+        // EKRAN GÖSTƏRMƏ FUNKSİYASI
+        function hideAllScreens() {
+            ['langSelectModal', 'authScreen', 'loginFormScreen', 'loginScreen', 'banScreen'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.classList.add('hidden');
+            });
+        }
+
         function checkAuthState() {
-            // Əvvəlcə bütün ekranları gizlədək ki, üst-üstə minməsin
-            document.getElementById('langSelectModal').classList.add('hidden');
-            document.getElementById('authScreen').classList.add('hidden');
-            document.getElementById('loginFormScreen').classList.add('hidden');
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('banScreen').classList.add('hidden');
+            hideAllScreens();
             
             if (!currentLang) {
-                document.getElementById('langSelectModal').classList.remove('hidden');
-                document.getElementById('globalLangSelector').classList.add('hidden');
+                const lsModal = document.getElementById('langSelectModal');
+                const gSel = document.getElementById('globalLangSelector');
+                if(lsModal) lsModal.classList.remove('hidden');
+                if(gSel) gSel.classList.add('hidden');
                 return;
             }
             
-            document.getElementById('globalLangSelector').classList.remove('hidden');
+            const gSel = document.getElementById('globalLangSelector');
+            if(gSel) gSel.classList.remove('hidden');
 
             if (isBanned) {
-                document.getElementById('banScreen').classList.remove('hidden');
+                const banEl = document.getElementById('banScreen');
+                if(banEl) banEl.classList.remove('hidden');
             } else if (currentUser) {
-                document.getElementById('loginScreen').classList.remove('hidden');
+                const loginEl = document.getElementById('loginScreen');
+                if(loginEl) loginEl.classList.remove('hidden');
                 if(!isGameRunning) applyTranslations(); 
             } else {
-                document.getElementById('authScreen').classList.remove('hidden');
+                const authEl = document.getElementById('authScreen');
+                if(authEl) authEl.classList.remove('hidden');
             }
         }
 
         if(currentLang) applyTranslations();
-        checkAuthState(); // Yeniləndikdə qorunmuş şəkildə açır
+        checkAuthState(); 
 
-        document.getElementById('showLoginBtn').addEventListener('click', () => {
-            document.getElementById('authScreen').classList.add('hidden'); 
-            document.getElementById('loginFormScreen').classList.remove('hidden');
+        addEvt('showLoginBtn', 'click', () => {
+            const aScreen = document.getElementById('authScreen');
+            const lScreen = document.getElementById('loginFormScreen');
+            if(aScreen) aScreen.classList.add('hidden'); 
+            if(lScreen) lScreen.classList.remove('hidden');
         });
-        document.getElementById('showRegisterBtn').addEventListener('click', () => {
-            document.getElementById('loginFormScreen').classList.add('hidden'); 
-            document.getElementById('authScreen').classList.remove('hidden');
+        
+        addEvt('showRegisterBtn', 'click', () => {
+            const aScreen = document.getElementById('authScreen');
+            const lScreen = document.getElementById('loginFormScreen');
+            if(lScreen) lScreen.classList.add('hidden'); 
+            if(aScreen) aScreen.classList.remove('hidden');
         });
 
-        document.getElementById('registerForm').addEventListener('submit', (e) => {
+        addEvt('registerForm', 'submit', (e) => {
             e.preventDefault();
-            if (localStorage.getItem('premiumDriveUser') !== null) {
+            let checkUser = null;
+            try { checkUser = localStorage.getItem('premiumDriveUser'); } catch(e){}
+
+            if (checkUser !== null) {
                 try { localStorage.setItem('premiumDriveBan', 'true'); } catch(e){}
                 isBanned = true;
-                checkAuthState(); return;
+                checkAuthState(); 
+                return;
             }
+            
+            const fName = document.getElementById('regFullName');
+            const uName = document.getElementById('regUsername');
+            const uAge = document.getElementById('regAge');
+            const uPass = document.getElementById('regPassword');
+
             currentUser = { 
-                fullName: document.getElementById('regFullName').value, 
-                username: document.getElementById('regUsername').value, 
-                age: document.getElementById('regAge').value, 
-                password: document.getElementById('regPassword').value, 
+                fullName: fName ? fName.value : "", 
+                username: uName ? uName.value : "", 
+                age: uAge ? uAge.value : "", 
+                password: uPass ? uPass.value : "", 
                 bonusClaimed: false 
             };
+            
             try {
                 localStorage.setItem('premiumDriveUser', JSON.stringify(currentUser));
                 localStorage.setItem('premiumDriveBalance', '0.00'); 
             } catch(e){}
+            
             balance = 0.00;
             checkAuthState();
         });
 
-        document.getElementById('loginUserForm').addEventListener('submit', (e) => {
+        addEvt('loginUserForm', 'submit', (e) => {
             e.preventDefault();
-            const user = document.getElementById('logUsername').value;
-            const pass = document.getElementById('logPassword').value;
+            const logUName = document.getElementById('logUsername');
+            const logPass = document.getElementById('logPassword');
+            const errEl = document.getElementById('loginError');
+
+            const userVal = logUName ? logUName.value : "";
+            const passVal = logPass ? logPass.value : "";
+            
             let savedUser = null;
             try { savedUser = JSON.parse(localStorage.getItem('premiumDriveUser')); } catch(e){}
             
-            if (savedUser && savedUser.username === user && savedUser.password === pass) {
+            if (savedUser && savedUser.username === userVal && savedUser.password === passVal) {
                 currentUser = savedUser;
-                document.getElementById('loginError').classList.add('hidden');
+                if(errEl) errEl.classList.add('hidden');
                 checkAuthState();
             } else {
-                document.getElementById('loginError').classList.remove('hidden');
+                if(errEl) errEl.classList.remove('hidden');
             }
         });
 
@@ -501,7 +563,8 @@
         let trafficLight = { active: false, y: -200, state: 'GREEN', timer: 0, passed: false };
         let policeEvent = { active: false, y: -200, passed: false, isWaiting: false };
 
-        const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
+        const canvas = document.getElementById('gameCanvas'); 
+        const ctx = canvas ? canvas.getContext('2d') : null;
 
         function formatCurrency(baseAznValue) {
             const lang = LANGUAGES[currentLang] || LANGUAGES['az'];
@@ -513,22 +576,32 @@
             return LANGUAGES[currentLang].t[key] || key;
         }
 
+        function safeSetText(id, text) {
+            const el = document.getElementById(id);
+            if(el) el.innerText = text;
+        }
+
         function updateUI() {
             try { localStorage.setItem('premiumDriveBalance', balance.toFixed(2)); } catch(e){}
             const formatted = formatCurrency(balance);
-            document.getElementById('balanceText').innerText = formatted;
-            document.getElementById('loginBalanceText').innerText = formatted;
-            document.getElementById('garageBalanceText').innerText = formatted;
-            document.getElementById('withdrawBalanceDisplay').innerText = formatted;
-            document.getElementById('scoreText').innerText = `${Math.floor(score)} M`;
-            document.getElementById('hiddenBalanceInput').value = formatted;
+            
+            safeSetText('balanceText', formatted);
+            safeSetText('loginBalanceText', formatted);
+            safeSetText('garageBalanceText', formatted);
+            safeSetText('withdrawBalanceDisplay', formatted);
+            safeSetText('scoreText', `${Math.floor(score)} M`);
+            
+            const hInput = document.getElementById('hiddenBalanceInput');
+            if(hInput) hInput.value = formatted;
             
             const submitBtn = document.getElementById('submitWithdrawBtn');
             const warning = document.getElementById('withdrawWarning');
-            if (balance < 30) { 
-                submitBtn.disabled = true; submitBtn.classList.add('opacity-50', 'cursor-not-allowed'); warning.classList.remove('hidden');
-            } else {
-                submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); warning.classList.add('hidden');
+            if(submitBtn && warning) {
+                if (balance < 30) { 
+                    submitBtn.disabled = true; submitBtn.classList.add('opacity-50', 'cursor-not-allowed'); warning.classList.remove('hidden');
+                } else {
+                    submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); warning.classList.add('hidden');
+                }
             }
         }
 
@@ -544,9 +617,13 @@
         };
 
         function renderGarage() {
-            const list = document.getElementById('garageList'); list.innerHTML = '';
+            const list = document.getElementById('garageList'); 
+            if(!list) return;
+            list.innerHTML = '';
+            
             CAR_SKINS.forEach(car => {
-                const item = document.createElement('div'); item.className = "glass-panel p-4 rounded-[20px] flex items-center justify-between";
+                const item = document.createElement('div'); 
+                item.className = "glass-panel p-4 rounded-[20px] flex items-center justify-between";
                 const isSelected = activeSkinId === car.id; let btnHTML = '';
                 if (car.owned) {
                     btnHTML = isSelected ? `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-500">${getT("btnSelected")}</button>` 
@@ -561,57 +638,81 @@
             });
         }
 
-        document.getElementById('closeDemoReminder').addEventListener('click', () => document.getElementById('demoReminder').classList.add('hidden'));
+        addEvt('closeDemoReminder', 'click', () => {
+            const dRem = document.getElementById('demoReminder');
+            if(dRem) dRem.classList.add('hidden');
+        });
 
         function startGame() {
             if (balance <= 0) {
-                document.getElementById('topUpModal').classList.remove('hidden');
+                const topModal = document.getElementById('topUpModal');
+                if(topModal) topModal.classList.remove('hidden');
                 getDrivingAdvice(getT("msgNoBal"));
                 return;
             }
-            document.getElementById('loginScreen').classList.add('hidden'); 
-            document.getElementById('gameScreen').classList.remove('hidden'); 
-            document.getElementById('gameOverScreen').classList.add('hidden'); 
-            document.getElementById('globalLangSelector').classList.add('hidden');
+            
+            const logScreen = document.getElementById('loginScreen');
+            const gScreen = document.getElementById('gameScreen');
+            const goScreen = document.getElementById('gameOverScreen');
+            const glScreen = document.getElementById('globalLangSelector');
+            
+            if(logScreen) logScreen.classList.add('hidden'); 
+            if(gScreen) gScreen.classList.remove('hidden'); 
+            if(goScreen) goScreen.classList.add('hidden'); 
+            if(glScreen) glScreen.classList.add('hidden');
             
             initAudio(); isGameRunning = true; isGameOver = false; score = 0; speedMultiplier = 1; trafficCars = []; animatedPopups = [];
             nitroTimer = 0; screenShake = 0;
             gameState.carX = LANES[1] - CAR_WIDTH / 2; gameState.targetX = LANES[1] - CAR_WIDTH / 2; 
             trafficLight.active = false; policeEvent.active = false; policeEvent.isWaiting = false;
             
-            clearTimeout(demoReminderTimeout); document.getElementById('demoReminder').classList.add('hidden');
+            clearTimeout(demoReminderTimeout); 
+            const dRem = document.getElementById('demoReminder');
+            if(dRem) dRem.classList.add('hidden');
+            
             demoReminderTimeout = setTimeout(() => {
                 if (isGameRunning && !isGameOver) {
-                    document.getElementById('demoReminder').classList.remove('hidden');
+                    if(dRem) dRem.classList.remove('hidden');
                     playTone(600, 'square', 0.2, 0.2); 
                     getDrivingAdvice("Hesabı aktivləşdir!");
                 }
             }, 15000);
 
-            updateUI(); getDrivingAdvice(getT("msgGas")); requestAnimationFrame(gameLoop);
+            updateUI(); getDrivingAdvice(getT("msgGas")); 
+            if(ctx) requestAnimationFrame(gameLoop);
         }
 
         function gameOver() {
             isGameOver = true; 
-            clearTimeout(demoReminderTimeout); document.getElementById('demoReminder').classList.add('hidden'); 
-            document.getElementById('gameOverScreen').classList.remove('hidden'); 
-            document.getElementById('finalScore').innerText = Math.floor(score);
-            document.getElementById('globalLangSelector').classList.remove('hidden');
+            clearTimeout(demoReminderTimeout); 
+            const dRem = document.getElementById('demoReminder');
+            if(dRem) dRem.classList.add('hidden'); 
             
-            const restartBtn = document.getElementById('restartBtn'); const topupBtn = document.getElementById('gameOverTopupBtn');
-            const msg = document.getElementById('gameOverMessage'); const title = document.getElementById('gameOverTitle');
+            const goScreen = document.getElementById('gameOverScreen');
+            const fScore = document.getElementById('finalScore');
+            const glScreen = document.getElementById('globalLangSelector');
+            if(goScreen) goScreen.classList.remove('hidden'); 
+            if(fScore) fScore.innerText = Math.floor(score);
+            if(glScreen) glScreen.classList.remove('hidden');
+            
+            const restartBtn = document.getElementById('restartBtn'); 
+            const topupBtn = document.getElementById('gameOverTopupBtn');
+            const msg = document.getElementById('gameOverMessage'); 
+            const title = document.getElementById('gameOverTitle');
 
-            if (balance <= 0) {
-                title.innerText = getT("msgLock").toUpperCase(); title.classList.replace('text-rose-500', 'text-red-600'); 
-                restartBtn.classList.add('hidden'); topupBtn.classList.remove('hidden'); 
-                msg.innerText = getT("msgLocked"); msg.classList.remove('hidden');
-                getDrivingAdvice(getT("msgLock")); 
-            } else {
-                title.innerText = "GAME OVER"; title.classList.replace('text-red-600', 'text-rose-500');
-                restartBtn.classList.remove('hidden'); topupBtn.classList.add('hidden'); msg.classList.add('hidden');
-                getDrivingAdvice(getT("msgPause")); 
+            if(title && restartBtn && topupBtn && msg) {
+                if (balance <= 0) {
+                    title.innerText = getT("msgLock").toUpperCase(); title.classList.replace('text-rose-500', 'text-red-600'); 
+                    restartBtn.classList.add('hidden'); topupBtn.classList.remove('hidden'); 
+                    msg.innerText = getT("msgLocked"); msg.classList.remove('hidden');
+                    getDrivingAdvice(getT("msgLock")); 
+                } else {
+                    title.innerText = "GAME OVER"; title.classList.replace('text-red-600', 'text-rose-500');
+                    restartBtn.classList.remove('hidden'); topupBtn.classList.add('hidden'); msg.classList.add('hidden');
+                    getDrivingAdvice(getT("msgPause")); 
+                }
             }
-            if (engineGain) engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+            if (engineGain && audioCtx) engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
         }
 
         function update() {
@@ -749,13 +850,17 @@
             ctx.restore();
         }
 
-        function gameLoop() { update(); draw(); if (isGameRunning) requestAnimationFrame(gameLoop); }
+        function gameLoop() { update(); draw(); if (isGameRunning && ctx) requestAnimationFrame(gameLoop); }
 
-        document.getElementById('loginBtn').addEventListener('click', startGame); document.getElementById('restartBtn').addEventListener('click', startGame);
-        document.getElementById('gameOverTopupBtn').addEventListener('click', () => { document.getElementById('topUpModal').classList.remove('hidden'); });
-        document.getElementById('buyMeCoffeeBtn').addEventListener('click', () => { window.open('https://buymeacoffee.com/surwin', '_blank'); });
+        addEvt('loginBtn', 'click', startGame); 
+        addEvt('restartBtn', 'click', startGame);
+        addEvt('gameOverTopupBtn', 'click', () => { 
+            const topModal = document.getElementById('topUpModal');
+            if(topModal) topModal.classList.remove('hidden'); 
+        });
+        addEvt('buyMeCoffeeBtn', 'click', () => { window.open('https://buymeacoffee.com/surwin', '_blank'); });
         
-        document.getElementById('verifyPaymentBtn').addEventListener('click', (e) => {
+        addEvt('verifyPaymentBtn', 'click', (e) => {
             const btn = e.currentTarget; const originalText = btn.innerHTML; btn.innerHTML = `⏳ ...`; btn.disabled = true;
             setTimeout(() => {
                 let user = null;
@@ -770,25 +875,54 @@
                 btn.classList.replace('text-emerald-400', 'text-white'); btn.classList.replace('bg-emerald-500/10', 'bg-emerald-600');
                 
                 setTimeout(() => { 
-                    document.getElementById('topUpModal').classList.add('hidden'); btn.innerHTML = originalText; btn.disabled = false; btn.classList.replace('text-white', 'text-emerald-400'); btn.classList.replace('bg-emerald-600', 'bg-emerald-500/10'); 
+                    const topModal = document.getElementById('topUpModal');
+                    if(topModal) topModal.classList.add('hidden'); 
+                    btn.innerHTML = originalText; btn.disabled = false; btn.classList.replace('text-white', 'text-emerald-400'); btn.classList.replace('bg-emerald-600', 'bg-emerald-500/10'); 
                     if (isGameOver && balance > 0) {
                         const title = document.getElementById('gameOverTitle'); const restartBtn = document.getElementById('restartBtn'); const topupBtn = document.getElementById('gameOverTopupBtn'); const msg = document.getElementById('gameOverMessage');
-                        title.innerText = "GAME OVER"; title.classList.replace('text-red-600', 'text-rose-500'); restartBtn.classList.remove('hidden'); topupBtn.classList.add('hidden'); msg.classList.add('hidden'); getDrivingAdvice(getT("msgPaySuccess"));
+                        if(title) { title.innerText = "GAME OVER"; title.classList.replace('text-red-600', 'text-rose-500'); }
+                        if(restartBtn) restartBtn.classList.remove('hidden'); 
+                        if(topupBtn) topupBtn.classList.add('hidden'); 
+                        if(msg) msg.classList.add('hidden'); 
+                        getDrivingAdvice(getT("msgPaySuccess"));
                     }
                 }, 2000);
             }, 3000);
         });
 
-        const toggleModal = (btnId, modalId, show) => document.getElementById(btnId).addEventListener('click', () => { document.getElementById(modalId).classList[show ? 'remove' : 'add']('hidden'); updateUI(); if(show && modalId==='garageModal') renderGarage(); });
+        const toggleModal = (btnId, modalId, show) => {
+            addEvt(btnId, 'click', () => { 
+                const modEl = document.getElementById(modalId);
+                if(modEl) modEl.classList[show ? 'remove' : 'add']('hidden'); 
+                updateUI(); 
+                if(show && modalId==='garageModal') renderGarage(); 
+            });
+        };
         toggleModal('loginTopupBtn', 'topUpModal', true); toggleModal('topupBtn', 'topUpModal', true); toggleModal('closeTopUpBtn', 'topUpModal', false);
         toggleModal('withdrawBtn', 'withdrawModal', true); toggleModal('closeWithdrawBtn', 'withdrawModal', false);
         toggleModal('garageBtn', 'garageModal', true); toggleModal('closeGarageBtn', 'garageModal', false);
 
-        const brakeBtn = document.getElementById('brakeBtn'); const startBraking = (e) => { e.preventDefault(); isBraking = true; }; const stopBraking = (e) => { e.preventDefault(); isBraking = false; };
-        brakeBtn.addEventListener('mousedown', startBraking); brakeBtn.addEventListener('mouseup', stopBraking); brakeBtn.addEventListener('touchstart', startBraking, {passive: false}); brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
-        const goLeft = (e) => { e.preventDefault(); if(gameState.targetX > LANES[0] - CAR_WIDTH/2) gameState.targetX -= 100; }; const goRight = (e) => { e.preventDefault(); if(gameState.targetX < LANES[2] - CAR_WIDTH/2) gameState.targetX += 100; };
-        document.getElementById('laneLeft').addEventListener('mousedown', goLeft); document.getElementById('laneLeft').addEventListener('touchstart', goLeft, {passive: false});
-        document.getElementById('laneRight').addEventListener('mousedown', goRight); document.getElementById('laneRight').addEventListener('touchstart', goRight, {passive: false});
+        const startBraking = (e) => { e.preventDefault(); isBraking = true; }; 
+        const stopBraking = (e) => { e.preventDefault(); isBraking = false; };
+        
+        const brakeBtn = document.getElementById('brakeBtn');
+        if(brakeBtn) {
+            brakeBtn.addEventListener('mousedown', startBraking); brakeBtn.addEventListener('mouseup', stopBraking); 
+            brakeBtn.addEventListener('touchstart', startBraking, {passive: false}); brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
+        }
+        
+        const goLeft = (e) => { e.preventDefault(); if(gameState.targetX > LANES[0] - CAR_WIDTH/2) gameState.targetX -= 100; }; 
+        const goRight = (e) => { e.preventDefault(); if(gameState.targetX < LANES[2] - CAR_WIDTH/2) gameState.targetX += 100; };
+        
+        const lLeft = document.getElementById('laneLeft');
+        if(lLeft) {
+            lLeft.addEventListener('mousedown', goLeft); lLeft.addEventListener('touchstart', goLeft, {passive: false});
+        }
+        
+        const lRight = document.getElementById('laneRight');
+        if(lRight) {
+            lRight.addEventListener('mousedown', goRight); lRight.addEventListener('touchstart', goRight, {passive: false});
+        }
     </script>
 </body>
 </html>

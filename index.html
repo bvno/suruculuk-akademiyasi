@@ -82,7 +82,7 @@
                 <input type="password" id="regPassword" data-i18n-ph="phPass" placeholder="Şifrə (Min. 6 simvol)" required minlength="6" class="w-full p-4 rounded-2xl bg-[#020617] border border-slate-700 text-white outline-none focus:border-cyan-500 text-sm">
                 <button type="submit" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all" data-i18n="btnReg">QEYDİYYATDAN KEÇ</button>
             </form>
-            <p class="mt-4 text-xs text-slate-400"><span data-i18n="hasAcc">Hesabınız var?</span> <button id="showLoginBtn" class="text-cyan-400 font-bold underline" data-i18n="btnLoginNav">Daxil olun</button></p>
+            <p class="mt-4 text-xs text-slate-400"><span data-i18n="hasAcc">Hesabınız var?</span> <button id="showLoginBtn" type="button" class="text-cyan-400 font-bold underline" data-i18n="btnLoginNav">Daxil olun</button></p>
         </div>
     </div>
 
@@ -95,7 +95,7 @@
                 <p id="loginError" class="text-rose-500 text-xs hidden font-bold" data-i18n="errLogin">Məlumatlar yanlışdır!</p>
                 <button type="submit" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all" data-i18n="btnLog">DAXİL OL</button>
             </form>
-            <p class="mt-4 text-xs text-slate-400"><span data-i18n="noAcc">Hesabınız yoxdur?</span> <button id="showRegisterBtn" class="text-cyan-400 font-bold underline" data-i18n="btnRegNav">Qeydiyyat</button></p>
+            <p class="mt-4 text-xs text-slate-400"><span data-i18n="noAcc">Hesabınız yoxdur?</span> <button id="showRegisterBtn" type="button" class="text-cyan-400 font-bold underline" data-i18n="btnRegNav">Qeydiyyat</button></p>
         </div>
     </div>
 
@@ -225,17 +225,17 @@
         </div>
     </div>
 
-    <script type="module">
-        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
-
+    <script>
+        // AI dəyişəni
         let genAI = null;
         const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
         
-        try {
-            genAI = new GoogleGenerativeAI(API_KEY);
-        } catch(e) {
-            console.warn("AI modulu yüklənmədi, lakin oyun davam edəcək.");
-        }
+        // Modulun asinxron olaraq kənar müdaxilə olmadan yüklənməsi (Bu kod oyunu dayandırmağa imkan vermir)
+        import('https://esm.run/@google/generative-ai').then(module => {
+            genAI = new module.GoogleGenerativeAI(API_KEY);
+        }).catch(err => {
+            console.warn("AI modulu yüklənmədi, oyun davam edir.", err);
+        });
 
         // MULTI-LANGUAGE & CURRENCY SYSTEM
         const LANGUAGES = {
@@ -261,7 +261,7 @@
             }
         };
 
-        // YADDAŞ (LocalStorage) QORUMASI: Səhvlərin qarşısını almaq üçün try-catch bloku
+        // QORUMA: Kəşdəki (Yaddaşdakı) xətaların səhifəni dondurmaması üçün try-catch bloku
         let currentLang = null;
         try {
             currentLang = localStorage.getItem('premiumDriveLang') || null;
@@ -325,7 +325,7 @@
         const TRAFFIC_COLORS = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#cbd5e1', '#ea580c'];
         let activeSkinId = 'default';
 
-        // AUDIO
+        // AUDIO SİSTEMİ
         let audioCtx = null; let engineOsc = null; let engineGain = null;
         function initAudio() {
             if (audioCtx) return;
@@ -372,9 +372,14 @@
                 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
                 const langName = currentLang ? LANGUAGES[currentLang].name : 'Azərbaycanca';
                 const prompt = `Sən oyunda səsli köməkçisən. Ssenari: ${scenario}. Çox həyəcanlı və maksimum 4 sözlük cavab ver. Dil: ${langName}.`;
-                const result = await model.generateContent(prompt);
-                const text = await result.response.text();
-                aiTipEl.innerText = text; getSpeechData(text);
+                
+                model.generateContent(prompt).then(result => {
+                    return result.response.text();
+                }).then(text => {
+                    aiTipEl.innerText = text; getSpeechData(text);
+                }).catch(err => {
+                    aiTipEl.innerText = scenario;
+                });
             } catch (error) { 
                 console.error("AI Xətası:", error); 
                 aiTipEl.innerText = scenario;
@@ -402,14 +407,14 @@
             let storedUser = localStorage.getItem('premiumDriveUser');
             if(storedUser) currentUser = JSON.parse(storedUser);
         } catch(e) {
-            localStorage.removeItem('premiumDriveUser'); // Pozulubsa sil
+            localStorage.removeItem('premiumDriveUser'); 
         }
         
         let isBanned = false;
         try { isBanned = localStorage.getItem('premiumDriveBan') === 'true'; } catch(e){}
 
         function checkAuthState() {
-            // Ekranda qalmış qalıqları təmizləyirik
+            // Əvvəlcə bütün ekranları gizlədək ki, üst-üstə minməsin
             document.getElementById('langSelectModal').classList.add('hidden');
             document.getElementById('authScreen').classList.add('hidden');
             document.getElementById('loginFormScreen').classList.add('hidden');
@@ -529,8 +534,8 @@
 
         function spawnPopup(text, color, x, y) { animatedPopups.push({ text, color, x, y, alpha: 1, life: 60 }); }
 
-        window.selectCar = (id) => { activeSkinId = id; playSuccessSound(); renderGarage(); };
-        window.buyCar = (id) => {
+        window.selectCar = function(id) { activeSkinId = id; playSuccessSound(); renderGarage(); };
+        window.buyCar = function(id) {
             const car = CAR_SKINS.find(c => c.id === id);
             if (car && balance >= car.price) {
                 balance -= car.price; car.owned = true; activeSkinId = id;

@@ -58,7 +58,8 @@
     <div id="langSelectModal" class="hidden h-screen flex flex-col items-center justify-center p-6 z-[300] absolute inset-0 bg-[#020617]/95 backdrop-blur-xl">
         <div class="glass-panel p-8 rounded-[32px] w-full max-w-sm text-center relative">
             <h2 class="text-2xl font-black mb-6 neon-cyan uppercase">Select Language</h2>
-            <div id="langListContainer" class="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2"></div>
+            <div id="langListContainer" class="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+                </div>
         </div>
     </div>
 
@@ -108,10 +109,16 @@
     <div id="loginScreen" class="hidden h-screen flex items-center justify-center p-6 z-50 absolute inset-0 bg-[#020617]">
         <div class="glass-panel p-10 rounded-[32px] w-full max-w-sm text-center relative overflow-hidden">
             <div class="absolute -top-10 -left-10 w-32 h-32 bg-cyan-500/20 rounded-full blur-[40px]"></div>
+            
             <h1 class="text-3xl font-black text-white italic mb-2 tracking-tighter neon-cyan relative z-10">PREMIUM DRIVE</h1>
             <p class="text-slate-400 text-sm mb-8 relative z-10"><span id="lbl_loginBalance" data-i18n="lblBal">Balans:</span> <span id="loginBalanceText" class="font-bold text-cyan-400 neon-cyan">0.00 AZN</span></p>
-            <button id="loginBtn" type="button" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all relative z-10" data-i18n="btnStart">Oyuna Başla</button>
-            <button id="loginTopupBtn" type="button" class="w-full mt-4 py-4 glass-panel rounded-[24px] text-white font-bold uppercase tracking-widest active:scale-95 transition-all relative z-10" data-i18n="btnTopup">Balansı Artır</button>
+            
+            <button id="loginBtn" type="button" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all relative z-10" data-i18n="btnStart">
+                Oyuna Başla
+            </button>
+            <button id="loginTopupBtn" type="button" class="w-full mt-4 py-4 glass-panel rounded-[24px] text-white font-bold uppercase tracking-widest active:scale-95 transition-all relative z-10" data-i18n="btnTopup">
+                Balansı Artır
+            </button>
         </div>
     </div>
 
@@ -158,7 +165,9 @@
                 <div class="w-20 h-20 rounded-full bg-rose-500/20 flex items-center justify-center mb-4 blur-[2px] mx-auto"><span class="text-4xl">⚠️</span></div>
                 <h2 id="gameOverTitle" class="text-3xl font-black text-rose-500 mb-2 neon-rose tracking-wider">GAME OVER</h2>
                 <p class="text-slate-400 text-sm mb-2"><span data-i18n="lblDist">Məsafə:</span> <span id="finalScore" class="font-bold text-white">0</span> M</p>
+                
                 <p id="gameOverMessage" class="text-rose-400 text-xs mb-6 hidden font-bold bg-rose-500/10 p-2 rounded-lg border border-rose-500/30" data-i18n="msgLocked">Balansınız bitdi! Oyun kilidləndi. Davam etmək üçün balansı artırın.</p>
+                
                 <button id="restartBtn" type="button" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] mb-4 active:scale-95 transition-all" data-i18n="btnRestart">YENİDƏN BAŞLA</button>
                 <button id="gameOverTopupBtn" type="button" class="hidden w-full py-4 bg-[#FFDD00] text-black rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(255,221,0,0.3)] mb-4 active:scale-95 transition-all flex items-center justify-center gap-2"><span class="text-xl">☕</span> <span data-i18n="btnTopup">BALANSI ARTIR</span></button>
             </div>
@@ -220,7 +229,6 @@
             // API açarınızı buraya yazın (Məsələn: AIzaSy...)
             const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
             
-            // Xəta verməyən təhlükəsiz Event əlavəedicisi
             function addEvt(id, event, handler) {
                 const el = document.getElementById(id);
                 if (el) el.addEventListener(event, handler);
@@ -265,15 +273,12 @@
                 }
             };
 
-            // Yaddaşı (LocalStorage) etibarlı şəkildə oxuyan qoruyucu funksiya
             function safeGetLS(key) {
                 try {
                     let val = localStorage.getItem(key);
                     if (val === 'null' || val === 'undefined') return null;
                     return val;
-                } catch(e) {
-                    return null;
-                }
+                } catch(e) { return null; }
             }
 
             let currentLang = safeGetLS('premiumDriveLang');
@@ -384,178 +389,117 @@
             async function getDrivingAdvice(scenario) {
                 const aiTipEl = document.getElementById("aiTipText");
                 if (!aiTipEl) return;
-                
                 const langName = (currentLang && LANGUAGES[currentLang]) ? LANGUAGES[currentLang].name : 'Azərbaycanca';
                 const promptText = `Sən oyunda səsli köməkçisən. Ssenari: ${scenario}. Çox həyəcanlı və maksimum 4 sözlük cavab ver. Dil: ${langName}.`;
 
                 if (API_KEY === "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN" || !API_KEY) {
-                    aiTipEl.innerText = scenario;
-                    getSpeechData(scenario);
-                    return;
+                    aiTipEl.innerText = scenario; getSpeechData(scenario); return;
                 }
 
                 try {
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
                     });
                     const data = await response.json();
-                    
                     if (data.candidates && data.candidates[0].content.parts[0].text) {
                         const text = data.candidates[0].content.parts[0].text.trim();
-                        aiTipEl.innerText = text;
-                        getSpeechData(text);
-                    } else {
-                        aiTipEl.innerText = scenario;
-                        getSpeechData(scenario);
-                    }
-                } catch (error) { 
-                    console.warn("AI Xətası:", error); 
-                    aiTipEl.innerText = scenario;
-                    getSpeechData(scenario);
-                }
+                        aiTipEl.innerText = text; getSpeechData(text);
+                    } else { aiTipEl.innerText = scenario; getSpeechData(scenario); }
+                } catch (error) { aiTipEl.innerText = scenario; getSpeechData(scenario); }
             }
 
             function triggerScreenShake() {
                 const container = document.getElementById('gameContainer');
-                if(container){
-                    container.classList.remove('shake-effect');
-                    void container.offsetWidth; 
-                    container.classList.add('shake-effect');
-                }
+                if(container){ container.classList.remove('shake-effect'); void container.offsetWidth; container.classList.add('shake-effect'); }
             }
 
             let balance = 0.00;
             let savedBalance = safeGetLS('premiumDriveBalance');
-            if (savedBalance && !isNaN(parseFloat(savedBalance))) {
-                balance = parseFloat(savedBalance);
-            }
+            if (savedBalance && !isNaN(parseFloat(savedBalance))) balance = parseFloat(savedBalance);
 
             let currentUser = null;
             let storedUser = safeGetLS('premiumDriveUser');
-            if(storedUser && storedUser.includes("{")) {
-                try { currentUser = JSON.parse(storedUser); } catch(e) {}
-            }
+            if(storedUser && storedUser.includes("{")) { try { currentUser = JSON.parse(storedUser); } catch(e) {} }
             
             let isBanned = safeGetLS('premiumDriveBan') === 'true';
 
             function hideAllScreens() {
                 ['langSelectModal', 'authScreen', 'loginFormScreen', 'loginScreen', 'banScreen', 'gameScreen'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if(el) el.classList.add('hidden');
+                    const el = document.getElementById(id); if(el) el.classList.add('hidden');
                 });
             }
 
             function checkAuthState() {
                 hideAllScreens();
-                
                 if (!currentLang) {
-                    const lsModal = document.getElementById('langSelectModal');
-                    const gSel = document.getElementById('globalLangSelector');
-                    if(lsModal) lsModal.classList.remove('hidden');
-                    if(gSel) gSel.classList.add('hidden');
-                    return;
+                    const lsModal = document.getElementById('langSelectModal'); const gSel = document.getElementById('globalLangSelector');
+                    if(lsModal) lsModal.classList.remove('hidden'); if(gSel) gSel.classList.add('hidden'); return;
                 }
-                
-                const gSel = document.getElementById('globalLangSelector');
-                if(gSel) gSel.classList.remove('hidden');
+                const gSel = document.getElementById('globalLangSelector'); if(gSel) gSel.classList.remove('hidden');
 
                 if (isBanned) {
-                    const banEl = document.getElementById('banScreen');
-                    if(banEl) banEl.classList.remove('hidden');
+                    const banEl = document.getElementById('banScreen'); if(banEl) banEl.classList.remove('hidden');
                 } else if (currentUser) {
-                    const loginEl = document.getElementById('loginScreen');
-                    if(loginEl) loginEl.classList.remove('hidden');
+                    const loginEl = document.getElementById('loginScreen'); if(loginEl) loginEl.classList.remove('hidden');
                     if(!isGameRunning) applyTranslations(); 
                 } else {
-                    const authEl = document.getElementById('authScreen');
-                    if(authEl) authEl.classList.remove('hidden');
+                    const authEl = document.getElementById('authScreen'); if(authEl) authEl.classList.remove('hidden');
                 }
             }
 
             try {
                 if(currentLang) applyTranslations();
                 checkAuthState();
-            } catch(error) {
-                document.getElementById('authScreen').classList.remove('hidden'); 
-            }
+            } catch(error) { document.getElementById('authScreen').classList.remove('hidden'); }
 
-            addEvt('showLoginBtn', 'click', () => {
-                document.getElementById('authScreen').classList.add('hidden'); 
-                document.getElementById('loginFormScreen').classList.remove('hidden');
-            });
-            
-            addEvt('showRegisterBtn', 'click', () => {
-                document.getElementById('loginFormScreen').classList.add('hidden'); 
-                document.getElementById('authScreen').classList.remove('hidden');
-            });
+            addEvt('showLoginBtn', 'click', () => { document.getElementById('authScreen').classList.add('hidden'); document.getElementById('loginFormScreen').classList.remove('hidden'); });
+            addEvt('showRegisterBtn', 'click', () => { document.getElementById('loginFormScreen').classList.add('hidden'); document.getElementById('authScreen').classList.remove('hidden'); });
 
             addEvt('registerForm', 'submit', (e) => {
                 e.preventDefault();
                 let checkUser = safeGetLS('premiumDriveUser');
-
-                if (checkUser !== null) {
-                    try { localStorage.setItem('premiumDriveBan', 'true'); } catch(e){}
-                    isBanned = true;
-                    checkAuthState(); 
-                    return;
-                }
-                
-                const fName = document.getElementById('regFullName');
-                const uName = document.getElementById('regUsername');
-                const uAge = document.getElementById('regAge');
-                const uPass = document.getElementById('regPassword');
-
-                currentUser = { 
-                    fullName: fName ? fName.value : "", 
-                    username: uName ? uName.value : "", 
-                    age: uAge ? uAge.value : "", 
-                    password: uPass ? uPass.value : "", 
-                    bonusClaimed: false 
-                };
-                
-                try {
-                    localStorage.setItem('premiumDriveUser', JSON.stringify(currentUser));
-                    localStorage.setItem('premiumDriveBalance', '0.00'); 
-                } catch(e){}
-                
-                balance = 0.00;
-                checkAuthState();
+                if (checkUser !== null) { try { localStorage.setItem('premiumDriveBan', 'true'); } catch(e){} isBanned = true; checkAuthState(); return; }
+                const fName = document.getElementById('regFullName'); const uName = document.getElementById('regUsername'); const uAge = document.getElementById('regAge'); const uPass = document.getElementById('regPassword');
+                currentUser = { fullName: fName ? fName.value : "", username: uName ? uName.value : "", age: uAge ? uAge.value : "", password: uPass ? uPass.value : "", bonusClaimed: false };
+                try { localStorage.setItem('premiumDriveUser', JSON.stringify(currentUser)); localStorage.setItem('premiumDriveBalance', '0.00'); } catch(e){}
+                balance = 0.00; checkAuthState();
             });
 
             addEvt('loginUserForm', 'submit', (e) => {
                 e.preventDefault();
-                const logUName = document.getElementById('logUsername');
-                const logPass = document.getElementById('logPassword');
-                const errEl = document.getElementById('loginError');
-
-                const userVal = logUName ? logUName.value : "";
-                const passVal = logPass ? logPass.value : "";
-                
-                let savedUser = null;
-                let sUserStr = safeGetLS('premiumDriveUser');
-                if (sUserStr) {
-                    try { savedUser = JSON.parse(sUserStr); } catch(e){}
-                }
-                
+                const logUName = document.getElementById('logUsername'); const logPass = document.getElementById('logPassword'); const errEl = document.getElementById('loginError');
+                const userVal = logUName ? logUName.value : ""; const passVal = logPass ? logPass.value : "";
+                let savedUser = null; let sUserStr = safeGetLS('premiumDriveUser');
+                if (sUserStr) { try { savedUser = JSON.parse(sUserStr); } catch(e){} }
                 if (savedUser && savedUser.username === userVal && savedUser.password === passVal) {
-                    currentUser = savedUser;
-                    if(errEl) errEl.classList.add('hidden');
-                    checkAuthState();
-                } else {
-                    if(errEl) errEl.classList.remove('hidden');
-                }
+                    currentUser = savedUser; if(errEl) errEl.classList.add('hidden'); checkAuthState();
+                } else { if(errEl) errEl.classList.remove('hidden'); }
             });
 
             const LOGICAL_WIDTH = 400; const LOGICAL_HEIGHT = 600;
             const CAR_WIDTH = 48; const CAR_HEIGHT = 86; const PLAYER_Y = LOGICAL_HEIGHT - 130;
-            const LANES = [100, 200, 300]; const BIOMES = [{ ground: '#020617', road: '#0f172a', curb: '#1e293b' }];
+            const LANES = [100, 200, 300]; 
+            
+            // YENİ MƏNZƏRƏ SİSTEMİ (MÜXTƏLİF MÜHİTLƏR)
+            const BIOMES = [
+                { id: 'city', ground: '#020617', road: '#0f172a', curb: '#1e293b', detail: '#38bdf8' }, // Gecə şəhəri
+                { id: 'desert', ground: '#b45309', road: '#451a03', curb: '#78350f', detail: '#166534' }, // Səhra
+                { id: 'forest', ground: '#14532d', road: '#1e293b', curb: '#064e3b', detail: '#065f46' }, // Meşə
+                { id: 'snow', ground: '#cbd5e1', road: '#64748b', curb: '#94a3b8', detail: '#0f172a' }    // Qar
+            ];
+            
+            // YENİ NƏQLİYYAT NÖVLƏRİ
+            const VEHICLE_TYPES = [
+                { type: 'small_car', w: 40, h: 70 },
+                { type: 'sedan', w: 48, h: 86 },
+                { type: 'bus', w: 52, h: 140 },
+                { type: 'truck', w: 54, h: 180 }
+            ];
 
             let isGameRunning = false; let isBraking = false; let isGameOver = false;
-            let score = 0; let trafficCars = []; let speedMultiplier = 1; let animatedPopups = []; 
+            let score = 0; let trafficCars = []; let sceneryObjects = []; let speedMultiplier = 1; let animatedPopups = []; 
             let nitroTimer = 0; let screenShake = 0; let demoReminderTimeout;
+            let currentBiomeIndex = 0;
             let gameState = { carX: LANES[1] - CAR_WIDTH / 2, targetX: LANES[1] - CAR_WIDTH / 2, linesOffset: 0 };
             let trafficLight = { active: false, y: -200, state: 'GREEN', timer: 0, passed: false };
             let policeEvent = { active: false, y: -200, passed: false, isWaiting: false };
@@ -574,32 +518,19 @@
                 return LANGUAGES[langCode].t[key] || key;
             }
 
-            function safeSetText(id, text) {
-                const el = document.getElementById(id);
-                if(el) el.innerText = text;
-            }
+            function safeSetText(id, text) { const el = document.getElementById(id); if(el) el.innerText = text; }
 
             function updateUI() {
                 try { localStorage.setItem('premiumDriveBalance', balance.toFixed(2)); } catch(e){}
                 const formatted = formatCurrency(balance);
+                safeSetText('balanceText', formatted); safeSetText('loginBalanceText', formatted); safeSetText('garageBalanceText', formatted);
+                safeSetText('withdrawBalanceDisplay', formatted); safeSetText('scoreText', `${Math.floor(score)} M`);
+                const hInput = document.getElementById('hiddenBalanceInput'); if(hInput) hInput.value = formatted;
                 
-                safeSetText('balanceText', formatted);
-                safeSetText('loginBalanceText', formatted);
-                safeSetText('garageBalanceText', formatted);
-                safeSetText('withdrawBalanceDisplay', formatted);
-                safeSetText('scoreText', `${Math.floor(score)} M`);
-                
-                const hInput = document.getElementById('hiddenBalanceInput');
-                if(hInput) hInput.value = formatted;
-                
-                const submitBtn = document.getElementById('submitWithdrawBtn');
-                const warning = document.getElementById('withdrawWarning');
+                const submitBtn = document.getElementById('submitWithdrawBtn'); const warning = document.getElementById('withdrawWarning');
                 if(submitBtn && warning) {
-                    if (balance < 30) { 
-                        submitBtn.disabled = true; submitBtn.classList.add('opacity-50', 'cursor-not-allowed'); warning.classList.remove('hidden');
-                    } else {
-                        submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); warning.classList.add('hidden');
-                    }
+                    if (balance < 30) { submitBtn.disabled = true; submitBtn.classList.add('opacity-50', 'cursor-not-allowed'); warning.classList.remove('hidden'); } 
+                    else { submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); warning.classList.add('hidden'); }
                 }
             }
 
@@ -608,99 +539,57 @@
             window.selectCar = function(id) { activeSkinId = id; playSuccessSound(); renderGarage(); };
             window.buyCar = function(id) {
                 const car = CAR_SKINS.find(c => c.id === id);
-                if (car && balance >= car.price) {
-                    balance -= car.price; car.owned = true; activeSkinId = id;
-                    playBuySound(); updateUI(); renderGarage(); getDrivingAdvice(getT("msgNewCar"));
-                }
+                if (car && balance >= car.price) { balance -= car.price; car.owned = true; activeSkinId = id; playBuySound(); updateUI(); renderGarage(); getDrivingAdvice(getT("msgNewCar")); }
             };
 
             function renderGarage() {
-                const list = document.getElementById('garageList'); 
-                if(!list) return;
-                list.innerHTML = '';
-                
+                const list = document.getElementById('garageList'); if(!list) return; list.innerHTML = '';
                 CAR_SKINS.forEach(car => {
-                    const item = document.createElement('div'); 
-                    item.className = "glass-panel p-4 rounded-[20px] flex items-center justify-between";
+                    const item = document.createElement('div'); item.className = "glass-panel p-4 rounded-[20px] flex items-center justify-between";
                     const isSelected = activeSkinId === car.id; let btnHTML = '';
-                    if (car.owned) {
-                        btnHTML = isSelected ? `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-500">${getT("btnSelected")}</button>` 
-                        : `<button onclick="window.selectCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300">${getT("btnSel")}</button>`;
-                    } else {
+                    if (car.owned) { btnHTML = isSelected ? `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-500">${getT("btnSelected")}</button>` : `<button onclick="window.selectCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300">${getT("btnSel")}</button>`; } 
+                    else {
                         const priceF = formatCurrency(car.price);
-                        btnHTML = balance >= car.price ? `<button onclick="window.buyCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-400">${getT("btnBuy")} (${priceF})</button>`
-                        : `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-slate-800/50 text-slate-500">${getT("btnBuy")} (${priceF})</button>`;
+                        btnHTML = balance >= car.price ? `<button onclick="window.buyCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-400">${getT("btnBuy")} (${priceF})</button>` : `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-slate-800/50 text-slate-500">${getT("btnBuy")} (${priceF})</button>`;
                     }
                     item.innerHTML = `<div class="flex items-center gap-4"><div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background-color: ${car.color}"><div class="w-6 h-10 bg-black/20"></div></div><div><p class="font-bold text-sm">${car.name}</p></div></div><div>${btnHTML}</div>`;
                     list.appendChild(item);
                 });
             }
 
-            addEvt('closeDemoReminder', 'click', () => {
-                const remEl = document.getElementById('demoReminder');
-                if(remEl) remEl.classList.add('hidden');
-            });
+            addEvt('closeDemoReminder', 'click', () => { const remEl = document.getElementById('demoReminder'); if(remEl) remEl.classList.add('hidden'); });
 
             function startGame() {
-                if (balance <= 0) {
-                    const tModal = document.getElementById('topUpModal');
-                    if(tModal) tModal.classList.remove('hidden');
-                    getDrivingAdvice(getT("msgNoBal"));
-                    return;
-                }
+                if (balance <= 0) { const tModal = document.getElementById('topUpModal'); if(tModal) tModal.classList.remove('hidden'); getDrivingAdvice(getT("msgNoBal")); return; }
                 
-                document.getElementById('loginScreen').classList.add('hidden'); 
-                document.getElementById('gameScreen').classList.remove('hidden'); 
-                document.getElementById('gameOverScreen').classList.add('hidden'); 
-                document.getElementById('globalLangSelector').classList.add('hidden');
+                document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('gameScreen').classList.remove('hidden'); 
+                document.getElementById('gameOverScreen').classList.add('hidden'); document.getElementById('globalLangSelector').classList.add('hidden');
                 
-                initAudio(); isGameRunning = true; isGameOver = false; score = 0; speedMultiplier = 1; trafficCars = []; animatedPopups = [];
-                nitroTimer = 0; screenShake = 0;
-                gameState.carX = LANES[1] - CAR_WIDTH / 2; gameState.targetX = LANES[1] - CAR_WIDTH / 2; 
+                initAudio(); isGameRunning = true; isGameOver = false; score = 0; speedMultiplier = 1; trafficCars = []; sceneryObjects = []; animatedPopups = []; currentBiomeIndex = 0;
+                nitroTimer = 0; screenShake = 0; gameState.carX = LANES[1] - CAR_WIDTH / 2; gameState.targetX = LANES[1] - CAR_WIDTH / 2; 
                 trafficLight.active = false; policeEvent.active = false; policeEvent.isWaiting = false;
                 
-                clearTimeout(demoReminderTimeout); 
-                const dRem = document.getElementById('demoReminder');
-                if(dRem) dRem.classList.add('hidden');
-                
+                clearTimeout(demoReminderTimeout); const dRem = document.getElementById('demoReminder'); if(dRem) dRem.classList.add('hidden');
                 demoReminderTimeout = setTimeout(() => {
-                    if (isGameRunning && !isGameOver) {
-                        const dRem2 = document.getElementById('demoReminder');
-                        if(dRem2) dRem2.classList.remove('hidden');
-                        playTone(600, 'square', 0.2, 0.2); 
-                        getDrivingAdvice("Hesabı aktivləşdir!");
-                    }
+                    if (isGameRunning && !isGameOver) { const dRem2 = document.getElementById('demoReminder'); if(dRem2) dRem2.classList.remove('hidden'); playTone(600, 'square', 0.2, 0.2); getDrivingAdvice("Hesabı aktivləşdir!"); }
                 }, 15000);
 
-                updateUI(); getDrivingAdvice(getT("msgGas")); 
-                if(ctx) requestAnimationFrame(gameLoop);
+                updateUI(); getDrivingAdvice(getT("msgGas")); if(ctx) requestAnimationFrame(gameLoop);
             }
 
             function gameOver() {
-                isGameOver = true; 
-                clearTimeout(demoReminderTimeout); 
-                const dRem = document.getElementById('demoReminder');
-                if(dRem) dRem.classList.add('hidden'); 
-                
-                document.getElementById('gameOverScreen').classList.remove('hidden'); 
-                document.getElementById('finalScore').innerText = Math.floor(score);
+                isGameOver = true; clearTimeout(demoReminderTimeout); const dRem = document.getElementById('demoReminder'); if(dRem) dRem.classList.add('hidden'); 
+                document.getElementById('gameOverScreen').classList.remove('hidden'); document.getElementById('finalScore').innerText = Math.floor(score);
                 document.getElementById('globalLangSelector').classList.remove('hidden');
                 
-                const restartBtn = document.getElementById('restartBtn'); 
-                const topupBtn = document.getElementById('gameOverTopupBtn');
-                const msg = document.getElementById('gameOverMessage'); 
-                const title = document.getElementById('gameOverTitle');
-
+                const restartBtn = document.getElementById('restartBtn'); const topupBtn = document.getElementById('gameOverTopupBtn'); const msg = document.getElementById('gameOverMessage'); const title = document.getElementById('gameOverTitle');
                 if(title && restartBtn && topupBtn && msg) {
                     if (balance <= 0) {
                         title.innerText = getT("msgLock").toUpperCase(); title.classList.replace('text-rose-500', 'text-red-600'); 
-                        restartBtn.classList.add('hidden'); topupBtn.classList.remove('hidden'); 
-                        msg.innerText = getT("msgLocked"); msg.classList.remove('hidden');
-                        getDrivingAdvice(getT("msgLock")); 
+                        restartBtn.classList.add('hidden'); topupBtn.classList.remove('hidden'); msg.innerText = getT("msgLocked"); msg.classList.remove('hidden'); getDrivingAdvice(getT("msgLock")); 
                     } else {
                         title.innerText = "GAME OVER"; title.classList.replace('text-red-600', 'text-rose-500');
-                        restartBtn.classList.remove('hidden'); topupBtn.classList.add('hidden'); msg.classList.add('hidden');
-                        getDrivingAdvice(getT("msgPause")); 
+                        restartBtn.classList.remove('hidden'); topupBtn.classList.add('hidden'); msg.classList.add('hidden'); getDrivingAdvice(getT("msgPause")); 
                     }
                 }
                 if (engineGain && audioCtx) engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
@@ -715,6 +604,30 @@
                 gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80; gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
                 if (screenShake > 0) screenShake--;
 
+                // MƏNZƏRƏ DƏYİŞMƏSİ (Hər 300 xalda / metrdə yeni iqlim)
+                let newBiomeIndex = Math.floor(score / 300) % BIOMES.length;
+                if (newBiomeIndex !== currentBiomeIndex && score > 10) {
+                    currentBiomeIndex = newBiomeIndex;
+                    spawnPopup("🗺️ YENİ MƏNZƏRƏ", "#a855f7", LOGICAL_WIDTH/2, LOGICAL_HEIGHT/2 - 50);
+                    playSuccessSound();
+                }
+
+                // YAN TƏRƏF OBYEKTLƏRİ (Ağac, bina, kaktus və s.)
+                if (Math.random() < 0.05 * speedMultiplier && baseSpeed > 0) {
+                    let isLeft = Math.random() > 0.5;
+                    sceneryObjects.push({
+                        x: isLeft ? Math.random() * 30 + 5 : LOGICAL_WIDTH - 35 + Math.random() * 30,
+                        y: -50,
+                        type: BIOMES[currentBiomeIndex].id,
+                        size: 20 + Math.random() * 30
+                    });
+                }
+                
+                for (let i = sceneryObjects.length - 1; i >= 0; i--) {
+                    sceneryObjects[i].y += baseSpeed;
+                    if (sceneryObjects[i].y > LOGICAL_HEIGHT + 50) sceneryObjects.splice(i, 1);
+                }
+
                 // İŞIQFOR
                 if (!trafficLight.active && !policeEvent.active && Math.random() < 0.005 && score > 10) { trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false; trafficLight.timer = 300; trafficLight.state = 'GREEN'; }
                 if (trafficLight.active) {
@@ -728,8 +641,7 @@
                         if (trafficLight.state === 'RED' && !isBraking) { 
                             balance -= 0.60; playFineSound(); triggerScreenShake(); screenShake = 15;
                             spawnPopup("- " + formatCurrency(0.60), "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
-                            if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } 
-                            getDrivingAdvice(getT("msgFine")); 
+                            if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } getDrivingAdvice(getT("msgFine")); 
                         } else if (trafficLight.state === 'GREEN') { 
                             balance += 0.40; nitroTimer = 60; playSuccessSound(); playNitroSound();
                             spawnPopup("🚀 + " + formatCurrency(0.40), "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
@@ -748,38 +660,44 @@
                     if (policeEvent.y > PLAYER_Y - 50 && !policeEvent.passed) {
                         if (isBraking && !policeEvent.isWaiting) {
                             policeEvent.isWaiting = true; balance += 0.30; playSuccessSound();
-                            spawnPopup("👮 + " + formatCurrency(0.30), "#10b981", LOGICAL_WIDTH/2, PLAYER_Y - 30); updateUI();
-                            getDrivingAdvice(getT("msgWait"));
+                            spawnPopup("👮 + " + formatCurrency(0.30), "#10b981", LOGICAL_WIDTH/2, PLAYER_Y - 30); updateUI(); getDrivingAdvice(getT("msgWait"));
                             setTimeout(() => { if (policeEvent.active) { policeEvent.isWaiting = false; policeEvent.passed = true; getDrivingAdvice(getT("msgGo")); playSuccessSound(); spawnPopup("✅ " + getT("msgGo").toUpperCase(), "#34d399", LOGICAL_WIDTH/2, PLAYER_Y - 50); } }, 3000);
                         } else if (policeEvent.y > PLAYER_Y + CAR_HEIGHT && !policeEvent.isWaiting) {
                             policeEvent.passed = true; balance -= 0.60; playFineSound(); triggerScreenShake(); screenShake = 20;
                             spawnPopup("🚓 - " + formatCurrency(0.60), "#f43f5e", LOGICAL_WIDTH/2, PLAYER_Y - 30);
-                            if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } 
-                            getDrivingAdvice(getT("msgStop")); updateUI();
+                            if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } getDrivingAdvice(getT("msgStop")); updateUI();
                         }
                     }
                     if (policeEvent.y > LOGICAL_HEIGHT && policeEvent.passed) policeEvent.active = false;
                 }
 
-                // TRAFİK
+                // TRAFİK (Müxtəlif Növ Maşınlar)
                 if (Math.random() < 0.008 * speedMultiplier && !isBraking && !trafficLight.active && !policeEvent.active) {
                     const lane = LANES[Math.floor(Math.random() * LANES.length)];
-                    if (trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150)) {
-                        trafficCars.push({ x: lane - CAR_WIDTH / 2, y: -150, speed: Math.random() * 0.5 + 1.0, color: TRAFFIC_COLORS[Math.floor(Math.random() * TRAFFIC_COLORS.length)], type: Math.random() > 0.8 ? 'truck' : 'car', height: Math.random() > 0.8 ? 130 : CAR_HEIGHT, nearMissed: false, crashed: false });
+                    if (trafficCars.every(c => Math.abs(c.x - (lane - c.w/2)) > 10 || c.y > 150)) {
+                        let vType = VEHICLE_TYPES[Math.floor(Math.random() * VEHICLE_TYPES.length)];
+                        trafficCars.push({ 
+                            x: lane - vType.w / 2, y: -200, 
+                            speed: Math.random() * 0.5 + 1.0, 
+                            color: TRAFFIC_COLORS[Math.floor(Math.random() * TRAFFIC_COLORS.length)], 
+                            type: vType.t, w: vType.w, h: vType.h, 
+                            nearMissed: false, crashed: false 
+                        });
                     }
                 }
 
                 for (let i = trafficCars.length - 1; i >= 0; i--) {
                     let car = trafficCars[i]; car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
-                    if (!car.crashed && gameState.carX < car.x + CAR_WIDTH - 12 && gameState.carX + CAR_WIDTH - 12 > car.x && PLAYER_Y < car.y + car.height - 12 && PLAYER_Y + CAR_HEIGHT - 12 > car.y) {
+                    
+                    // TOQQUŞMA MƏNTİQİ (Müxtəlif ölçülərə uyğun)
+                    if (!car.crashed && gameState.carX < car.x + car.w - 8 && gameState.carX + CAR_WIDTH - 8 > car.x && PLAYER_Y < car.y + car.h - 8 && PLAYER_Y + CAR_HEIGHT - 8 > car.y) {
                         balance -= 0.10; playCrashSound(); triggerScreenShake(); screenShake = 20;
                         spawnPopup("- " + formatCurrency(0.10), "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y); 
                         car.crashed = true; trafficCars.splice(i, 1); 
-                        if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } 
-                        getDrivingAdvice(getT("msgCrash")); updateUI(); 
+                        if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } getDrivingAdvice(getT("msgCrash")); updateUI(); 
                     } 
-                    else if (!car.crashed && !car.nearMissed && car.y > PLAYER_Y - car.height && car.y < PLAYER_Y + CAR_HEIGHT) {
-                        if (Math.abs((gameState.carX + CAR_WIDTH/2) - (car.x + CAR_WIDTH/2)) < CAR_WIDTH + 20) {
+                    else if (!car.crashed && !car.nearMissed && car.y > PLAYER_Y - car.h && car.y < PLAYER_Y + CAR_HEIGHT) {
+                        if (Math.abs((gameState.carX + CAR_WIDTH/2) - (car.x + car.w/2)) < CAR_WIDTH + 20) {
                             car.nearMissed = true; balance += 0.05; playTone(800, 'sine', 0.1, 0.1); 
                             spawnPopup("⚡ " + getT("msgDanger") + " + " + formatCurrency(0.05), "#facc15", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); updateUI();
                         }
@@ -790,33 +708,50 @@
                 animatedPopups.forEach(p => { p.y -= (nitroTimer > 0 ? 3 : 1.5); p.alpha -= 0.015; p.life--; }); animatedPopups = animatedPopups.filter(p => p.life > 0);
                 if (engineGain && audioCtx) { 
                     let freq = (isBraking || policeEvent.isWaiting) ? 30 : 40 * speedMultiplier;
-                    if (nitroTimer > 0) freq = 80; 
-                    engineOsc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.1); 
+                    if (nitroTimer > 0) freq = 80; engineOsc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.1); 
                     engineGain.gain.setTargetAtTime((isBraking || policeEvent.isWaiting) ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier), audioCtx.currentTime, 0.1); 
                 }
             }
 
-            function drawCar(x, y, color, isPlayer, braking, type = 'car', height = CAR_HEIGHT) {
+            function drawCar(x, y, color, isPlayer, braking, type = 'car', h = CAR_HEIGHT, w = CAR_WIDTH) {
                 ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 10; ctx.fillStyle = color; 
-                ctx.beginPath(); ctx.roundRect(x, y, CAR_WIDTH, height, 12); ctx.fill(); ctx.shadowColor = 'transparent'; 
-                if (type === 'car' || type === 'police') {
-                    ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 15, CAR_WIDTH - 8, 18, 4); ctx.fill(); 
-                    ctx.beginPath(); ctx.roundRect(x + 6, y + height - 25, CAR_WIDTH - 12, 12, 3); ctx.fill();
+                ctx.beginPath(); ctx.roundRect(x, y, w, h, 8); ctx.fill(); ctx.shadowColor = 'transparent'; 
+                
+                if (type === 'sedan' || type === 'small_car' || type === 'car' || type === 'police') {
+                    ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + h*0.2, w - 8, h*0.2, 4); ctx.fill(); // Ön şüşə
+                    ctx.beginPath(); ctx.roundRect(x + 6, y + h*0.7, w - 12, h*0.15, 3); ctx.fill(); // Arxa şüşə
+                } else if (type === 'bus') {
+                    ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 10, w - 8, h - 20, 2); ctx.fill(); // Tam şüşə
+                    ctx.fillStyle = '#334155'; ctx.fillRect(x + 8, y + 20, w - 16, h - 40); // İç tavan
                 } else if (type === 'truck') {
-                    ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.roundRect(x + 2, y + 25, CAR_WIDTH - 4, height - 30, 4); ctx.fill();
-                    ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 5, CAR_WIDTH - 8, 15, 4); ctx.fill();
+                    ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.roundRect(x + 2, y + 35, w - 4, h - 35, 4); ctx.fill(); // Qoşqu
+                    ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 5, w - 8, 25, 4); ctx.fill(); // Kabin
                 }
-                if (isPlayer && (braking || policeEvent.isWaiting)) { ctx.fillStyle = '#f43f5e'; ctx.fillRect(x + 4, y + height - 6, 12, 4); ctx.fillRect(x + CAR_WIDTH - 16, y + height - 6, 12, 4); } 
-                else if (!isPlayer) { ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(x + 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(x + CAR_WIDTH - 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); }
-                if (isPlayer && nitroTimer > 0) { ctx.fillStyle = 'rgba(34, 211, 238, 0.5)'; ctx.beginPath(); ctx.roundRect(x + 10, y + height, CAR_WIDTH - 20, Math.random() * 40 + 20, 5); ctx.fill(); }
+
+                if (isPlayer && (braking || policeEvent.isWaiting)) { ctx.fillStyle = '#f43f5e'; ctx.fillRect(x + 4, y + h - 6, 12, 4); ctx.fillRect(x + w - 16, y + h - 6, 12, 4); } 
+                else if (!isPlayer) { ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(x + 8, y + 4, 3, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(x + w - 8, y + 4, 3, 0, Math.PI*2); ctx.fill(); }
+                if (isPlayer && nitroTimer > 0) { ctx.fillStyle = 'rgba(34, 211, 238, 0.5)'; ctx.beginPath(); ctx.roundRect(x + 10, y + h, w - 20, Math.random() * 40 + 20, 5); ctx.fill(); }
                 ctx.restore();
             }
 
             function draw() {
                 if (!ctx) return; ctx.save();
                 if (screenShake > 0) { ctx.translate(Math.random() * 10 - 5, Math.random() * 10 - 5); }
-                const biome = BIOMES[0];
+                const biome = BIOMES[currentBiomeIndex];
+                
+                // Mənzərə Zəmini
                 ctx.fillStyle = biome.ground; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); 
+                
+                // Yanaşma elementlərinin çəkilməsi (Mənzərə)
+                ctx.fillStyle = biome.detail;
+                sceneryObjects.forEach(s => {
+                    if(s.type === 'city') { ctx.fillRect(s.x - s.size/2, s.y, s.size, s.size*2); } // Binalar
+                    else if(s.type === 'desert') { ctx.beginPath(); ctx.arc(s.x, s.y, s.size/2, 0, Math.PI*2); ctx.fill(); } // Kaktuslar/Daşlar
+                    else if(s.type === 'forest') { ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x-s.size/2, s.y+s.size); ctx.lineTo(s.x+s.size/2, s.y+s.size); ctx.fill(); } // Şam ağacları
+                    else { ctx.beginPath(); ctx.arc(s.x, s.y, s.size/2, 0, Math.PI*2); ctx.fill(); } // Qar təpələri
+                });
+
+                // Yol və Xətlər
                 ctx.fillStyle = biome.curb; ctx.fillRect(50, 0, 10, LOGICAL_HEIGHT); ctx.fillRect(LOGICAL_WIDTH - 60, 0, 10, LOGICAL_HEIGHT); 
                 ctx.fillStyle = biome.road; ctx.fillRect(60, 0, LOGICAL_WIDTH - 120, LOGICAL_HEIGHT);
                 let dashLength = nitroTimer > 0 ? 60 : 30; ctx.setLineDash([dashLength, 40]); ctx.strokeStyle = nitroTimer > 0 ? 'rgba(34, 211, 238, 0.4)' : 'rgba(255,255,255,0.15)'; ctx.lineWidth = 4; ctx.lineDashOffset = -gameState.linesOffset; ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); ctx.stroke();
@@ -828,13 +763,13 @@
                 }
 
                 if (policeEvent.active) {
-                    let px = LOGICAL_WIDTH - 55; drawCar(px, policeEvent.y, '#ffffff', false, false, 'police', CAR_HEIGHT);
+                    let px = LOGICAL_WIDTH - 55; drawCar(px, policeEvent.y, '#ffffff', false, false, 'police', CAR_HEIGHT, CAR_WIDTH);
                     ctx.fillStyle = (Date.now() % 400 < 200) ? '#f43f5e' : '#3b82f6'; ctx.fillRect(px + 10, policeEvent.y + 20, CAR_WIDTH - 20, 6);
                     ctx.fillStyle = '#f43f5e'; ctx.font = '900 20px sans-serif'; ctx.textAlign = 'right'; ctx.fillText("🛑", px - 10, policeEvent.y + CAR_HEIGHT / 2);
                 }
 
-                trafficCars.forEach(car => drawCar(car.x, car.y, car.color, false, false, car.type, car.height));
-                drawCar(gameState.carX, PLAYER_Y, CAR_SKINS.find(c => c.id === activeSkinId).color, true, isBraking, 'car', CAR_HEIGHT); 
+                trafficCars.forEach(car => drawCar(car.x, car.y, car.color, false, false, car.type, car.h, car.w));
+                drawCar(gameState.carX, PLAYER_Y, CAR_SKINS.find(c => c.id === activeSkinId).color, true, isBraking, 'car', CAR_HEIGHT, CAR_WIDTH); 
                 animatedPopups.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.alpha); ctx.font = '900 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(p.text, p.x, p.y); ctx.restore(); });
                 if (nitroTimer > 0) { ctx.fillStyle = 'rgba(34, 211, 238, ' + (nitroTimer/60 * 0.1) + ')'; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); }
                 ctx.restore();
@@ -844,37 +779,29 @@
 
             addEvt('loginBtn', 'click', startGame); 
             addEvt('restartBtn', 'click', startGame);
-            addEvt('gameOverTopupBtn', 'click', () => { 
-                const tModal = document.getElementById('topUpModal');
-                if(tModal) tModal.classList.remove('hidden'); 
-            });
+            addEvt('gameOverTopupBtn', 'click', () => { const tModal = document.getElementById('topUpModal'); if(tModal) tModal.classList.remove('hidden'); });
             addEvt('buyMeCoffeeBtn', 'click', () => { window.open('https://buymeacoffee.com/surwin', '_blank'); });
             
             addEvt('verifyPaymentBtn', 'click', (e) => {
                 const btn = e.currentTarget; const originalText = btn.innerHTML; btn.innerHTML = `⏳ ...`; btn.disabled = true;
                 setTimeout(() => {
-                    let user = null;
-                    let uStr = safeGetLS('premiumDriveUser');
+                    let user = null; let uStr = safeGetLS('premiumDriveUser');
                     if (uStr) { try { user = JSON.parse(uStr); } catch(e){} }
                     
                     if (user && !user.bonusClaimed) { 
                         balance += 0.50; user.bonusClaimed = true; 
                         try { localStorage.setItem('premiumDriveUser', JSON.stringify(user)); } catch(e){} 
                         updateUI(); playSuccessSound(); btn.innerHTML = `✅ (+ ${formatCurrency(0.50)})`; 
-                    } 
-                    else { balance += 3.40; updateUI(); playSuccessSound(); btn.innerHTML = `✅ (+ ${formatCurrency(3.40)})`; }
+                    } else { balance += 3.40; updateUI(); playSuccessSound(); btn.innerHTML = `✅ (+ ${formatCurrency(3.40)})`; }
                     btn.classList.replace('text-emerald-400', 'text-white'); btn.classList.replace('bg-emerald-500/10', 'bg-emerald-600');
                     
                     setTimeout(() => { 
-                        const tModal = document.getElementById('topUpModal');
-                        if(tModal) tModal.classList.add('hidden'); 
+                        const tModal = document.getElementById('topUpModal'); if(tModal) tModal.classList.add('hidden'); 
                         btn.innerHTML = originalText; btn.disabled = false; btn.classList.replace('text-white', 'text-emerald-400'); btn.classList.replace('bg-emerald-600', 'bg-emerald-500/10'); 
                         if (isGameOver && balance > 0) {
                             const title = document.getElementById('gameOverTitle'); const restartBtn = document.getElementById('restartBtn'); const topupBtn = document.getElementById('gameOverTopupBtn'); const msg = document.getElementById('gameOverMessage');
                             if(title) { title.innerText = "GAME OVER"; title.classList.replace('text-red-600', 'text-rose-500'); }
-                            if(restartBtn) restartBtn.classList.remove('hidden'); 
-                            if(topupBtn) topupBtn.classList.add('hidden'); 
-                            if(msg) msg.classList.add('hidden'); 
+                            if(restartBtn) restartBtn.classList.remove('hidden'); if(topupBtn) topupBtn.classList.add('hidden'); if(msg) msg.classList.add('hidden'); 
                             getDrivingAdvice(getT("msgPaySuccess"));
                         }
                     }, 2000);
@@ -885,8 +812,7 @@
                 addEvt(btnId, 'click', () => { 
                     const modEl = document.getElementById(modalId);
                     if(modEl) modEl.classList[show ? 'remove' : 'add']('hidden'); 
-                    updateUI(); 
-                    if(show && modalId==='garageModal') renderGarage(); 
+                    updateUI(); if(show && modalId==='garageModal') renderGarage(); 
                 });
             };
             toggleModal('loginTopupBtn', 'topUpModal', true); toggleModal('topupBtn', 'topUpModal', true); toggleModal('closeTopUpBtn', 'topUpModal', false);
@@ -895,21 +821,13 @@
 
             const startBraking = (e) => { e.preventDefault(); isBraking = true; }; 
             const stopBraking = (e) => { e.preventDefault(); isBraking = false; };
-            
             const brakeBtn = document.getElementById('brakeBtn');
-            if(brakeBtn) {
-                brakeBtn.addEventListener('mousedown', startBraking); brakeBtn.addEventListener('mouseup', stopBraking); 
-                brakeBtn.addEventListener('touchstart', startBraking, {passive: false}); brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
-            }
+            if(brakeBtn) { brakeBtn.addEventListener('mousedown', startBraking); brakeBtn.addEventListener('mouseup', stopBraking); brakeBtn.addEventListener('touchstart', startBraking, {passive: false}); brakeBtn.addEventListener('touchend', stopBraking, {passive: false}); }
             
             const goLeft = (e) => { e.preventDefault(); if(gameState.targetX > LANES[0] - CAR_WIDTH/2) gameState.targetX -= 100; }; 
             const goRight = (e) => { e.preventDefault(); if(gameState.targetX < LANES[2] - CAR_WIDTH/2) gameState.targetX += 100; };
-            
-            const lLeft = document.getElementById('laneLeft');
-            if(lLeft) { lLeft.addEventListener('mousedown', goLeft); lLeft.addEventListener('touchstart', goLeft, {passive: false}); }
-            
-            const lRight = document.getElementById('laneRight');
-            if(lRight) { lRight.addEventListener('mousedown', goRight); lRight.addEventListener('touchstart', goRight, {passive: false}); }
+            const lLeft = document.getElementById('laneLeft'); if(lLeft) { lLeft.addEventListener('mousedown', goLeft); lLeft.addEventListener('touchstart', goLeft, {passive: false}); }
+            const lRight = document.getElementById('laneRight'); if(lRight) { lRight.addEventListener('mousedown', goRight); lRight.addEventListener('touchstart', goRight, {passive: false}); }
 
         })(); 
     </script>

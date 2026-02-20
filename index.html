@@ -10,7 +10,6 @@
         body { user-select: none; -webkit-user-select: none; touch-action: none; overflow: hidden; background-color: #020617; } 
         .hidden { display: none !important; }
         
-        /* Ərəb dili üçün RTL dəstəyi */
         html[dir="rtl"] { font-family: 'Tahoma', 'Arial', sans-serif; }
         html[dir="rtl"] .text-left { text-align: right; }
         html[dir="rtl"] .flex-row { flex-direction: row-reverse; }
@@ -225,704 +224,669 @@
         </div>
     </div>
 
-    <script type="module">
-        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
-        const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
-        try {
-            const genAI = new GoogleGenerativeAI(API_KEY);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            
-            // AI işini görəndə bu funksiya vasitəsilə cavab qaytaracaq
-            window.aiProcessContent = async function(promptText) {
-                const result = await model.generateContent(promptText);
-                return result.response.text();
-            };
-        } catch(e) {
-            console.warn("AI Modulu tam yüklənə bilmədi. Oyun elementsiz davam edəcək.");
-        }
-    </script>
-
     <script>
-        // Xətalara qarşı qoruyucu event əlavə edicisi
-        function addEvt(id, event, handler) {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener(event, handler);
-        }
+        // DOM yüklənən kimi işə düşməsi üçün hər şeyi bir funksiyaya yığırıq
+        document.addEventListener('DOMContentLoaded', () => {
 
-        // MULTI-LANGUAGE & CURRENCY SYSTEM
-        const LANGUAGES = {
-            az: { code: 'az', name: 'Azərbaycan', flag: '🇦🇿', currency: 'AZN', rate: 1.0, dir: 'ltr', tts: 'tr-TR', 
-                t: { regTitle:"QEYDİYYAT", rulesTitle:"QAYDALAR:", rule1:"• Hər bir istifadəçi yalnız 1 dəfə qeydiyyatdan keçə bilər.", rule2:"• Eyni cihazdan birdən çox hesab yaradılarsa, sistem avtomatik ban edəcək.", rule3:"• Sıfır balansla oyuna başlamaq qadağandır.", phName:"Ad və Soyad", phUser:"İstifadəçi Adı", phAge:"Yaş", phPass:"Şifrə (Min. 6 simvol)", btnReg:"QEYDİYYATDAN KEÇ", hasAcc:"Hesabınız var?", btnLoginNav:"Daxil olun", logTitle:"GİRİŞ", phPass2:"Şifrə", errLogin:"Məlumatlar yanlışdır!", btnLog:"DAXİL OL", noAcc:"Hesabınız yoxdur?", btnRegNav:"Qeydiyyat", banTitle:"HESAB BLOKLANDI", banText:"Sistemdə çoxlu hesab yaratmağa cəhd etdiyiniz üçün cihazınız bloklanmışdır.", lblBal:"Balans:", btnStart:"Oyuna Başla", btnTopup:"Balansı Artır", hudBal:"Balans", hudDist:"Məsafə", aiLoad:"Süni intellekt məsləhəti yüklənir...", demoTitle:"Demo Rejimi", demoText:"Balansınıza minimum məbləği yükləyin və hesabınız aktiv hesab sayılsın. Qazandığınız pul həqiqi olsun. Hazırda oyun demo rejimindədir.", btnGotIt:"Anladım", lblDist:"Məsafə:", msgLocked:"Balansınız bitdi! Oyun kilidləndi. Davam etmək üçün balansı artırın.", btnRestart:"YENİDƏN BAŞLA", btnBrake:"TORMOZ", topupTitle:"Balansı Artır", topupP1:"linkinə daxil olaraq ödəniş edin.", topupP2:"Balans bitdikdə yalnız məbləğ yükləyərək oyuna davam edə bilərsiniz. (İlk yoxlamada bonus veriləcək)", topupP3:"Minimum məbləğ 3 AZN-dir. Əgər balansı artırmadan oyuna davam etsəniz, oyun DEMO sayılır və ödəniş olunmur. Yalnız ödəniş etdikdən sonra oyun tam aktiv olur, gerçək pul qazana və nağdlaşdıra bilərsiniz.", btnPay:"Ödəniş Et", btnVerify:"Ödənişi Yoxla", btnClose:"Bağla", withTitle:"Nağdlaşdır", lblCurBal:"Cari Balansınız", phWName:"Ad və Soyadınız", phWCard:"Kart və ya Hesab Nömrəsi", warnWith:"Balansınız kifayət etmir (Min: 30 AZN).", btnSubmit:"Sorğu Göndər", btnBack:"Geri", garageTitle:"QARAJ", btnSel:"Seç", btnSelected:"Seçilib", btnBuy:"Al", 
-                msgFine:"Qırmızı işıq cəriməsi!", msgStop:"Polisə tabe olmadın!", msgCrash:"Qəza!", msgDanger:"Təhlükəli!", msgWait:"Gözlə, yoxlanış...", msgGo:"Davam et!", msgLock:"Oyun kilidləndi!", msgPause:"Oyun dayandırıldı.", msgNoBal:"Balans bitib, artırmalısan!", msgGas:"Qaza bas!", msgNewCar:"Yeni maşın!", msgPaySuccess:"Ödəniş uğurlu! Davam et!" }
-            },
-            en: { code: 'en', name: 'English', flag: '🇬🇧', currency: 'USD', rate: 0.59, dir: 'ltr', tts: 'en-US',
-                t: { regTitle:"REGISTER", rulesTitle:"RULES:", rule1:"• Each user can register only once.", rule2:"• Multiple accounts from the same device will result in an auto-ban.", rule3:"• Starting the game with zero balance is forbidden.", phName:"Full Name", phUser:"Username", phAge:"Age", phPass:"Password (Min. 6 chars)", btnReg:"SIGN UP", hasAcc:"Have an account?", btnLoginNav:"Log in", logTitle:"LOGIN", phPass2:"Password", errLogin:"Invalid credentials!", btnLog:"LOGIN", noAcc:"Don't have an account?", btnRegNav:"Register", banTitle:"ACCOUNT BANNED", banText:"Your device has been banned due to multiple account creation attempts.", lblBal:"Balance:", btnStart:"Start Game", btnTopup:"Top Up", hudBal:"Balance", hudDist:"Distance", aiLoad:"Loading AI advice...", demoTitle:"Demo Mode", demoText:"Top up the minimum amount to activate your account. Earned money will be real. The game is currently in demo mode.", btnGotIt:"Got It", lblDist:"Distance:", msgLocked:"Out of balance! Game locked. Top up to continue.", btnRestart:"RESTART", btnBrake:"BRAKE", topupTitle:"Top Up Balance", topupP1:"link to make a payment.", topupP2:"When balance ends, you can only continue by adding funds. (Bonus on first check)", topupP3:"Minimum amount is equivalent to 3 AZN. If you continue without topping up, the game is DEMO and no payouts are made. Only after the payment your account becomes active to earn and withdraw real money.", btnPay:"Pay Now", btnVerify:"Verify Payment", btnClose:"Close", withTitle:"Withdraw", lblCurBal:"Current Balance", phWName:"Your Full Name", phWCard:"Card or Account Number", warnWith:"Insufficient balance.", btnSubmit:"Submit Request", btnBack:"Back", garageTitle:"GARAGE", btnSel:"Select", btnSelected:"Selected", btnBuy:"Buy", 
-                msgFine:"Red light fine!", msgStop:"Ignored the police!", msgCrash:"Crash!", msgDanger:"Near miss!", msgWait:"Wait, inspecting...", msgGo:"Proceed!", msgLock:"Game Locked!", msgPause:"Game Paused.", msgNoBal:"Out of balance, top up!", msgGas:"Hit the gas!", msgNewCar:"New car!", msgPaySuccess:"Payment successful! Continue!" }
-            },
-            uk: { code: 'uk', name: 'Українська', flag: '🇺🇦', currency: 'UAH', rate: 23.0, dir: 'ltr', tts: 'uk-UA',
-                t: { regTitle:"РЕЄСТРАЦІЯ", rulesTitle:"ПРАВИЛА:", rule1:"• Лише 1 акаунт на користувача.", rule2:"• Кілька акаунтів = Бан.", rule3:"• Старт з нульовим балансом заборонено.", phName:"Ім'я та Прізвище", phUser:"Ім'я користувача", phAge:"Вік", phPass:"Пароль (Мін. 6 симв.)", btnReg:"ЗАРЕЄСТРУВАТИСЯ", hasAcc:"Є акаунт?", btnLoginNav:"Увійти", logTitle:"ВХІД", phPass2:"Пароль", errLogin:"Невірні дані!", btnLog:"УВІЙТИ", noAcc:"Немає акаунту?", btnRegNav:"Реєстрація", banTitle:"ЗАБЛОКОВАНО", banText:"Ваш пристрій заблоковано через спроби створення кількох акаунтів.", lblBal:"Баланс:", btnStart:"Почати Гру", btnTopup:"Поповнити", hudBal:"Баланс", hudDist:"Дистанція", aiLoad:"Завантаження поради ШІ...", demoTitle:"Демо-режим", demoText:"Поповніть баланс, щоб активувати акаунт. Зароблені гроші стануть реальними. Зараз демо-режим.", btnGotIt:"Зрозуміло", lblDist:"Дистанція:", msgLocked:"Баланс вичерпано! Заблоковано. Поповніть баланс.", btnRestart:"РЕСТАРТ", btnBrake:"ГАЛЬМО", topupTitle:"Поповнити баланс", topupP1:"посилання для оплати.", topupP2:"Якщо баланс закінчиться, поповніть його для продовження.", topupP3:"Без поповнення гра вважається ДЕМО. Після поповнення акаунт активується для заробітку.", btnPay:"Оплатити", btnVerify:"Перевірити оплату", btnClose:"Закрити", withTitle:"Виведення", lblCurBal:"Поточний баланс", phWName:"Ваше Ім'я", phWCard:"Номер картки або рахунку", warnWith:"Недостатньо коштів.", btnSubmit:"Надіслати запит", btnBack:"Назад", garageTitle:"ГАРАЖ", btnSel:"Обрати", btnSelected:"Обрано", btnBuy:"Купити", 
-                msgFine:"Штраф за червоне світло!", msgStop:"Ігнорування поліції!", msgCrash:"Аварія!", msgDanger:"Небезпечно!", msgWait:"Чекай, перевірка...", msgGo:"Продовжуй!", msgLock:"Гра заблокована!", msgPause:"Гру зупинено.", msgNoBal:"Немає балансу, поповни!", msgGas:"Тисни на газ!", msgNewCar:"Нова машина!", msgPaySuccess:"Оплата успішна! Продовжуй!" }
-            },
-            ru: { code: 'ru', name: 'Русский', flag: '🇷🇺', currency: 'RUB', rate: 55.0, dir: 'ltr', tts: 'ru-RU',
-                t: { regTitle:"РЕГИСТРАЦИЯ", rulesTitle:"ПРАВИЛА:", rule1:"• Каждый пользователь может зарегистрироваться только 1 раз.", rule2:"• Создание нескольких аккаунтов приведет к бану.", rule3:"• Начинать с нулевым балансом запрещено.", phName:"Имя и Фамилия", phUser:"Имя пользователя", phAge:"Возраст", phPass:"Пароль (Мин. 6 симв.)", btnReg:"ЗАРЕГИСТРИРОВАТЬСЯ", hasAcc:"Есть аккаунт?", btnLoginNav:"Войти", logTitle:"ВХОД", phPass2:"Пароль", errLogin:"Неверные данные!", btnLog:"ВОЙТИ", noAcc:"Нет аккаунта?", btnRegNav:"Регистрация", banTitle:"АККАУНТ ЗАБЛОКИРОВАН", banText:"Ваше устройство заблокировано из-за попыток создания нескольких аккаунтов.", lblBal:"Баланс:", btnStart:"Начать Игру", btnTopup:"Пополнить", hudBal:"Баланс", hudDist:"Дистанция", aiLoad:"Загрузка ИИ-совета...", demoTitle:"Демо-режим", demoText:"Пополните минимальную сумму, чтобы активировать аккаунт. Заработанные деньги станут реальными. Сейчас игра в демо-режиме.", btnGotIt:"Понятно", lblDist:"Дистанция:", msgLocked:"Баланс исчерпан! Игра заблокирована. Пополните баланс.", btnRestart:"ЗАНОВО", btnBrake:"ТОРМОЗ", topupTitle:"Пополнить баланс", topupP1:"чтобы произвести оплату.", topupP2:"Если баланс закончится, продолжайте, добавив средства.", topupP3:"При продолжении без пополнения игра считается ДЕМО. После пополнения аккаунт активируется для заработка и вывода.", btnPay:"Оплатить", btnVerify:"Проверить оплату", btnClose:"Закрыть", withTitle:"Вывод средств", lblCurBal:"Текущий баланс", phWName:"Ваше Имя", phWCard:"Номер карты или счета", warnWith:"Недостаточно средств.", btnSubmit:"Отправить запрос", btnBack:"Назад", garageTitle:"ГАРАЖ", btnSel:"Выбрать", btnSelected:"Выбрано", btnBuy:"Купить", 
-                msgFine:"Штраф за красный свет!", msgStop:"Не подчинился полиции!", msgCrash:"Авария!", msgDanger:"Опасно!", msgWait:"Жди, проверка...", msgGo:"Продолжай!", msgLock:"Игра заблокирована!", msgPause:"Игра остановлена.", msgNoBal:"Нет баланса, пополни!", msgGas:"Жми на газ!", msgNewCar:"Новая машина!", msgPaySuccess:"Оплата прошла! Продолжай!" }
-            },
-            tr: { code: 'tr', name: 'Türkçe', flag: '🇹🇷', currency: 'TRY', rate: 19.0, dir: 'ltr', tts: 'tr-TR',
-                t: { regTitle:"KAYIT OL", rulesTitle:"KURALLAR:", rule1:"• Her kullanıcı yalnızca 1 kez kayıt olabilir.", rule2:"• Aynı cihazdan birden fazla hesap otomatik ban sebebidir.", rule3:"• Sıfır bakiye ile başlamak yasaktır.", phName:"Ad Soyad", phUser:"Kullanıcı Adı", phAge:"Yaş", phPass:"Şifre (Min. 6 kar.)", btnReg:"KAYIT OL", hasAcc:"Hesabın var mı?", btnLoginNav:"Giriş yap", logTitle:"GİRİŞ", phPass2:"Şifre", errLogin:"Hatalı bilgiler!", btnLog:"GİRİŞ YAP", noAcc:"Hesabın yok mu?", btnRegNav:"Kayıt Ol", banTitle:"HESAP ENGELLENDİ", banText:"Çoklu hesap açma girişimi nedeniyle cihazınız engellendi.", lblBal:"Bakiye:", btnStart:"Oyuna Başla", btnTopup:"Bakiye Yükle", hudBal:"Bakiye", hudDist:"Mesafe", aiLoad:"Yapay zeka tavsiyesi yükleniyor...", demoTitle:"Demo Modu", demoText:"Hesabınızı aktif etmek için minimum tutarı yükleyin. Kazancınız gerçek olacaktır. Şu an oyun demo modunda.", btnGotIt:"Anladım", lblDist:"Mesafe:", msgLocked:"Bakiye bitti! Oyun kilitlendi. Devam etmek için yükleme yapın.", btnRestart:"YENİDEN BAŞLA", btnBrake:"FREN", topupTitle:"Bakiye Yükle", topupP1:"linkinden ödeme yapın.", topupP2:"Bakiye bittiğinde sadece yükleme yaparak devam edebilirsiniz.", topupP3:"Yükleme yapmadan devam ederseniz oyun DEMO sayılır. Ödeme yaptıktan sonra gerçek para kazanıp çekebilirsiniz.", btnPay:"Ödeme Yap", btnVerify:"Ödemeyi Doğrula", btnClose:"Kapat", withTitle:"Para Çek", lblCurBal:"Mevcut Bakiye", phWName:"Adınız Soyadınız", phWCard:"Kart veya Hesap No", warnWith:"Bakiye yetersiz.", btnSubmit:"Talep Gönder", btnBack:"Geri", garageTitle:"GARAJ", btnSel:"Seç", btnSelected:"Seçildi", btnBuy:"Satın Al", 
-                msgFine:"Kırmızı ışık cezası!", msgStop:"Polise itaat etmedin!", msgCrash:"Kaza!", msgDanger:"Tehlikeli!", msgWait:"Bekle, denetim...", msgGo:"Devam et!", msgLock:"Oyun kilitlendi!", msgPause:"Oyun durduruldu.", msgNoBal:"Bakiye bitti, yükle!", msgGas:"Gaza bas!", msgNewCar:"Yeni araba!", msgPaySuccess:"Ödeme başarılı! Devam!" }
+            const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
+            
+            function addEvt(id, event, handler) {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener(event, handler);
             }
-        };
 
-        // QORUNMUŞ DİL SEÇİMİ VƏ YADDAŞ YOXLANMASI
-        let currentLang = null;
-        try {
-            currentLang = localStorage.getItem('premiumDriveLang') || null;
-        } catch(e) {}
+            const LANGUAGES = {
+                az: { code: 'az', name: 'Azərbaycan', flag: '🇦🇿', currency: 'AZN', rate: 1.0, dir: 'ltr', tts: 'tr-TR', 
+                    t: { regTitle:"QEYDİYYAT", rulesTitle:"QAYDALAR:", rule1:"• Hər bir istifadəçi yalnız 1 dəfə qeydiyyatdan keçə bilər.", rule2:"• Eyni cihazdan birdən çox hesab yaradılarsa, sistem avtomatik ban edəcək.", rule3:"• Sıfır balansla oyuna başlamaq qadağandır.", phName:"Ad və Soyad", phUser:"İstifadəçi Adı", phAge:"Yaş", phPass:"Şifrə (Min. 6 simvol)", btnReg:"QEYDİYYATDAN KEÇ", hasAcc:"Hesabınız var?", btnLoginNav:"Daxil olun", logTitle:"GİRİŞ", phPass2:"Şifrə", errLogin:"Məlumatlar yanlışdır!", btnLog:"DAXİL OL", noAcc:"Hesabınız yoxdur?", btnRegNav:"Qeydiyyat", banTitle:"HESAB BLOKLANDI", banText:"Sistemdə çoxlu hesab yaratmağa cəhd etdiyiniz üçün cihazınız bloklanmışdır.", lblBal:"Balans:", btnStart:"Oyuna Başla", btnTopup:"Balansı Artır", hudBal:"Balans", hudDist:"Məsafə", aiLoad:"Süni intellekt məsləhəti yüklənir...", demoTitle:"Demo Rejimi", demoText:"Balansınıza minimum məbləği yükləyin və hesabınız aktiv hesab sayılsın. Qazandığınız pul həqiqi olsun. Hazırda oyun demo rejimindədir.", btnGotIt:"Anladım", lblDist:"Məsafə:", msgLocked:"Balansınız bitdi! Oyun kilidləndi. Davam etmək üçün balansı artırın.", btnRestart:"YENİDƏN BAŞLA", btnBrake:"TORMOZ", topupTitle:"Balansı Artır", topupP1:"linkinə daxil olaraq ödəniş edin.", topupP2:"Balans bitdikdə yalnız məbləğ yükləyərək oyuna davam edə bilərsiniz. (İlk yoxlamada bonus veriləcək)", topupP3:"Minimum məbləğ 3 AZN-dir. Əgər balansı artırmadan oyuna davam etsəniz, oyun DEMO sayılır və ödəniş olunmur. Yalnız ödəniş etdikdən sonra oyun tam aktiv olur, gerçək pul qazana və nağdlaşdıra bilərsiniz.", btnPay:"Ödəniş Et", btnVerify:"Ödənişi Yoxla", btnClose:"Bağla", withTitle:"Nağdlaşdır", lblCurBal:"Cari Balansınız", phWName:"Ad və Soyadınız", phWCard:"Kart və ya Hesab Nömrəsi", warnWith:"Balansınız kifayət etmir (Min: 30 AZN).", btnSubmit:"Sorğu Göndər", btnBack:"Geri", garageTitle:"QARAJ", btnSel:"Seç", btnSelected:"Seçilib", btnBuy:"Al", 
+                    msgFine:"Qırmızı işıq cəriməsi!", msgStop:"Polisə tabe olmadın!", msgCrash:"Qəza!", msgDanger:"Təhlükəli!", msgWait:"Gözlə, yoxlanış...", msgGo:"Davam et!", msgLock:"Oyun kilidləndi!", msgPause:"Oyun dayandırıldı.", msgNoBal:"Balans bitib, artırmalısan!", msgGas:"Qaza bas!", msgNewCar:"Yeni maşın!", msgPaySuccess:"Ödəniş uğurlu! Davam et!" }
+                },
+                en: { code: 'en', name: 'English', flag: '🇬🇧', currency: 'USD', rate: 0.59, dir: 'ltr', tts: 'en-US',
+                    t: { regTitle:"REGISTER", rulesTitle:"RULES:", rule1:"• Each user can register only once.", rule2:"• Multiple accounts from the same device will result in an auto-ban.", rule3:"• Starting the game with zero balance is forbidden.", phName:"Full Name", phUser:"Username", phAge:"Age", phPass:"Password (Min. 6 chars)", btnReg:"SIGN UP", hasAcc:"Have an account?", btnLoginNav:"Log in", logTitle:"LOGIN", phPass2:"Password", errLogin:"Invalid credentials!", btnLog:"LOGIN", noAcc:"Don't have an account?", btnRegNav:"Register", banTitle:"ACCOUNT BANNED", banText:"Your device has been banned due to multiple account creation attempts.", lblBal:"Balance:", btnStart:"Start Game", btnTopup:"Top Up", hudBal:"Balance", hudDist:"Distance", aiLoad:"Loading AI advice...", demoTitle:"Demo Mode", demoText:"Top up the minimum amount to activate your account. Earned money will be real. The game is currently in demo mode.", btnGotIt:"Got It", lblDist:"Distance:", msgLocked:"Out of balance! Game locked. Top up to continue.", btnRestart:"RESTART", btnBrake:"BRAKE", topupTitle:"Top Up Balance", topupP1:"link to make a payment.", topupP2:"When balance ends, you can only continue by adding funds. (Bonus on first check)", topupP3:"Minimum amount is equivalent to 3 AZN. If you continue without topping up, the game is DEMO and no payouts are made. Only after the payment your account becomes active to earn and withdraw real money.", btnPay:"Pay Now", btnVerify:"Verify Payment", btnClose:"Close", withTitle:"Withdraw", lblCurBal:"Current Balance", phWName:"Your Full Name", phWCard:"Card or Account Number", warnWith:"Insufficient balance.", btnSubmit:"Submit Request", btnBack:"Back", garageTitle:"GARAGE", btnSel:"Select", btnSelected:"Selected", btnBuy:"Buy", 
+                    msgFine:"Red light fine!", msgStop:"Ignored the police!", msgCrash:"Crash!", msgDanger:"Near miss!", msgWait:"Wait, inspecting...", msgGo:"Proceed!", msgLock:"Game Locked!", msgPause:"Game Paused.", msgNoBal:"Out of balance, top up!", msgGas:"Hit the gas!", msgNewCar:"New car!", msgPaySuccess:"Payment successful! Continue!" }
+                },
+                uk: { code: 'uk', name: 'Українська', flag: '🇺🇦', currency: 'UAH', rate: 23.0, dir: 'ltr', tts: 'uk-UA',
+                    t: { regTitle:"РЕЄСТРАЦІЯ", rulesTitle:"ПРАВИЛА:", rule1:"• Лише 1 акаунт на користувача.", rule2:"• Кілька акаунтів = Бан.", rule3:"• Старт з нульовим балансом заборонено.", phName:"Ім'я та Прізвище", phUser:"Ім'я користувача", phAge:"Вік", phPass:"Пароль (Мін. 6 симв.)", btnReg:"ЗАРЕЄСТРУВАТИСЯ", hasAcc:"Є акаунт?", btnLoginNav:"Увійти", logTitle:"ВХІД", phPass2:"Пароль", errLogin:"Невірні дані!", btnLog:"УВІЙТИ", noAcc:"Немає акаунту?", btnRegNav:"Реєстрація", banTitle:"ЗАБЛОКОВАНО", banText:"Ваш пристрій заблоковано через спроби створення кількох акаунтів.", lblBal:"Баланс:", btnStart:"Почати Гру", btnTopup:"Поповнити", hudBal:"Баланс", hudDist:"Дистанція", aiLoad:"Завантаження поради ШІ...", demoTitle:"Демо-режим", demoText:"Поповніть баланс, щоб активувати акаунт. Зароблені гроші стануть реальними. Зараз демо-режим.", btnGotIt:"Зрозуміло", lblDist:"Дистанція:", msgLocked:"Баланс вичерпано! Заблоковано. Поповніть баланс.", btnRestart:"РЕСТАРТ", btnBrake:"ГАЛЬМО", topupTitle:"Поповнити баланс", topupP1:"посилання для оплати.", topupP2:"Якщо баланс закінчиться, поповніть його для продовження.", topupP3:"Без поповнення гра вважається ДЕМО. Після поповнення акаунт активується для заробітку.", btnPay:"Оплатити", btnVerify:"Перевірити оплату", btnClose:"Закрити", withTitle:"Виведення", lblCurBal:"Поточний баланс", phWName:"Ваше Ім'я", phWCard:"Номер картки або рахунку", warnWith:"Недостатньо коштів.", btnSubmit:"Надіслати запит", btnBack:"Назад", garageTitle:"ГАРАЖ", btnSel:"Обрати", btnSelected:"Обрано", btnBuy:"Купити", 
+                    msgFine:"Штраф за червоне світло!", msgStop:"Ігнорування поліції!", msgCrash:"Аварія!", msgDanger:"Небезпечно!", msgWait:"Чекай, перевірка...", msgGo:"Продовжуй!", msgLock:"Гра заблокована!", msgPause:"Гру зупинено.", msgNoBal:"Немає балансу, поповни!", msgGas:"Тисни на газ!", msgNewCar:"Нова машина!", msgPaySuccess:"Оплата успішна! Продовжуй!" }
+                },
+                ru: { code: 'ru', name: 'Русский', flag: '🇷🇺', currency: 'RUB', rate: 55.0, dir: 'ltr', tts: 'ru-RU',
+                    t: { regTitle:"РЕГИСТРАЦИЯ", rulesTitle:"ПРАВИЛА:", rule1:"• Каждый пользователь может зарегистрироваться только 1 раз.", rule2:"• Создание нескольких аккаунтов приведет к бану.", rule3:"• Начинать с нулевым балансом запрещено.", phName:"Имя и Фамилия", phUser:"Имя пользователя", phAge:"Возраст", phPass:"Пароль (Мин. 6 симв.)", btnReg:"ЗАРЕГИСТРИРОВАТЬСЯ", hasAcc:"Есть аккаунт?", btnLoginNav:"Войти", logTitle:"ВХОД", phPass2:"Пароль", errLogin:"Неверные данные!", btnLog:"ВОЙТИ", noAcc:"Нет аккаунта?", btnRegNav:"Регистрация", banTitle:"АККАУНТ ЗАБЛОКИРОВАН", banText:"Ваше устройство заблокировано из-за попыток создания нескольких аккаунтов.", lblBal:"Баланс:", btnStart:"Начать Игру", btnTopup:"Пополнить", hudBal:"Баланс", hudDist:"Дистанция", aiLoad:"Загрузка ИИ-совета...", demoTitle:"Демо-режим", demoText:"Пополните минимальную сумму, чтобы активировать аккаунт. Заработанные деньги станут реальными. Сейчас игра в демо-режиме.", btnGotIt:"Понятно", lblDist:"Дистанция:", msgLocked:"Баланс исчерпан! Игра заблокирована. Пополните баланс.", btnRestart:"ЗАНОВО", btnBrake:"ТОРМОЗ", topupTitle:"Пополнить баланс", topupP1:"чтобы произвести оплату.", topupP2:"Если баланс закончится, продолжайте, добавив средства.", topupP3:"При продолжении без пополнения игра считается ДЕМО. После пополнения аккаунт активируется для заработка и вывода.", btnPay:"Оплатить", btnVerify:"Проверить оплату", btnClose:"Закрыть", withTitle:"Вывод средств", lblCurBal:"Текущий баланс", phWName:"Ваше Имя", phWCard:"Номер карты или счета", warnWith:"Недостаточно средств.", btnSubmit:"Отправить запрос", btnBack:"Назад", garageTitle:"ГАРАЖ", btnSel:"Выбрать", btnSelected:"Выбрано", btnBuy:"Купить", 
+                    msgFine:"Штраф за красный свет!", msgStop:"Не подчинился полиции!", msgCrash:"Авария!", msgDanger:"Опасно!", msgWait:"Жди, проверка...", msgGo:"Продолжай!", msgLock:"Игра заблокирована!", msgPause:"Игра остановлена.", msgNoBal:"Нет баланса, пополни!", msgGas:"Жми на газ!", msgNewCar:"Новая машина!", msgPaySuccess:"Оплата прошла! Продолжай!" }
+                },
+                tr: { code: 'tr', name: 'Türkçe', flag: '🇹🇷', currency: 'TRY', rate: 19.0, dir: 'ltr', tts: 'tr-TR',
+                    t: { regTitle:"KAYIT OL", rulesTitle:"KURALLAR:", rule1:"• Her kullanıcı yalnızca 1 kez kayıt olabilir.", rule2:"• Aynı cihazdan birden fazla hesap otomatik ban sebebidir.", rule3:"• Sıfır bakiye ile başlamak yasaktır.", phName:"Ad Soyad", phUser:"Kullanıcı Adı", phAge:"Yaş", phPass:"Şifre (Min. 6 kar.)", btnReg:"KAYIT OL", hasAcc:"Hesabın var mı?", btnLoginNav:"Giriş yap", logTitle:"GİRİŞ", phPass2:"Şifre", errLogin:"Hatalı bilgiler!", btnLog:"GİRİŞ YAP", noAcc:"Hesabın yok mu?", btnRegNav:"Kayıt Ol", banTitle:"HESAP ENGELLENDİ", banText:"Çoklu hesap açma girişimi nedeniyle cihazınız engellendi.", lblBal:"Bakiye:", btnStart:"Oyuna Başla", btnTopup:"Bakiye Yükle", hudBal:"Bakiye", hudDist:"Mesafe", aiLoad:"Yapay zeka tavsiyesi yükleniyor...", demoTitle:"Demo Modu", demoText:"Hesabınızı aktif etmek için minimum tutarı yükleyin. Kazancınız gerçek olacaktır. Şu an oyun demo modunda.", btnGotIt:"Anladım", lblDist:"Mesafe:", msgLocked:"Bakiye bitti! Oyun kilitlendi. Devam etmek için yükleme yapın.", btnRestart:"YENİDEN BAŞLA", btnBrake:"FREN", topupTitle:"Bakiye Yükle", topupP1:"linkinden ödeme yapın.", topupP2:"Bakiye bittiğinde sadece yükleme yaparak devam edebilirsiniz.", topupP3:"Yükleme yapmadan devam ederseniz oyun DEMO sayılır. Ödeme yaptıktan sonra gerçek para kazanıp çekebilirsiniz.", btnPay:"Ödeme Yap", btnVerify:"Ödemeyi Doğrula", btnClose:"Kapat", withTitle:"Para Çek", lblCurBal:"Mevcut Bakiye", phWName:"Adınız Soyadınız", phWCard:"Kart veya Hesap No", warnWith:"Bakiye yetersiz.", btnSubmit:"Talep Gönder", btnBack:"Geri", garageTitle:"GARAJ", btnSel:"Seç", btnSelected:"Seçildi", btnBuy:"Satın Al", 
+                    msgFine:"Kırmızı ışık cezası!", msgStop:"Polise itaat etmedin!", msgCrash:"Kaza!", msgDanger:"Tehlikeli!", msgWait:"Bekle, denetim...", msgGo:"Devam et!", msgLock:"Oyun kilitlendi!", msgPause:"Oyun durduruldu.", msgNoBal:"Bakiye bitti, yükle!", msgGas:"Gaza bas!", msgNewCar:"Yeni araba!", msgPaySuccess:"Ödeme başarılı! Devam!" }
+                }
+            };
 
-        function applyTranslations() {
-            if (!currentLang || !LANGUAGES[currentLang]) return;
-            const langObj = LANGUAGES[currentLang];
-            
-            document.documentElement.lang = langObj.code;
-            document.documentElement.dir = langObj.dir;
-            
-            const flagIcon = document.getElementById('currentFlagIcon');
-            const currCode = document.getElementById('currentCurrCode');
-            if(flagIcon) flagIcon.innerText = langObj.flag;
-            if(currCode) currCode.innerText = langObj.currency;
+            let currentLang = null;
+            try { currentLang = localStorage.getItem('premiumDriveLang') || null; } catch(e) {}
 
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (langObj.t[key]) el.innerText = langObj.t[key];
-            });
+            function applyTranslations() {
+                if (!currentLang || !LANGUAGES[currentLang]) return;
+                const langObj = LANGUAGES[currentLang];
+                
+                document.documentElement.lang = langObj.code;
+                document.documentElement.dir = langObj.dir;
+                
+                const flagIcon = document.getElementById('currentFlagIcon');
+                const currCode = document.getElementById('currentCurrCode');
+                if(flagIcon) flagIcon.innerText = langObj.flag;
+                if(currCode) currCode.innerText = langObj.currency;
 
-            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-                const key = el.getAttribute('data-i18n-ph');
-                if (langObj.t[key]) el.setAttribute('placeholder', langObj.t[key]);
-            });
-            
-            updateUI();
-            const gModal = document.getElementById('garageModal');
-            if(gModal && !gModal.classList.contains('hidden')) renderGarage();
-        }
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (langObj.t[key]) el.innerText = langObj.t[key];
+                });
 
-        function changeLanguage(code) {
-            currentLang = code;
-            try { localStorage.setItem('premiumDriveLang', code); } catch(e){}
-            applyTranslations();
-            
-            const lsModal = document.getElementById('langSelectModal');
-            const gSel = document.getElementById('globalLangSelector');
-            if(lsModal) lsModal.classList.add('hidden');
-            if(gSel) gSel.classList.remove('hidden');
-            
-            checkAuthState(); 
-        }
-
-        function initLanguageModal() {
-            const container = document.getElementById('langListContainer');
-            if (!container) return;
-            Object.values(LANGUAGES).forEach(l => {
-                const btn = document.createElement('button');
-                btn.className = "p-4 glass-panel rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all text-white font-bold";
-                btn.innerHTML = `<span class="text-2xl">${l.flag}</span> <span>${l.name}</span>`;
-                btn.onclick = () => changeLanguage(l.code);
-                container.appendChild(btn);
-            });
-        }
-        initLanguageModal();
-
-        addEvt('langToggleBtn', 'click', () => {
-            const lsModal = document.getElementById('langSelectModal');
-            const gSel = document.getElementById('globalLangSelector');
-            if(lsModal) lsModal.classList.remove('hidden');
-            if(gSel) gSel.classList.add('hidden');
-        });
-
-        const CAR_SKINS = [
-            { id: 'default', name: 'Neon Blue', color: '#0ea5e9', price: 0, owned: true },
-            { id: 'sport', name: 'Sport Red', color: '#f43f5e', price: 5.00, owned: false },
-            { id: 'taxi', name: 'City Taxi', color: '#facc15', price: 10.00, owned: false },
-            { id: 'vip', name: 'VIP Stealth', color: '#0f172a', price: 25.00, owned: false }
-        ];
-        
-        const TRAFFIC_COLORS = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#cbd5e1', '#ea580c'];
-        let activeSkinId = 'default';
-
-        // SƏS SİSTEMİ
-        let audioCtx = null; let engineOsc = null; let engineGain = null;
-        function initAudio() {
-            if (audioCtx) return;
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                engineOsc = audioCtx.createOscillator(); engineGain = audioCtx.createGain();
-                engineOsc.type = 'sawtooth'; engineOsc.frequency.setValueAtTime(40, audioCtx.currentTime);
-                engineGain.gain.setValueAtTime(0.08, audioCtx.currentTime); 
-                engineOsc.connect(engineGain); engineGain.connect(audioCtx.destination); engineOsc.start();
-            } catch(e){}
-        }
-        function playTone(freq, type, duration, vol = 0.1) {
-            if (!audioCtx) return;
-            try {
-                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
-            } catch(e){}
-        }
-        function playCrashSound() { playTone(150, 'sawtooth', 0.5, 0.4); setTimeout(() => playTone(50, 'square', 0.8, 0.4), 100); }
-        function playSuccessSound() { playTone(660, 'sine', 0.1, 0.2); setTimeout(() => playTone(880, 'sine', 0.3, 0.2), 100); }
-        function playFineSound() { playTone(200, 'square', 0.3, 0.3); setTimeout(() => playTone(150, 'square', 0.4, 0.3), 150); }
-        function playBuySound() { playTone(523.25, 'sine', 0.1, 0.2); setTimeout(() => playTone(659.25, 'sine', 0.2, 0.2), 100); setTimeout(() => playTone(783.99, 'sine', 0.3, 0.2), 200); }
-        function playNitroSound() { playTone(300, 'square', 0.1, 0.1); setTimeout(() => playTone(500, 'sawtooth', 0.5, 0.2), 100); }
-        function playPoliceSiren() { playTone(800, 'sine', 0.3, 0.2); setTimeout(() => playTone(600, 'sine', 0.3, 0.2), 300); }
-
-        function getSpeechData(text) {
-            if ('speechSynthesis' in window && currentLang) {
-                window.speechSynthesis.cancel(); 
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = LANGUAGES[currentLang].tts; utterance.rate = 1.1; 
-                const aiIcon = document.getElementById("aiIcon");
-                utterance.onstart = () => { if(aiIcon) aiIcon.innerText = "🔊"; };
-                utterance.onend = () => { if(aiIcon) aiIcon.innerText = "🤖"; };
-                window.speechSynthesis.speak(utterance);
+                document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                    const key = el.getAttribute('data-i18n-ph');
+                    if (langObj.t[key]) el.setAttribute('placeholder', langObj.t[key]);
+                });
+                
+                updateUI();
+                const gModal = document.getElementById('garageModal');
+                if(gModal && !gModal.classList.contains('hidden')) renderGarage();
             }
-        }
 
-        // ASİNXRON AI YÜKLƏMƏSİ (Oyunla əlaqəsi yoxdur, çökmə yarada bilməz)
-        async function getDrivingAdvice(scenario) {
-            const aiTipEl = document.getElementById("aiTipText");
-            if (!aiTipEl) return;
+            function changeLanguage(code) {
+                currentLang = code;
+                try { localStorage.setItem('premiumDriveLang', code); } catch(e){}
+                applyTranslations();
+                checkAuthState(); 
+            }
+
+            function initLanguageModal() {
+                const container = document.getElementById('langListContainer');
+                if (!container) return;
+                Object.values(LANGUAGES).forEach(l => {
+                    const btn = document.createElement('button');
+                    btn.className = "p-4 glass-panel rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all text-white font-bold";
+                    btn.innerHTML = `<span class="text-2xl">${l.flag}</span> <span>${l.name}</span>`;
+                    btn.onclick = () => changeLanguage(l.code);
+                    container.appendChild(btn);
+                });
+            }
+            initLanguageModal();
+
+            addEvt('langToggleBtn', 'click', () => {
+                document.getElementById('langSelectModal').classList.remove('hidden');
+                document.getElementById('globalLangSelector').classList.add('hidden');
+            });
+
+            const CAR_SKINS = [
+                { id: 'default', name: 'Neon Blue', color: '#0ea5e9', price: 0, owned: true },
+                { id: 'sport', name: 'Sport Red', color: '#f43f5e', price: 5.00, owned: false },
+                { id: 'taxi', name: 'City Taxi', color: '#facc15', price: 10.00, owned: false },
+                { id: 'vip', name: 'VIP Stealth', color: '#0f172a', price: 25.00, owned: false }
+            ];
             
-            if (typeof window.aiProcessContent === 'function') {
+            const TRAFFIC_COLORS = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#cbd5e1', '#ea580c'];
+            let activeSkinId = 'default';
+
+            let audioCtx = null; let engineOsc = null; let engineGain = null;
+            function initAudio() {
+                if (audioCtx) return;
                 try {
-                    const langName = currentLang ? LANGUAGES[currentLang].name : 'Azərbaycanca';
-                    const prompt = `Sən oyunda səsli köməkçisən. Ssenari: ${scenario}. Çox həyəcanlı və maksimum 4 sözlük cavab ver. Dil: ${langName}.`;
-                    const text = await window.aiProcessContent(prompt);
-                    aiTipEl.innerText = text; 
-                    getSpeechData(text);
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    engineOsc = audioCtx.createOscillator(); engineGain = audioCtx.createGain();
+                    engineOsc.type = 'sawtooth'; engineOsc.frequency.setValueAtTime(40, audioCtx.currentTime);
+                    engineGain.gain.setValueAtTime(0.08, audioCtx.currentTime); 
+                    engineOsc.connect(engineGain); engineGain.connect(audioCtx.destination); engineOsc.start();
+                } catch(e){}
+            }
+            function playTone(freq, type, duration, vol = 0.1) {
+                if (!audioCtx) return;
+                try {
+                    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                    osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
+                } catch(e){}
+            }
+            function playCrashSound() { playTone(150, 'sawtooth', 0.5, 0.4); setTimeout(() => playTone(50, 'square', 0.8, 0.4), 100); }
+            function playSuccessSound() { playTone(660, 'sine', 0.1, 0.2); setTimeout(() => playTone(880, 'sine', 0.3, 0.2), 100); }
+            function playFineSound() { playTone(200, 'square', 0.3, 0.3); setTimeout(() => playTone(150, 'square', 0.4, 0.3), 150); }
+            function playBuySound() { playTone(523.25, 'sine', 0.1, 0.2); setTimeout(() => playTone(659.25, 'sine', 0.2, 0.2), 100); setTimeout(() => playTone(783.99, 'sine', 0.3, 0.2), 200); }
+            function playNitroSound() { playTone(300, 'square', 0.1, 0.1); setTimeout(() => playTone(500, 'sawtooth', 0.5, 0.2), 100); }
+            function playPoliceSiren() { playTone(800, 'sine', 0.3, 0.2); setTimeout(() => playTone(600, 'sine', 0.3, 0.2), 300); }
+
+            function getSpeechData(text) {
+                if ('speechSynthesis' in window && currentLang) {
+                    window.speechSynthesis.cancel(); 
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = LANGUAGES[currentLang].tts; utterance.rate = 1.1; 
+                    const aiIcon = document.getElementById("aiIcon");
+                    utterance.onstart = () => { if(aiIcon) aiIcon.innerText = "🔊"; };
+                    utterance.onend = () => { if(aiIcon) aiIcon.innerText = "🤖"; };
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
+
+            // DİQQƏT: SÜNİ İNTELLEKT BİRBAŞA "FETCH" İLƏ İŞLƏYİR (SDK YOXDUR)
+            async function getDrivingAdvice(scenario) {
+                const aiTipEl = document.getElementById("aiTipText");
+                if (!aiTipEl) return;
+                
+                const langName = currentLang ? LANGUAGES[currentLang].name : 'Azərbaycanca';
+                const promptText = `Sən oyunda səsli köməkçisən. Ssenari: ${scenario}. Çox həyəcanlı və maksimum 4 sözlük cavab ver. Dil: ${langName}.`;
+
+                if (API_KEY === "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN" || !API_KEY) {
+                    aiTipEl.innerText = scenario;
+                    getSpeechData(scenario);
                     return;
+                }
+
+                try {
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: promptText }] }]
+                        })
+                    });
+                    const data = await response.json();
+                    
+                    if (data.candidates && data.candidates[0].content.parts[0].text) {
+                        const text = data.candidates[0].content.parts[0].text.trim();
+                        aiTipEl.innerText = text;
+                        getSpeechData(text);
+                    } else {
+                        aiTipEl.innerText = scenario;
+                        getSpeechData(scenario);
+                    }
                 } catch (error) { 
                     console.warn("AI Xətası:", error); 
+                    aiTipEl.innerText = scenario;
+                    getSpeechData(scenario);
                 }
             }
-            
-            // AI işləməsə normal qaydada mesajı yaz
-            aiTipEl.innerText = scenario;
-            getSpeechData(scenario);
-        }
 
-        function triggerScreenShake() {
-            const container = document.getElementById('gameContainer');
-            if(container){
-                container.classList.remove('shake-effect');
-                void container.offsetWidth; 
-                container.classList.add('shake-effect');
+            function triggerScreenShake() {
+                const container = document.getElementById('gameContainer');
+                if(container){
+                    container.classList.remove('shake-effect');
+                    void container.offsetWidth; 
+                    container.classList.add('shake-effect');
+                }
             }
-        }
 
-        // QEYDİYYAT VƏ GİRİŞ QORUMALARI
-        let balance = 0.00;
-        try {
-            let savedBalance = localStorage.getItem('premiumDriveBalance');
-            if (savedBalance !== null && !isNaN(parseFloat(savedBalance))) {
-                balance = parseFloat(savedBalance);
-            }
-        } catch(e){}
-
-        let currentUser = null;
-        try {
-            let storedUser = localStorage.getItem('premiumDriveUser');
-            if(storedUser && storedUser.includes("{")) {
-                currentUser = JSON.parse(storedUser);
-            }
-        } catch(e) {
-            try { localStorage.removeItem('premiumDriveUser'); } catch(ex){} 
-        }
-        
-        let isBanned = false;
-        try { isBanned = localStorage.getItem('premiumDriveBan') === 'true'; } catch(e){}
-
-        // EKRAN GÖSTƏRMƏ FUNKSİYASI
-        function hideAllScreens() {
-            ['langSelectModal', 'authScreen', 'loginFormScreen', 'loginScreen', 'banScreen'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.classList.add('hidden');
-            });
-        }
-
-        function checkAuthState() {
-            hideAllScreens();
-            
-            if (!currentLang) {
-                const lsModal = document.getElementById('langSelectModal');
-                const gSel = document.getElementById('globalLangSelector');
-                if(lsModal) lsModal.classList.remove('hidden');
-                if(gSel) gSel.classList.add('hidden');
-                return;
-            }
-            
-            const gSel = document.getElementById('globalLangSelector');
-            if(gSel) gSel.classList.remove('hidden');
-
-            if (isBanned) {
-                const banEl = document.getElementById('banScreen');
-                if(banEl) banEl.classList.remove('hidden');
-            } else if (currentUser) {
-                const loginEl = document.getElementById('loginScreen');
-                if(loginEl) loginEl.classList.remove('hidden');
-                if(!isGameRunning) applyTranslations(); 
-            } else {
-                const authEl = document.getElementById('authScreen');
-                if(authEl) authEl.classList.remove('hidden');
-            }
-        }
-
-        if(currentLang) applyTranslations();
-        checkAuthState(); 
-
-        addEvt('showLoginBtn', 'click', () => {
-            const aScreen = document.getElementById('authScreen');
-            const lScreen = document.getElementById('loginFormScreen');
-            if(aScreen) aScreen.classList.add('hidden'); 
-            if(lScreen) lScreen.classList.remove('hidden');
-        });
-        
-        addEvt('showRegisterBtn', 'click', () => {
-            const aScreen = document.getElementById('authScreen');
-            const lScreen = document.getElementById('loginFormScreen');
-            if(lScreen) lScreen.classList.add('hidden'); 
-            if(aScreen) aScreen.classList.remove('hidden');
-        });
-
-        addEvt('registerForm', 'submit', (e) => {
-            e.preventDefault();
-            let checkUser = null;
-            try { checkUser = localStorage.getItem('premiumDriveUser'); } catch(e){}
-
-            if (checkUser !== null) {
-                try { localStorage.setItem('premiumDriveBan', 'true'); } catch(e){}
-                isBanned = true;
-                checkAuthState(); 
-                return;
-            }
-            
-            const fName = document.getElementById('regFullName');
-            const uName = document.getElementById('regUsername');
-            const uAge = document.getElementById('regAge');
-            const uPass = document.getElementById('regPassword');
-
-            currentUser = { 
-                fullName: fName ? fName.value : "", 
-                username: uName ? uName.value : "", 
-                age: uAge ? uAge.value : "", 
-                password: uPass ? uPass.value : "", 
-                bonusClaimed: false 
-            };
-            
+            let balance = 0.00;
             try {
-                localStorage.setItem('premiumDriveUser', JSON.stringify(currentUser));
-                localStorage.setItem('premiumDriveBalance', '0.00'); 
+                let savedBalance = localStorage.getItem('premiumDriveBalance');
+                if (savedBalance !== null && !isNaN(parseFloat(savedBalance))) {
+                    balance = parseFloat(savedBalance);
+                }
             } catch(e){}
-            
-            balance = 0.00;
-            checkAuthState();
-        });
 
-        addEvt('loginUserForm', 'submit', (e) => {
-            e.preventDefault();
-            const logUName = document.getElementById('logUsername');
-            const logPass = document.getElementById('logPassword');
-            const errEl = document.getElementById('loginError');
+            let currentUser = null;
+            try {
+                let storedUser = localStorage.getItem('premiumDriveUser');
+                if(storedUser && storedUser.includes("{")) {
+                    currentUser = JSON.parse(storedUser);
+                }
+            } catch(e) {
+                try { localStorage.removeItem('premiumDriveUser'); } catch(ex){} 
+            }
+            
+            let isBanned = false;
+            try { isBanned = localStorage.getItem('premiumDriveBan') === 'true'; } catch(e){}
 
-            const userVal = logUName ? logUName.value : "";
-            const passVal = logPass ? logPass.value : "";
+            function hideAllScreens() {
+                ['langSelectModal', 'authScreen', 'loginFormScreen', 'loginScreen', 'banScreen', 'gameScreen'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.classList.add('hidden');
+                });
+            }
+
+            function checkAuthState() {
+                hideAllScreens();
+                
+                if (!currentLang) {
+                    const lsModal = document.getElementById('langSelectModal');
+                    const gSel = document.getElementById('globalLangSelector');
+                    if(lsModal) lsModal.classList.remove('hidden');
+                    if(gSel) gSel.classList.add('hidden');
+                    return;
+                }
+                
+                const gSel = document.getElementById('globalLangSelector');
+                if(gSel) gSel.classList.remove('hidden');
+
+                if (isBanned) {
+                    const banEl = document.getElementById('banScreen');
+                    if(banEl) banEl.classList.remove('hidden');
+                } else if (currentUser) {
+                    const loginEl = document.getElementById('loginScreen');
+                    if(loginEl) loginEl.classList.remove('hidden');
+                    if(!isGameRunning) applyTranslations(); 
+                } else {
+                    const authEl = document.getElementById('authScreen');
+                    if(authEl) authEl.classList.remove('hidden');
+                }
+            }
+
+            if(currentLang) applyTranslations();
+            checkAuthState(); 
+
+            addEvt('showLoginBtn', 'click', () => {
+                document.getElementById('authScreen').classList.add('hidden'); 
+                document.getElementById('loginFormScreen').classList.remove('hidden');
+            });
             
-            let savedUser = null;
-            try { savedUser = JSON.parse(localStorage.getItem('premiumDriveUser')); } catch(e){}
-            
-            if (savedUser && savedUser.username === userVal && savedUser.password === passVal) {
-                currentUser = savedUser;
-                if(errEl) errEl.classList.add('hidden');
+            addEvt('showRegisterBtn', 'click', () => {
+                document.getElementById('loginFormScreen').classList.add('hidden'); 
+                document.getElementById('authScreen').classList.remove('hidden');
+            });
+
+            addEvt('registerForm', 'submit', (e) => {
+                e.preventDefault();
+                let checkUser = null;
+                try { checkUser = localStorage.getItem('premiumDriveUser'); } catch(e){}
+
+                if (checkUser !== null) {
+                    try { localStorage.setItem('premiumDriveBan', 'true'); } catch(e){}
+                    isBanned = true;
+                    checkAuthState(); 
+                    return;
+                }
+                
+                const fName = document.getElementById('regFullName');
+                const uName = document.getElementById('regUsername');
+                const uAge = document.getElementById('regAge');
+                const uPass = document.getElementById('regPassword');
+
+                currentUser = { 
+                    fullName: fName ? fName.value : "", 
+                    username: uName ? uName.value : "", 
+                    age: uAge ? uAge.value : "", 
+                    password: uPass ? uPass.value : "", 
+                    bonusClaimed: false 
+                };
+                
+                try {
+                    localStorage.setItem('premiumDriveUser', JSON.stringify(currentUser));
+                    localStorage.setItem('premiumDriveBalance', '0.00'); 
+                } catch(e){}
+                
+                balance = 0.00;
                 checkAuthState();
-            } else {
-                if(errEl) errEl.classList.remove('hidden');
-            }
-        });
-
-        // OYUN DƏYİŞƏNLƏRİ
-        const LOGICAL_WIDTH = 400; const LOGICAL_HEIGHT = 600;
-        const CAR_WIDTH = 48; const CAR_HEIGHT = 86; const PLAYER_Y = LOGICAL_HEIGHT - 130;
-        const LANES = [100, 200, 300]; const BIOMES = [{ ground: '#020617', road: '#0f172a', curb: '#1e293b' }];
-
-        let isGameRunning = false; let isBraking = false; let isGameOver = false;
-        let score = 0; let trafficCars = []; let speedMultiplier = 1; let animatedPopups = []; 
-        let nitroTimer = 0; let screenShake = 0; let demoReminderTimeout;
-        let gameState = { carX: LANES[1] - CAR_WIDTH / 2, targetX: LANES[1] - CAR_WIDTH / 2, linesOffset: 0 };
-        let trafficLight = { active: false, y: -200, state: 'GREEN', timer: 0, passed: false };
-        let policeEvent = { active: false, y: -200, passed: false, isWaiting: false };
-
-        const canvas = document.getElementById('gameCanvas'); 
-        const ctx = canvas ? canvas.getContext('2d') : null;
-
-        function formatCurrency(baseAznValue) {
-            const lang = LANGUAGES[currentLang] || LANGUAGES['az'];
-            return (baseAznValue * lang.rate).toFixed(2) + ' ' + lang.currency;
-        }
-
-        function getT(key) {
-            if(!currentLang || !LANGUAGES[currentLang]) return key;
-            return LANGUAGES[currentLang].t[key] || key;
-        }
-
-        function safeSetText(id, text) {
-            const el = document.getElementById(id);
-            if(el) el.innerText = text;
-        }
-
-        function updateUI() {
-            try { localStorage.setItem('premiumDriveBalance', balance.toFixed(2)); } catch(e){}
-            const formatted = formatCurrency(balance);
-            
-            safeSetText('balanceText', formatted);
-            safeSetText('loginBalanceText', formatted);
-            safeSetText('garageBalanceText', formatted);
-            safeSetText('withdrawBalanceDisplay', formatted);
-            safeSetText('scoreText', `${Math.floor(score)} M`);
-            
-            const hInput = document.getElementById('hiddenBalanceInput');
-            if(hInput) hInput.value = formatted;
-            
-            const submitBtn = document.getElementById('submitWithdrawBtn');
-            const warning = document.getElementById('withdrawWarning');
-            if(submitBtn && warning) {
-                if (balance < 30) { 
-                    submitBtn.disabled = true; submitBtn.classList.add('opacity-50', 'cursor-not-allowed'); warning.classList.remove('hidden');
-                } else {
-                    submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); warning.classList.add('hidden');
-                }
-            }
-        }
-
-        function spawnPopup(text, color, x, y) { animatedPopups.push({ text, color, x, y, alpha: 1, life: 60 }); }
-
-        window.selectCar = function(id) { activeSkinId = id; playSuccessSound(); renderGarage(); };
-        window.buyCar = function(id) {
-            const car = CAR_SKINS.find(c => c.id === id);
-            if (car && balance >= car.price) {
-                balance -= car.price; car.owned = true; activeSkinId = id;
-                playBuySound(); updateUI(); renderGarage(); getDrivingAdvice(getT("msgNewCar"));
-            }
-        };
-
-        function renderGarage() {
-            const list = document.getElementById('garageList'); 
-            if(!list) return;
-            list.innerHTML = '';
-            
-            CAR_SKINS.forEach(car => {
-                const item = document.createElement('div'); 
-                item.className = "glass-panel p-4 rounded-[20px] flex items-center justify-between";
-                const isSelected = activeSkinId === car.id; let btnHTML = '';
-                if (car.owned) {
-                    btnHTML = isSelected ? `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-500">${getT("btnSelected")}</button>` 
-                    : `<button onclick="window.selectCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300">${getT("btnSel")}</button>`;
-                } else {
-                    const priceF = formatCurrency(car.price);
-                    btnHTML = balance >= car.price ? `<button onclick="window.buyCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-400">${getT("btnBuy")} (${priceF})</button>`
-                    : `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-slate-800/50 text-slate-500">${getT("btnBuy")} (${priceF})</button>`;
-                }
-                item.innerHTML = `<div class="flex items-center gap-4"><div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background-color: ${car.color}"><div class="w-6 h-10 bg-black/20"></div></div><div><p class="font-bold text-sm">${car.name}</p></div></div><div>${btnHTML}</div>`;
-                list.appendChild(item);
             });
-        }
 
-        addEvt('closeDemoReminder', 'click', () => {
-            const dRem = document.getElementById('demoReminder');
-            if(dRem) dRem.classList.add('hidden');
-        });
+            addEvt('loginUserForm', 'submit', (e) => {
+                e.preventDefault();
+                const logUName = document.getElementById('logUsername');
+                const logPass = document.getElementById('logPassword');
+                const errEl = document.getElementById('loginError');
 
-        function startGame() {
-            if (balance <= 0) {
-                const topModal = document.getElementById('topUpModal');
-                if(topModal) topModal.classList.remove('hidden');
-                getDrivingAdvice(getT("msgNoBal"));
-                return;
-            }
-            
-            const logScreen = document.getElementById('loginScreen');
-            const gScreen = document.getElementById('gameScreen');
-            const goScreen = document.getElementById('gameOverScreen');
-            const glScreen = document.getElementById('globalLangSelector');
-            
-            if(logScreen) logScreen.classList.add('hidden'); 
-            if(gScreen) gScreen.classList.remove('hidden'); 
-            if(goScreen) goScreen.classList.add('hidden'); 
-            if(glScreen) glScreen.classList.add('hidden');
-            
-            initAudio(); isGameRunning = true; isGameOver = false; score = 0; speedMultiplier = 1; trafficCars = []; animatedPopups = [];
-            nitroTimer = 0; screenShake = 0;
-            gameState.carX = LANES[1] - CAR_WIDTH / 2; gameState.targetX = LANES[1] - CAR_WIDTH / 2; 
-            trafficLight.active = false; policeEvent.active = false; policeEvent.isWaiting = false;
-            
-            clearTimeout(demoReminderTimeout); 
-            const dRem = document.getElementById('demoReminder');
-            if(dRem) dRem.classList.add('hidden');
-            
-            demoReminderTimeout = setTimeout(() => {
-                if (isGameRunning && !isGameOver) {
-                    if(dRem) dRem.classList.remove('hidden');
-                    playTone(600, 'square', 0.2, 0.2); 
-                    getDrivingAdvice("Hesabı aktivləşdir!");
+                const userVal = logUName ? logUName.value : "";
+                const passVal = logPass ? logPass.value : "";
+                
+                let savedUser = null;
+                try { savedUser = JSON.parse(localStorage.getItem('premiumDriveUser')); } catch(e){}
+                
+                if (savedUser && savedUser.username === userVal && savedUser.password === passVal) {
+                    currentUser = savedUser;
+                    if(errEl) errEl.classList.add('hidden');
+                    checkAuthState();
+                } else {
+                    if(errEl) errEl.classList.remove('hidden');
                 }
-            }, 15000);
+            });
 
-            updateUI(); getDrivingAdvice(getT("msgGas")); 
-            if(ctx) requestAnimationFrame(gameLoop);
-        }
+            const LOGICAL_WIDTH = 400; const LOGICAL_HEIGHT = 600;
+            const CAR_WIDTH = 48; const CAR_HEIGHT = 86; const PLAYER_Y = LOGICAL_HEIGHT - 130;
+            const LANES = [100, 200, 300]; const BIOMES = [{ ground: '#020617', road: '#0f172a', curb: '#1e293b' }];
 
-        function gameOver() {
-            isGameOver = true; 
-            clearTimeout(demoReminderTimeout); 
-            const dRem = document.getElementById('demoReminder');
-            if(dRem) dRem.classList.add('hidden'); 
-            
-            const goScreen = document.getElementById('gameOverScreen');
-            const fScore = document.getElementById('finalScore');
-            const glScreen = document.getElementById('globalLangSelector');
-            if(goScreen) goScreen.classList.remove('hidden'); 
-            if(fScore) fScore.innerText = Math.floor(score);
-            if(glScreen) glScreen.classList.remove('hidden');
-            
-            const restartBtn = document.getElementById('restartBtn'); 
-            const topupBtn = document.getElementById('gameOverTopupBtn');
-            const msg = document.getElementById('gameOverMessage'); 
-            const title = document.getElementById('gameOverTitle');
+            let isGameRunning = false; let isBraking = false; let isGameOver = false;
+            let score = 0; let trafficCars = []; let speedMultiplier = 1; let animatedPopups = []; 
+            let nitroTimer = 0; let screenShake = 0; let demoReminderTimeout;
+            let gameState = { carX: LANES[1] - CAR_WIDTH / 2, targetX: LANES[1] - CAR_WIDTH / 2, linesOffset: 0 };
+            let trafficLight = { active: false, y: -200, state: 'GREEN', timer: 0, passed: false };
+            let policeEvent = { active: false, y: -200, passed: false, isWaiting: false };
 
-            if(title && restartBtn && topupBtn && msg) {
+            const canvas = document.getElementById('gameCanvas'); 
+            const ctx = canvas ? canvas.getContext('2d') : null;
+
+            function formatCurrency(baseAznValue) {
+                const lang = LANGUAGES[currentLang] || LANGUAGES['az'];
+                return (baseAznValue * lang.rate).toFixed(2) + ' ' + lang.currency;
+            }
+
+            function getT(key) {
+                if(!currentLang || !LANGUAGES[currentLang]) return key;
+                return LANGUAGES[currentLang].t[key] || key;
+            }
+
+            function safeSetText(id, text) {
+                const el = document.getElementById(id);
+                if(el) el.innerText = text;
+            }
+
+            function updateUI() {
+                try { localStorage.setItem('premiumDriveBalance', balance.toFixed(2)); } catch(e){}
+                const formatted = formatCurrency(balance);
+                
+                safeSetText('balanceText', formatted);
+                safeSetText('loginBalanceText', formatted);
+                safeSetText('garageBalanceText', formatted);
+                safeSetText('withdrawBalanceDisplay', formatted);
+                safeSetText('scoreText', `${Math.floor(score)} M`);
+                
+                const hInput = document.getElementById('hiddenBalanceInput');
+                if(hInput) hInput.value = formatted;
+                
+                const submitBtn = document.getElementById('submitWithdrawBtn');
+                const warning = document.getElementById('withdrawWarning');
+                if(submitBtn && warning) {
+                    if (balance < 30) { 
+                        submitBtn.disabled = true; submitBtn.classList.add('opacity-50', 'cursor-not-allowed'); warning.classList.remove('hidden');
+                    } else {
+                        submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); warning.classList.add('hidden');
+                    }
+                }
+            }
+
+            function spawnPopup(text, color, x, y) { animatedPopups.push({ text, color, x, y, alpha: 1, life: 60 }); }
+
+            window.selectCar = function(id) { activeSkinId = id; playSuccessSound(); renderGarage(); };
+            window.buyCar = function(id) {
+                const car = CAR_SKINS.find(c => c.id === id);
+                if (car && balance >= car.price) {
+                    balance -= car.price; car.owned = true; activeSkinId = id;
+                    playBuySound(); updateUI(); renderGarage(); getDrivingAdvice(getT("msgNewCar"));
+                }
+            };
+
+            function renderGarage() {
+                const list = document.getElementById('garageList'); 
+                if(!list) return;
+                list.innerHTML = '';
+                
+                CAR_SKINS.forEach(car => {
+                    const item = document.createElement('div'); 
+                    item.className = "glass-panel p-4 rounded-[20px] flex items-center justify-between";
+                    const isSelected = activeSkinId === car.id; let btnHTML = '';
+                    if (car.owned) {
+                        btnHTML = isSelected ? `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-500">${getT("btnSelected")}</button>` 
+                        : `<button onclick="window.selectCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300">${getT("btnSel")}</button>`;
+                    } else {
+                        const priceF = formatCurrency(car.price);
+                        btnHTML = balance >= car.price ? `<button onclick="window.buyCar('${car.id}')" class="py-2 px-4 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-400">${getT("btnBuy")} (${priceF})</button>`
+                        : `<button disabled class="py-2 px-4 rounded-xl text-xs font-bold bg-slate-800/50 text-slate-500">${getT("btnBuy")} (${priceF})</button>`;
+                    }
+                    item.innerHTML = `<div class="flex items-center gap-4"><div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background-color: ${car.color}"><div class="w-6 h-10 bg-black/20"></div></div><div><p class="font-bold text-sm">${car.name}</p></div></div><div>${btnHTML}</div>`;
+                    list.appendChild(item);
+                });
+            }
+
+            addEvt('closeDemoReminder', 'click', () => {
+                document.getElementById('demoReminder').classList.add('hidden');
+            });
+
+            function startGame() {
                 if (balance <= 0) {
-                    title.innerText = getT("msgLock").toUpperCase(); title.classList.replace('text-rose-500', 'text-red-600'); 
-                    restartBtn.classList.add('hidden'); topupBtn.classList.remove('hidden'); 
-                    msg.innerText = getT("msgLocked"); msg.classList.remove('hidden');
-                    getDrivingAdvice(getT("msgLock")); 
-                } else {
-                    title.innerText = "GAME OVER"; title.classList.replace('text-red-600', 'text-rose-500');
-                    restartBtn.classList.remove('hidden'); topupBtn.classList.add('hidden'); msg.classList.add('hidden');
-                    getDrivingAdvice(getT("msgPause")); 
+                    document.getElementById('topUpModal').classList.remove('hidden');
+                    getDrivingAdvice(getT("msgNoBal"));
+                    return;
+                }
+                
+                document.getElementById('loginScreen').classList.add('hidden'); 
+                document.getElementById('gameScreen').classList.remove('hidden'); 
+                document.getElementById('gameOverScreen').classList.add('hidden'); 
+                document.getElementById('globalLangSelector').classList.add('hidden');
+                
+                initAudio(); isGameRunning = true; isGameOver = false; score = 0; speedMultiplier = 1; trafficCars = []; animatedPopups = [];
+                nitroTimer = 0; screenShake = 0;
+                gameState.carX = LANES[1] - CAR_WIDTH / 2; gameState.targetX = LANES[1] - CAR_WIDTH / 2; 
+                trafficLight.active = false; policeEvent.active = false; policeEvent.isWaiting = false;
+                
+                clearTimeout(demoReminderTimeout); 
+                document.getElementById('demoReminder').classList.add('hidden');
+                
+                demoReminderTimeout = setTimeout(() => {
+                    if (isGameRunning && !isGameOver) {
+                        document.getElementById('demoReminder').classList.remove('hidden');
+                        playTone(600, 'square', 0.2, 0.2); 
+                        getDrivingAdvice("Hesabı aktivləşdir!");
+                    }
+                }, 15000);
+
+                updateUI(); getDrivingAdvice(getT("msgGas")); 
+                if(ctx) requestAnimationFrame(gameLoop);
+            }
+
+            function gameOver() {
+                isGameOver = true; 
+                clearTimeout(demoReminderTimeout); 
+                document.getElementById('demoReminder').classList.add('hidden'); 
+                
+                document.getElementById('gameOverScreen').classList.remove('hidden'); 
+                document.getElementById('finalScore').innerText = Math.floor(score);
+                document.getElementById('globalLangSelector').classList.remove('hidden');
+                
+                const restartBtn = document.getElementById('restartBtn'); 
+                const topupBtn = document.getElementById('gameOverTopupBtn');
+                const msg = document.getElementById('gameOverMessage'); 
+                const title = document.getElementById('gameOverTitle');
+
+                if(title && restartBtn && topupBtn && msg) {
+                    if (balance <= 0) {
+                        title.innerText = getT("msgLock").toUpperCase(); title.classList.replace('text-rose-500', 'text-red-600'); 
+                        restartBtn.classList.add('hidden'); topupBtn.classList.remove('hidden'); 
+                        msg.innerText = getT("msgLocked"); msg.classList.remove('hidden');
+                        getDrivingAdvice(getT("msgLock")); 
+                    } else {
+                        title.innerText = "GAME OVER"; title.classList.replace('text-red-600', 'text-rose-500');
+                        restartBtn.classList.remove('hidden'); topupBtn.classList.add('hidden'); msg.classList.add('hidden');
+                        getDrivingAdvice(getT("msgPause")); 
+                    }
+                }
+                if (engineGain && audioCtx) engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+            }
+
+            function update() {
+                if (!isGameRunning || isGameOver) return;
+                
+                let currentBaseSpeed = 5; if (nitroTimer > 0) { currentBaseSpeed += 6; nitroTimer--; }
+                const baseSpeed = (isBraking || policeEvent.isWaiting) ? 0 : currentBaseSpeed * speedMultiplier; 
+                if (!isBraking && !policeEvent.isWaiting) { score += (nitroTimer > 0 ? 0.3 : 0.1) * speedMultiplier; } 
+                gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80; gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
+                if (screenShake > 0) screenShake--;
+
+                // İŞIQFOR
+                if (!trafficLight.active && !policeEvent.active && Math.random() < 0.005 && score > 10) { trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false; trafficLight.timer = 300; trafficLight.state = 'GREEN'; }
+                if (trafficLight.active) {
+                    trafficLight.y += baseSpeed; trafficLight.timer--;
+                    if (trafficLight.timer === 200) trafficLight.state = 'YELLOW';
+                    if (trafficLight.timer === 140) trafficLight.state = 'RED';
+                    if (trafficLight.timer === 0) trafficLight.state = 'GREEN';
+
+                    if (trafficLight.y > PLAYER_Y + CAR_HEIGHT && !trafficLight.passed) {
+                        trafficLight.passed = true;
+                        if (trafficLight.state === 'RED' && !isBraking) { 
+                            balance -= 0.60; playFineSound(); triggerScreenShake(); screenShake = 15;
+                            spawnPopup("- " + formatCurrency(0.60), "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
+                            if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } 
+                            getDrivingAdvice(getT("msgFine")); 
+                        } else if (trafficLight.state === 'GREEN') { 
+                            balance += 0.40; nitroTimer = 60; playSuccessSound(); playNitroSound();
+                            spawnPopup("🚀 + " + formatCurrency(0.40), "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
+                        }
+                        updateUI(); 
+                    }
+                    if (trafficLight.y > LOGICAL_HEIGHT) trafficLight.active = false;
+                }
+
+                // POLİS
+                if (!policeEvent.active && !trafficLight.active && Math.random() < 0.003 && score > 30) {
+                    policeEvent.active = true; policeEvent.y = -200; policeEvent.passed = false; policeEvent.isWaiting = false; playPoliceSiren();
+                }
+                if (policeEvent.active) {
+                    if (!policeEvent.isWaiting) policeEvent.y += baseSpeed;
+                    if (policeEvent.y > PLAYER_Y - 50 && !policeEvent.passed) {
+                        if (isBraking && !policeEvent.isWaiting) {
+                            policeEvent.isWaiting = true; balance += 0.30; playSuccessSound();
+                            spawnPopup("👮 + " + formatCurrency(0.30), "#10b981", LOGICAL_WIDTH/2, PLAYER_Y - 30); updateUI();
+                            getDrivingAdvice(getT("msgWait"));
+                            setTimeout(() => { if (policeEvent.active) { policeEvent.isWaiting = false; policeEvent.passed = true; getDrivingAdvice(getT("msgGo")); playSuccessSound(); spawnPopup("✅ " + getT("msgGo").toUpperCase(), "#34d399", LOGICAL_WIDTH/2, PLAYER_Y - 50); } }, 3000);
+                        } else if (policeEvent.y > PLAYER_Y + CAR_HEIGHT && !policeEvent.isWaiting) {
+                            policeEvent.passed = true; balance -= 0.60; playFineSound(); triggerScreenShake(); screenShake = 20;
+                            spawnPopup("🚓 - " + formatCurrency(0.60), "#f43f5e", LOGICAL_WIDTH/2, PLAYER_Y - 30);
+                            if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } 
+                            getDrivingAdvice(getT("msgStop")); updateUI();
+                        }
+                    }
+                    if (policeEvent.y > LOGICAL_HEIGHT && policeEvent.passed) policeEvent.active = false;
+                }
+
+                // TRAFİK
+                if (Math.random() < 0.008 * speedMultiplier && !isBraking && !trafficLight.active && !policeEvent.active) {
+                    const lane = LANES[Math.floor(Math.random() * LANES.length)];
+                    if (trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150)) {
+                        trafficCars.push({ x: lane - CAR_WIDTH / 2, y: -150, speed: Math.random() * 0.5 + 1.0, color: TRAFFIC_COLORS[Math.floor(Math.random() * TRAFFIC_COLORS.length)], type: Math.random() > 0.8 ? 'truck' : 'car', height: Math.random() > 0.8 ? 130 : CAR_HEIGHT, nearMissed: false, crashed: false });
+                    }
+                }
+
+                for (let i = trafficCars.length - 1; i >= 0; i--) {
+                    let car = trafficCars[i]; car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
+                    if (!car.crashed && gameState.carX < car.x + CAR_WIDTH - 12 && gameState.carX + CAR_WIDTH - 12 > car.x && PLAYER_Y < car.y + car.height - 12 && PLAYER_Y + CAR_HEIGHT - 12 > car.y) {
+                        balance -= 0.10; playCrashSound(); triggerScreenShake(); screenShake = 20;
+                        spawnPopup("- " + formatCurrency(0.10), "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y); 
+                        car.crashed = true; trafficCars.splice(i, 1); 
+                        if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } 
+                        getDrivingAdvice(getT("msgCrash")); updateUI(); 
+                    } 
+                    else if (!car.crashed && !car.nearMissed && car.y > PLAYER_Y - car.height && car.y < PLAYER_Y + CAR_HEIGHT) {
+                        if (Math.abs((gameState.carX + CAR_WIDTH/2) - (car.x + CAR_WIDTH/2)) < CAR_WIDTH + 20) {
+                            car.nearMissed = true; balance += 0.05; playTone(800, 'sine', 0.1, 0.1); 
+                            spawnPopup("⚡ " + getT("msgDanger") + " + " + formatCurrency(0.05), "#facc15", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); updateUI();
+                        }
+                    }
+                    else if (car.y > LOGICAL_HEIGHT) { trafficCars.splice(i, 1); }
+                }
+
+                animatedPopups.forEach(p => { p.y -= (nitroTimer > 0 ? 3 : 1.5); p.alpha -= 0.015; p.life--; }); animatedPopups = animatedPopups.filter(p => p.life > 0);
+                if (engineGain && audioCtx) { 
+                    let freq = (isBraking || policeEvent.isWaiting) ? 30 : 40 * speedMultiplier;
+                    if (nitroTimer > 0) freq = 80; 
+                    engineOsc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.1); 
+                    engineGain.gain.setTargetAtTime((isBraking || policeEvent.isWaiting) ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier), audioCtx.currentTime, 0.1); 
                 }
             }
-            if (engineGain && audioCtx) engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
-        }
 
-        function update() {
-            if (!isGameRunning || isGameOver) return;
-            const langObj = LANGUAGES[currentLang] || LANGUAGES['az'];
+            function drawCar(x, y, color, isPlayer, braking, type = 'car', height = CAR_HEIGHT) {
+                ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 10; ctx.fillStyle = color; 
+                ctx.beginPath(); ctx.roundRect(x, y, CAR_WIDTH, height, 12); ctx.fill(); ctx.shadowColor = 'transparent'; 
+                if (type === 'car' || type === 'police') {
+                    ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 15, CAR_WIDTH - 8, 18, 4); ctx.fill(); 
+                    ctx.beginPath(); ctx.roundRect(x + 6, y + height - 25, CAR_WIDTH - 12, 12, 3); ctx.fill();
+                } else if (type === 'truck') {
+                    ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.roundRect(x + 2, y + 25, CAR_WIDTH - 4, height - 30, 4); ctx.fill();
+                    ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 5, CAR_WIDTH - 8, 15, 4); ctx.fill();
+                }
+                if (isPlayer && (braking || policeEvent.isWaiting)) { ctx.fillStyle = '#f43f5e'; ctx.fillRect(x + 4, y + height - 6, 12, 4); ctx.fillRect(x + CAR_WIDTH - 16, y + height - 6, 12, 4); } 
+                else if (!isPlayer) { ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(x + 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(x + CAR_WIDTH - 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); }
+                if (isPlayer && nitroTimer > 0) { ctx.fillStyle = 'rgba(34, 211, 238, 0.5)'; ctx.beginPath(); ctx.roundRect(x + 10, y + height, CAR_WIDTH - 20, Math.random() * 40 + 20, 5); ctx.fill(); }
+                ctx.restore();
+            }
+
+            function draw() {
+                if (!ctx) return; ctx.save();
+                if (screenShake > 0) { ctx.translate(Math.random() * 10 - 5, Math.random() * 10 - 5); }
+                const biome = BIOMES[0];
+                ctx.fillStyle = biome.ground; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); 
+                ctx.fillStyle = biome.curb; ctx.fillRect(50, 0, 10, LOGICAL_HEIGHT); ctx.fillRect(LOGICAL_WIDTH - 60, 0, 10, LOGICAL_HEIGHT); 
+                ctx.fillStyle = biome.road; ctx.fillRect(60, 0, LOGICAL_WIDTH - 120, LOGICAL_HEIGHT);
+                let dashLength = nitroTimer > 0 ? 60 : 30; ctx.setLineDash([dashLength, 40]); ctx.strokeStyle = nitroTimer > 0 ? 'rgba(34, 211, 238, 0.4)' : 'rgba(255,255,255,0.15)'; ctx.lineWidth = 4; ctx.lineDashOffset = -gameState.linesOffset; ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); ctx.stroke();
+
+                if (trafficLight.active) {
+                    ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(60, trafficLight.y, LOGICAL_WIDTH - 120, 8); ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.roundRect(LOGICAL_WIDTH - 45, trafficLight.y - 70, 26, 75, 8); ctx.fill();
+                    const drawLight = (yOff, color, active) => { ctx.save(); ctx.fillStyle = active ? color : '#1e293b'; ctx.beginPath(); ctx.arc(LOGICAL_WIDTH - 32, trafficLight.y - 70 + yOff, 8, 0, Math.PI*2); ctx.fill(); ctx.restore(); };
+                    drawLight(16, '#f43f5e', trafficLight.state === 'RED'); drawLight(38, '#facc15', trafficLight.state === 'YELLOW'); drawLight(60, '#10b981', trafficLight.state === 'GREEN');
+                }
+
+                if (policeEvent.active) {
+                    let px = LOGICAL_WIDTH - 55; drawCar(px, policeEvent.y, '#ffffff', false, false, 'police', CAR_HEIGHT);
+                    ctx.fillStyle = (Date.now() % 400 < 200) ? '#f43f5e' : '#3b82f6'; ctx.fillRect(px + 10, policeEvent.y + 20, CAR_WIDTH - 20, 6);
+                    ctx.fillStyle = '#f43f5e'; ctx.font = '900 20px sans-serif'; ctx.textAlign = 'right'; ctx.fillText("🛑", px - 10, policeEvent.y + CAR_HEIGHT / 2);
+                }
+
+                trafficCars.forEach(car => drawCar(car.x, car.y, car.color, false, false, car.type, car.height));
+                drawCar(gameState.carX, PLAYER_Y, CAR_SKINS.find(c => c.id === activeSkinId).color, true, isBraking, 'car', CAR_HEIGHT); 
+                animatedPopups.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.alpha); ctx.font = '900 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(p.text, p.x, p.y); ctx.restore(); });
+                if (nitroTimer > 0) { ctx.fillStyle = 'rgba(34, 211, 238, ' + (nitroTimer/60 * 0.1) + ')'; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); }
+                ctx.restore();
+            }
+
+            function gameLoop() { update(); draw(); if (isGameRunning && ctx) requestAnimationFrame(gameLoop); }
+
+            addEvt('loginBtn', 'click', startGame); 
+            addEvt('restartBtn', 'click', startGame);
+            addEvt('gameOverTopupBtn', 'click', () => { document.getElementById('topUpModal').classList.remove('hidden'); });
+            addEvt('buyMeCoffeeBtn', 'click', () => { window.open('https://buymeacoffee.com/surwin', '_blank'); });
             
-            let currentBaseSpeed = 5; if (nitroTimer > 0) { currentBaseSpeed += 6; nitroTimer--; }
-            const baseSpeed = (isBraking || policeEvent.isWaiting) ? 0 : currentBaseSpeed * speedMultiplier; 
-            if (!isBraking && !policeEvent.isWaiting) { score += (nitroTimer > 0 ? 0.3 : 0.1) * speedMultiplier; } 
-            gameState.linesOffset = (gameState.linesOffset + baseSpeed) % 80; gameState.carX += (gameState.targetX - gameState.carX) * 0.15;
-            if (screenShake > 0) screenShake--;
-
-            // İŞIQFOR
-            if (!trafficLight.active && !policeEvent.active && Math.random() < 0.005 && score > 10) { trafficLight.active = true; trafficLight.y = -100; trafficLight.passed = false; trafficLight.timer = 300; trafficLight.state = 'GREEN'; }
-            if (trafficLight.active) {
-                trafficLight.y += baseSpeed; trafficLight.timer--;
-                if (trafficLight.timer === 200) trafficLight.state = 'YELLOW';
-                if (trafficLight.timer === 140) trafficLight.state = 'RED';
-                if (trafficLight.timer === 0) trafficLight.state = 'GREEN';
-
-                if (trafficLight.y > PLAYER_Y + CAR_HEIGHT && !trafficLight.passed) {
-                    trafficLight.passed = true;
-                    if (trafficLight.state === 'RED' && !isBraking) { 
-                        balance -= 0.60; playFineSound(); triggerScreenShake(); screenShake = 15;
-                        spawnPopup("- " + formatCurrency(0.60), "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
-                        if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } 
-                        getDrivingAdvice(getT("msgFine")); 
-                    } else if (trafficLight.state === 'GREEN') { 
-                        balance += 0.40; nitroTimer = 60; playSuccessSound(); playNitroSound();
-                        spawnPopup("🚀 + " + formatCurrency(0.40), "#10b981", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); 
-                    }
-                    updateUI(); 
-                }
-                if (trafficLight.y > LOGICAL_HEIGHT) trafficLight.active = false;
-            }
-
-            // POLİS
-            if (!policeEvent.active && !trafficLight.active && Math.random() < 0.003 && score > 30) {
-                policeEvent.active = true; policeEvent.y = -200; policeEvent.passed = false; policeEvent.isWaiting = false; playPoliceSiren();
-            }
-            if (policeEvent.active) {
-                if (!policeEvent.isWaiting) policeEvent.y += baseSpeed;
-                if (policeEvent.y > PLAYER_Y - 50 && !policeEvent.passed) {
-                    if (isBraking && !policeEvent.isWaiting) {
-                        policeEvent.isWaiting = true; balance += 0.30; playSuccessSound();
-                        spawnPopup("👮 + " + formatCurrency(0.30), "#10b981", LOGICAL_WIDTH/2, PLAYER_Y - 30); updateUI();
-                        getDrivingAdvice(getT("msgWait"));
-                        setTimeout(() => { if (policeEvent.active) { policeEvent.isWaiting = false; policeEvent.passed = true; getDrivingAdvice(getT("msgGo")); playSuccessSound(); spawnPopup("✅ " + getT("msgGo").toUpperCase(), "#34d399", LOGICAL_WIDTH/2, PLAYER_Y - 50); } }, 3000);
-                    } else if (policeEvent.y > PLAYER_Y + CAR_HEIGHT && !policeEvent.isWaiting) {
-                        policeEvent.passed = true; balance -= 0.60; playFineSound(); triggerScreenShake(); screenShake = 20;
-                        spawnPopup("🚓 - " + formatCurrency(0.60), "#f43f5e", LOGICAL_WIDTH/2, PLAYER_Y - 30);
-                        if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } 
-                        getDrivingAdvice(getT("msgStop")); updateUI();
-                    }
-                }
-                if (policeEvent.y > LOGICAL_HEIGHT && policeEvent.passed) policeEvent.active = false;
-            }
-
-            // TRAFİK
-            if (Math.random() < 0.008 * speedMultiplier && !isBraking && !trafficLight.active && !policeEvent.active) {
-                const lane = LANES[Math.floor(Math.random() * LANES.length)];
-                if (trafficCars.every(c => Math.abs(c.x - (lane - CAR_WIDTH/2)) > 10 || c.y > 150)) {
-                    trafficCars.push({ x: lane - CAR_WIDTH / 2, y: -150, speed: Math.random() * 0.5 + 1.0, color: TRAFFIC_COLORS[Math.floor(Math.random() * TRAFFIC_COLORS.length)], type: Math.random() > 0.8 ? 'truck' : 'car', height: Math.random() > 0.8 ? 130 : CAR_HEIGHT, nearMissed: false, crashed: false });
-                }
-            }
-
-            for (let i = trafficCars.length - 1; i >= 0; i--) {
-                let car = trafficCars[i]; car.y += baseSpeed + (isBraking ? car.speed * 2 : car.speed - 2); 
-                if (!car.crashed && gameState.carX < car.x + CAR_WIDTH - 12 && gameState.carX + CAR_WIDTH - 12 > car.x && PLAYER_Y < car.y + car.height - 12 && PLAYER_Y + CAR_HEIGHT - 12 > car.y) {
-                    balance -= 0.10; playCrashSound(); triggerScreenShake(); screenShake = 20;
-                    spawnPopup("- " + formatCurrency(0.10), "#f43f5e", gameState.carX + CAR_WIDTH/2, PLAYER_Y); 
-                    car.crashed = true; trafficCars.splice(i, 1); 
-                    if (balance <= 0) { balance = 0; updateUI(); gameOver(); return; } 
-                    getDrivingAdvice(getT("msgCrash")); updateUI(); 
-                } 
-                else if (!car.crashed && !car.nearMissed && car.y > PLAYER_Y - car.height && car.y < PLAYER_Y + CAR_HEIGHT) {
-                    if (Math.abs((gameState.carX + CAR_WIDTH/2) - (car.x + CAR_WIDTH/2)) < CAR_WIDTH + 20) {
-                        car.nearMissed = true; balance += 0.05; playTone(800, 'sine', 0.1, 0.1); 
-                        spawnPopup("⚡ " + getT("msgDanger") + " + " + formatCurrency(0.05), "#facc15", gameState.carX + CAR_WIDTH/2, PLAYER_Y - 20); updateUI();
-                    }
-                }
-                else if (car.y > LOGICAL_HEIGHT) { trafficCars.splice(i, 1); }
-            }
-
-            animatedPopups.forEach(p => { p.y -= (nitroTimer > 0 ? 3 : 1.5); p.alpha -= 0.015; p.life--; }); animatedPopups = animatedPopups.filter(p => p.life > 0);
-            if (engineGain && audioCtx) { 
-                let freq = (isBraking || policeEvent.isWaiting) ? 30 : 40 * speedMultiplier;
-                if (nitroTimer > 0) freq = 80; 
-                engineOsc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.1); 
-                engineGain.gain.setTargetAtTime((isBraking || policeEvent.isWaiting) ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier), audioCtx.currentTime, 0.1); 
-            }
-        }
-
-        function drawCar(x, y, color, isPlayer, braking, type = 'car', height = CAR_HEIGHT) {
-            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 10; ctx.fillStyle = color; 
-            ctx.beginPath(); ctx.roundRect(x, y, CAR_WIDTH, height, 12); ctx.fill(); ctx.shadowColor = 'transparent'; 
-            if (type === 'car' || type === 'police') {
-                ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 15, CAR_WIDTH - 8, 18, 4); ctx.fill(); 
-                ctx.beginPath(); ctx.roundRect(x + 6, y + height - 25, CAR_WIDTH - 12, 12, 3); ctx.fill();
-            } else if (type === 'truck') {
-                ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.roundRect(x + 2, y + 25, CAR_WIDTH - 4, height - 30, 4); ctx.fill();
-                ctx.fillStyle = '#020617'; ctx.beginPath(); ctx.roundRect(x + 4, y + 5, CAR_WIDTH - 8, 15, 4); ctx.fill();
-            }
-            if (isPlayer && (braking || policeEvent.isWaiting)) { ctx.fillStyle = '#f43f5e'; ctx.fillRect(x + 4, y + height - 6, 12, 4); ctx.fillRect(x + CAR_WIDTH - 16, y + height - 6, 12, 4); } 
-            else if (!isPlayer) { ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(x + 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(x + CAR_WIDTH - 10, y + 4, 3, 0, Math.PI*2); ctx.fill(); }
-            if (isPlayer && nitroTimer > 0) { ctx.fillStyle = 'rgba(34, 211, 238, 0.5)'; ctx.beginPath(); ctx.roundRect(x + 10, y + height, CAR_WIDTH - 20, Math.random() * 40 + 20, 5); ctx.fill(); }
-            ctx.restore();
-        }
-
-        function draw() {
-            if (!ctx) return; ctx.save();
-            if (screenShake > 0) { ctx.translate(Math.random() * 10 - 5, Math.random() * 10 - 5); }
-            const biome = BIOMES[0];
-            ctx.fillStyle = biome.ground; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); 
-            ctx.fillStyle = biome.curb; ctx.fillRect(50, 0, 10, LOGICAL_HEIGHT); ctx.fillRect(LOGICAL_WIDTH - 60, 0, 10, LOGICAL_HEIGHT); 
-            ctx.fillStyle = biome.road; ctx.fillRect(60, 0, LOGICAL_WIDTH - 120, LOGICAL_HEIGHT);
-            let dashLength = nitroTimer > 0 ? 60 : 30; ctx.setLineDash([dashLength, 40]); ctx.strokeStyle = nitroTimer > 0 ? 'rgba(34, 211, 238, 0.4)' : 'rgba(255,255,255,0.15)'; ctx.lineWidth = 4; ctx.lineDashOffset = -gameState.linesOffset; ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, LOGICAL_HEIGHT); ctx.moveTo(250, 0); ctx.lineTo(250, LOGICAL_HEIGHT); ctx.stroke();
-
-            if (trafficLight.active) {
-                ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(60, trafficLight.y, LOGICAL_WIDTH - 120, 8); ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.roundRect(LOGICAL_WIDTH - 45, trafficLight.y - 70, 26, 75, 8); ctx.fill();
-                const drawLight = (yOff, color, active) => { ctx.save(); ctx.fillStyle = active ? color : '#1e293b'; ctx.beginPath(); ctx.arc(LOGICAL_WIDTH - 32, trafficLight.y - 70 + yOff, 8, 0, Math.PI*2); ctx.fill(); ctx.restore(); };
-                drawLight(16, '#f43f5e', trafficLight.state === 'RED'); drawLight(38, '#facc15', trafficLight.state === 'YELLOW'); drawLight(60, '#10b981', trafficLight.state === 'GREEN');
-            }
-
-            if (policeEvent.active) {
-                let px = LOGICAL_WIDTH - 55; drawCar(px, policeEvent.y, '#ffffff', false, false, 'police', CAR_HEIGHT);
-                ctx.fillStyle = (Date.now() % 400 < 200) ? '#f43f5e' : '#3b82f6'; ctx.fillRect(px + 10, policeEvent.y + 20, CAR_WIDTH - 20, 6);
-                ctx.fillStyle = '#f43f5e'; ctx.font = '900 20px sans-serif'; ctx.textAlign = 'right'; ctx.fillText("🛑", px - 10, policeEvent.y + CAR_HEIGHT / 2);
-            }
-
-            trafficCars.forEach(car => drawCar(car.x, car.y, car.color, false, false, car.type, car.height));
-            drawCar(gameState.carX, PLAYER_Y, CAR_SKINS.find(c => c.id === activeSkinId).color, true, isBraking, 'car', CAR_HEIGHT); 
-            animatedPopups.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.alpha); ctx.font = '900 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(p.text, p.x, p.y); ctx.restore(); });
-            if (nitroTimer > 0) { ctx.fillStyle = 'rgba(34, 211, 238, ' + (nitroTimer/60 * 0.1) + ')'; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); }
-            ctx.restore();
-        }
-
-        function gameLoop() { update(); draw(); if (isGameRunning && ctx) requestAnimationFrame(gameLoop); }
-
-        addEvt('loginBtn', 'click', startGame); 
-        addEvt('restartBtn', 'click', startGame);
-        addEvt('gameOverTopupBtn', 'click', () => { 
-            const topModal = document.getElementById('topUpModal');
-            if(topModal) topModal.classList.remove('hidden'); 
-        });
-        addEvt('buyMeCoffeeBtn', 'click', () => { window.open('https://buymeacoffee.com/surwin', '_blank'); });
-        
-        addEvt('verifyPaymentBtn', 'click', (e) => {
-            const btn = e.currentTarget; const originalText = btn.innerHTML; btn.innerHTML = `⏳ ...`; btn.disabled = true;
-            setTimeout(() => {
-                let user = null;
-                try { user = JSON.parse(localStorage.getItem('premiumDriveUser')); } catch(e){}
-                
-                if (user && !user.bonusClaimed) { 
-                    balance += 0.50; user.bonusClaimed = true; 
-                    try { localStorage.setItem('premiumDriveUser', JSON.stringify(user)); } catch(e){} 
-                    updateUI(); playSuccessSound(); btn.innerHTML = `✅ (+ ${formatCurrency(0.50)})`; 
-                } 
-                else { balance += 3.40; updateUI(); playSuccessSound(); btn.innerHTML = `✅ (+ ${formatCurrency(3.40)})`; }
-                btn.classList.replace('text-emerald-400', 'text-white'); btn.classList.replace('bg-emerald-500/10', 'bg-emerald-600');
-                
-                setTimeout(() => { 
-                    const topModal = document.getElementById('topUpModal');
-                    if(topModal) topModal.classList.add('hidden'); 
-                    btn.innerHTML = originalText; btn.disabled = false; btn.classList.replace('text-white', 'text-emerald-400'); btn.classList.replace('bg-emerald-600', 'bg-emerald-500/10'); 
-                    if (isGameOver && balance > 0) {
-                        const title = document.getElementById('gameOverTitle'); const restartBtn = document.getElementById('restartBtn'); const topupBtn = document.getElementById('gameOverTopupBtn'); const msg = document.getElementById('gameOverMessage');
-                        if(title) { title.innerText = "GAME OVER"; title.classList.replace('text-red-600', 'text-rose-500'); }
-                        if(restartBtn) restartBtn.classList.remove('hidden'); 
-                        if(topupBtn) topupBtn.classList.add('hidden'); 
-                        if(msg) msg.classList.add('hidden'); 
-                        getDrivingAdvice(getT("msgPaySuccess"));
-                    }
-                }, 2000);
-            }, 3000);
-        });
-
-        const toggleModal = (btnId, modalId, show) => {
-            addEvt(btnId, 'click', () => { 
-                const modEl = document.getElementById(modalId);
-                if(modEl) modEl.classList[show ? 'remove' : 'add']('hidden'); 
-                updateUI(); 
-                if(show && modalId==='garageModal') renderGarage(); 
+            addEvt('verifyPaymentBtn', 'click', (e) => {
+                const btn = e.currentTarget; const originalText = btn.innerHTML; btn.innerHTML = `⏳ ...`; btn.disabled = true;
+                setTimeout(() => {
+                    let user = null;
+                    try { user = JSON.parse(localStorage.getItem('premiumDriveUser')); } catch(e){}
+                    
+                    if (user && !user.bonusClaimed) { 
+                        balance += 0.50; user.bonusClaimed = true; 
+                        try { localStorage.setItem('premiumDriveUser', JSON.stringify(user)); } catch(e){} 
+                        updateUI(); playSuccessSound(); btn.innerHTML = `✅ (+ ${formatCurrency(0.50)})`; 
+                    } 
+                    else { balance += 3.40; updateUI(); playSuccessSound(); btn.innerHTML = `✅ (+ ${formatCurrency(3.40)})`; }
+                    btn.classList.replace('text-emerald-400', 'text-white'); btn.classList.replace('bg-emerald-500/10', 'bg-emerald-600');
+                    
+                    setTimeout(() => { 
+                        document.getElementById('topUpModal').classList.add('hidden'); 
+                        btn.innerHTML = originalText; btn.disabled = false; btn.classList.replace('text-white', 'text-emerald-400'); btn.classList.replace('bg-emerald-600', 'bg-emerald-500/10'); 
+                        if (isGameOver && balance > 0) {
+                            const title = document.getElementById('gameOverTitle'); const restartBtn = document.getElementById('restartBtn'); const topupBtn = document.getElementById('gameOverTopupBtn'); const msg = document.getElementById('gameOverMessage');
+                            if(title) { title.innerText = "GAME OVER"; title.classList.replace('text-red-600', 'text-rose-500'); }
+                            if(restartBtn) restartBtn.classList.remove('hidden'); 
+                            if(topupBtn) topupBtn.classList.add('hidden'); 
+                            if(msg) msg.classList.add('hidden'); 
+                            getDrivingAdvice(getT("msgPaySuccess"));
+                        }
+                    }, 2000);
+                }, 3000);
             });
-        };
-        toggleModal('loginTopupBtn', 'topUpModal', true); toggleModal('topupBtn', 'topUpModal', true); toggleModal('closeTopUpBtn', 'topUpModal', false);
-        toggleModal('withdrawBtn', 'withdrawModal', true); toggleModal('closeWithdrawBtn', 'withdrawModal', false);
-        toggleModal('garageBtn', 'garageModal', true); toggleModal('closeGarageBtn', 'garageModal', false);
 
-        const startBraking = (e) => { e.preventDefault(); isBraking = true; }; 
-        const stopBraking = (e) => { e.preventDefault(); isBraking = false; };
-        
-        const brakeBtn = document.getElementById('brakeBtn');
-        if(brakeBtn) {
-            brakeBtn.addEventListener('mousedown', startBraking); brakeBtn.addEventListener('mouseup', stopBraking); 
-            brakeBtn.addEventListener('touchstart', startBraking, {passive: false}); brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
-        }
-        
-        const goLeft = (e) => { e.preventDefault(); if(gameState.targetX > LANES[0] - CAR_WIDTH/2) gameState.targetX -= 100; }; 
-        const goRight = (e) => { e.preventDefault(); if(gameState.targetX < LANES[2] - CAR_WIDTH/2) gameState.targetX += 100; };
-        
-        const lLeft = document.getElementById('laneLeft');
-        if(lLeft) {
-            lLeft.addEventListener('mousedown', goLeft); lLeft.addEventListener('touchstart', goLeft, {passive: false});
-        }
-        
-        const lRight = document.getElementById('laneRight');
-        if(lRight) {
-            lRight.addEventListener('mousedown', goRight); lRight.addEventListener('touchstart', goRight, {passive: false});
-        }
+            const toggleModal = (btnId, modalId, show) => {
+                addEvt(btnId, 'click', () => { 
+                    const modEl = document.getElementById(modalId);
+                    if(modEl) modEl.classList[show ? 'remove' : 'add']('hidden'); 
+                    updateUI(); 
+                    if(show && modalId==='garageModal') renderGarage(); 
+                });
+            };
+            toggleModal('loginTopupBtn', 'topUpModal', true); toggleModal('topupBtn', 'topUpModal', true); toggleModal('closeTopUpBtn', 'topUpModal', false);
+            toggleModal('withdrawBtn', 'withdrawModal', true); toggleModal('closeWithdrawBtn', 'withdrawModal', false);
+            toggleModal('garageBtn', 'garageModal', true); toggleModal('closeGarageBtn', 'garageModal', false);
+
+            const startBraking = (e) => { e.preventDefault(); isBraking = true; }; 
+            const stopBraking = (e) => { e.preventDefault(); isBraking = false; };
+            
+            const brakeBtn = document.getElementById('brakeBtn');
+            if(brakeBtn) {
+                brakeBtn.addEventListener('mousedown', startBraking); brakeBtn.addEventListener('mouseup', stopBraking); 
+                brakeBtn.addEventListener('touchstart', startBraking, {passive: false}); brakeBtn.addEventListener('touchend', stopBraking, {passive: false});
+            }
+            
+            const goLeft = (e) => { e.preventDefault(); if(gameState.targetX > LANES[0] - CAR_WIDTH/2) gameState.targetX -= 100; }; 
+            const goRight = (e) => { e.preventDefault(); if(gameState.targetX < LANES[2] - CAR_WIDTH/2) gameState.targetX += 100; };
+            
+            const lLeft = document.getElementById('laneLeft');
+            if(lLeft) { lLeft.addEventListener('mousedown', goLeft); lLeft.addEventListener('touchstart', goLeft, {passive: false}); }
+            
+            const lRight = document.getElementById('laneRight');
+            if(lRight) { lRight.addEventListener('mousedown', goRight); lRight.addEventListener('touchstart', goRight, {passive: false}); }
+
+        }); // DOMContentLoaded BITİŞİ
     </script>
 </body>
 </html>

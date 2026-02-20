@@ -58,8 +58,7 @@
     <div id="langSelectModal" class="hidden h-screen flex flex-col items-center justify-center p-6 z-[300] absolute inset-0 bg-[#020617]/95 backdrop-blur-xl">
         <div class="glass-panel p-8 rounded-[32px] w-full max-w-sm text-center relative">
             <h2 class="text-2xl font-black mb-6 neon-cyan uppercase">Select Language</h2>
-            <div id="langListContainer" class="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
-                </div>
+            <div id="langListContainer" class="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2"></div>
         </div>
     </div>
 
@@ -109,16 +108,10 @@
     <div id="loginScreen" class="hidden h-screen flex items-center justify-center p-6 z-50 absolute inset-0 bg-[#020617]">
         <div class="glass-panel p-10 rounded-[32px] w-full max-w-sm text-center relative overflow-hidden">
             <div class="absolute -top-10 -left-10 w-32 h-32 bg-cyan-500/20 rounded-full blur-[40px]"></div>
-            
             <h1 class="text-3xl font-black text-white italic mb-2 tracking-tighter neon-cyan relative z-10">PREMIUM DRIVE</h1>
             <p class="text-slate-400 text-sm mb-8 relative z-10"><span id="lbl_loginBalance" data-i18n="lblBal">Balans:</span> <span id="loginBalanceText" class="font-bold text-cyan-400 neon-cyan">0.00 AZN</span></p>
-            
-            <button id="loginBtn" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all relative z-10" data-i18n="btnStart">
-                Oyuna Başla
-            </button>
-            <button id="loginTopupBtn" class="w-full mt-4 py-4 glass-panel rounded-[24px] text-white font-bold uppercase tracking-widest active:scale-95 transition-all relative z-10" data-i18n="btnTopup">
-                Balansı Artır
-            </button>
+            <button id="loginBtn" type="button" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all relative z-10" data-i18n="btnStart">Oyuna Başla</button>
+            <button id="loginTopupBtn" type="button" class="w-full mt-4 py-4 glass-panel rounded-[24px] text-white font-bold uppercase tracking-widest active:scale-95 transition-all relative z-10" data-i18n="btnTopup">Balansı Artır</button>
         </div>
     </div>
 
@@ -135,9 +128,9 @@
                 </div>
             </div>
             <div class="flex gap-2">
-                <button id="withdrawBtn" class="w-12 h-12 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 rounded-[20px] flex items-center justify-center text-xl shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all">💸</button>
-                <button id="garageBtn" class="w-12 h-12 bg-indigo-500/20 border border-indigo-500/50 text-indigo-400 rounded-[20px] flex items-center justify-center text-xl shadow-[0_0_15px_rgba(99,102,241,0.2)] active:scale-95 transition-all">🛒</button>
-                <button id="topupBtn" class="w-12 h-12 bg-[#FFDD00]/20 border border-[#FFDD00]/50 text-[#FFDD00] rounded-[20px] flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,221,0,0.2)] active:scale-95 transition-all">☕</button>
+                <button id="withdrawBtn" type="button" class="w-12 h-12 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 rounded-[20px] flex items-center justify-center text-xl shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all">💸</button>
+                <button id="garageBtn" type="button" class="w-12 h-12 bg-indigo-500/20 border border-indigo-500/50 text-indigo-400 rounded-[20px] flex items-center justify-center text-xl shadow-[0_0_15px_rgba(99,102,241,0.2)] active:scale-95 transition-all">🛒</button>
+                <button id="topupBtn" type="button" class="w-12 h-12 bg-[#FFDD00]/20 border border-[#FFDD00]/50 text-[#FFDD00] rounded-[20px] flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,221,0,0.2)] active:scale-95 transition-all">☕</button>
             </div>
         </div>
 
@@ -158,23 +151,21 @@
             <div id="demoReminder" class="hidden absolute top-10 left-4 right-4 z-[60] glass-panel p-5 rounded-3xl border border-[#facc15]/50 bg-[#0f172a]/95 text-center shadow-[0_0_30px_rgba(250,204,21,0.25)]">
                 <h3 class="text-[#facc15] font-black text-sm mb-2 uppercase tracking-widest flex items-center justify-center gap-2"><span class="text-xl">⚠️</span> <span data-i18n="demoTitle">Demo Rejimi</span></h3>
                 <p class="text-slate-200 text-xs leading-relaxed font-medium mb-4" data-i18n="demoText">Balansınıza minimum məbləği yükləyin və hesabınız aktiv hesab sayılsın. Qazandığınız pul həqiqi olsun. Hazırda oyun demo rejimindədir.</p>
-                <button id="closeDemoReminder" class="w-full py-3 bg-[#facc15]/20 border border-[#facc15]/40 text-[#facc15] text-xs font-bold uppercase tracking-widest rounded-2xl active:scale-95 transition-all" data-i18n="btnGotIt">Anladım</button>
+                <button id="closeDemoReminder" type="button" class="w-full py-3 bg-[#facc15]/20 border border-[#facc15]/40 text-[#facc15] text-xs font-bold uppercase tracking-widest rounded-2xl active:scale-95 transition-all" data-i18n="btnGotIt">Anladım</button>
             </div>
             
             <div id="gameOverScreen" class="hidden absolute inset-0 bg-[#020617]/90 backdrop-blur-xl flex-col items-center justify-center p-8 text-center z-40">
                 <div class="w-20 h-20 rounded-full bg-rose-500/20 flex items-center justify-center mb-4 blur-[2px] mx-auto"><span class="text-4xl">⚠️</span></div>
                 <h2 id="gameOverTitle" class="text-3xl font-black text-rose-500 mb-2 neon-rose tracking-wider">GAME OVER</h2>
                 <p class="text-slate-400 text-sm mb-2"><span data-i18n="lblDist">Məsafə:</span> <span id="finalScore" class="font-bold text-white">0</span> M</p>
-                
                 <p id="gameOverMessage" class="text-rose-400 text-xs mb-6 hidden font-bold bg-rose-500/10 p-2 rounded-lg border border-rose-500/30" data-i18n="msgLocked">Balansınız bitdi! Oyun kilidləndi. Davam etmək üçün balansı artırın.</p>
-                
-                <button id="restartBtn" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] mb-4 active:scale-95 transition-all" data-i18n="btnRestart">YENİDƏN BAŞLA</button>
-                <button id="gameOverTopupBtn" class="hidden w-full py-4 bg-[#FFDD00] text-black rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(255,221,0,0.3)] mb-4 active:scale-95 transition-all flex items-center justify-center gap-2"><span class="text-xl">☕</span> <span data-i18n="btnTopup">BALANSI ARTIR</span></button>
+                <button id="restartBtn" type="button" class="w-full py-4 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] mb-4 active:scale-95 transition-all" data-i18n="btnRestart">YENİDƏN BAŞLA</button>
+                <button id="gameOverTopupBtn" type="button" class="hidden w-full py-4 bg-[#FFDD00] text-black rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(255,221,0,0.3)] mb-4 active:scale-95 transition-all flex items-center justify-center gap-2"><span class="text-xl">☕</span> <span data-i18n="btnTopup">BALANSI ARTIR</span></button>
             </div>
         </div>
 
         <div class="w-full max-w-[400px] mx-auto p-4 pb-6 shrink-0 z-20">
-            <button id="brakeBtn" class="w-full py-6 rounded-[32px] text-3xl font-black tracking-widest transition-all bg-rose-600 border-4 border-rose-800 text-white brake-shadow active:bg-rose-500 active:scale-95 touch-manipulation" data-i18n="btnBrake">TORMOZ</button>
+            <button id="brakeBtn" type="button" class="w-full py-6 rounded-[32px] text-3xl font-black tracking-widest transition-all bg-rose-600 border-4 border-rose-800 text-white brake-shadow active:bg-rose-500 active:scale-95 touch-manipulation" data-i18n="btnBrake">TORMOZ</button>
         </div>
     </div>
 
@@ -186,9 +177,9 @@
                 <p class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">✔</span><span data-i18n="topupP2">Balans bitdikdə yalnız məbləğ yükləyərək oyuna davam edə bilərsiniz. (İlk yoxlamada bonus veriləcək)</span></p>
                 <p class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">✔</span><span class="text-rose-300 font-bold" data-i18n="topupP3">Minimum məbləğ 3 AZN-dir. Əgər balansı artırmadan oyuna davam etsəniz, oyun DEMO sayılır və ödəniş olunmur. Yalnız ödəniş etdikdən sonra oyun tam aktiv olur, gerçək pul qazana və istədiyiniz zaman nağdlaşdıra bilərsiniz.</span></p>
             </div>
-            <button id="buyMeCoffeeBtn" class="w-full py-4 bg-[#FFDD00] text-black rounded-[24px] font-black shadow-[0_0_20px_rgba(255,221,0,0.3)] mb-4 active:scale-95 transition-all relative z-10 flex items-center justify-center gap-3 text-lg"><span class="text-2xl">☕</span> <span data-i18n="btnPay">Ödəniş Et</span></button>
-            <button id="verifyPaymentBtn" class="w-full py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-[24px] font-bold mb-4 active:scale-95 transition-all relative z-10 text-sm flex items-center justify-center gap-2">🔄 <span data-i18n="btnVerify">Ödənişi Yoxla</span></button>
-            <button id="closeTopUpBtn" class="text-slate-400 text-[12px] font-bold uppercase tracking-widest active:text-white transition-all relative z-10" data-i18n="btnClose">Bağla</button>
+            <button id="buyMeCoffeeBtn" type="button" class="w-full py-4 bg-[#FFDD00] text-black rounded-[24px] font-black shadow-[0_0_20px_rgba(255,221,0,0.3)] mb-4 active:scale-95 transition-all relative z-10 flex items-center justify-center gap-3 text-lg"><span class="text-2xl">☕</span> <span data-i18n="btnPay">Ödəniş Et</span></button>
+            <button id="verifyPaymentBtn" type="button" class="w-full py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-[24px] font-bold mb-4 active:scale-95 transition-all relative z-10 text-sm flex items-center justify-center gap-2">🔄 <span data-i18n="btnVerify">Ödənişi Yoxla</span></button>
+            <button id="closeTopUpBtn" type="button" class="text-slate-400 text-[12px] font-bold uppercase tracking-widest active:text-white transition-all relative z-10" data-i18n="btnClose">Bağla</button>
         </div>
     </div>
 
@@ -206,7 +197,7 @@
                 <p id="withdrawWarning" class="text-rose-500 text-xs font-bold mt-1 hidden" data-i18n="warnWith">Balansınız kifayət etmir.</p>
                 <button type="submit" id="submitWithdrawBtn" class="w-full py-4 mt-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 rounded-[24px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-all" data-i18n="btnSubmit">Sorğu Göndər</button>
             </form>
-            <button id="closeWithdrawBtn" class="text-slate-400 text-[12px] font-bold uppercase tracking-widest mt-6 active:text-white transition-all relative z-10" data-i18n="btnBack">Geri</button>
+            <button id="closeWithdrawBtn" type="button" class="text-slate-400 text-[12px] font-bold uppercase tracking-widest mt-6 active:text-white transition-all relative z-10" data-i18n="btnBack">Geri</button>
         </div>
     </div>
 
@@ -220,16 +211,16 @@
                 </div>
             </div>
             <div id="garageList" class="flex-1 overflow-y-auto pr-2 space-y-4 relative z-10 custom-scrollbar"></div>
-            <button id="closeGarageBtn" class="w-full mt-6 py-4 glass-panel rounded-[20px] text-slate-300 font-bold uppercase tracking-widest active:scale-95 transition-all relative z-10" data-i18n="btnClose">Bağla</button>
+            <button id="closeGarageBtn" type="button" class="w-full mt-6 py-4 glass-panel rounded-[20px] text-slate-300 font-bold uppercase tracking-widest active:scale-95 transition-all relative z-10" data-i18n="btnClose">Bağla</button>
         </div>
     </div>
 
     <script>
-        // DOM yüklənən kimi işə düşməsi üçün hər şeyi bir funksiyaya yığırıq
-        document.addEventListener('DOMContentLoaded', () => {
-
+        (function() {
+            // API açarınızı buraya yazın (Məsələn: AIzaSy...)
             const API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN"; 
             
+            // Xəta verməyən təhlükəsiz Event əlavəedicisi
             function addEvt(id, event, handler) {
                 const el = document.getElementById(id);
                 if (el) el.addEventListener(event, handler);
@@ -244,10 +235,6 @@
                     t: { regTitle:"REGISTER", rulesTitle:"RULES:", rule1:"• Each user can register only once.", rule2:"• Multiple accounts from the same device will result in an auto-ban.", rule3:"• Starting the game with zero balance is forbidden.", phName:"Full Name", phUser:"Username", phAge:"Age", phPass:"Password (Min. 6 chars)", btnReg:"SIGN UP", hasAcc:"Have an account?", btnLoginNav:"Log in", logTitle:"LOGIN", phPass2:"Password", errLogin:"Invalid credentials!", btnLog:"LOGIN", noAcc:"Don't have an account?", btnRegNav:"Register", banTitle:"ACCOUNT BANNED", banText:"Your device has been banned due to multiple account creation attempts.", lblBal:"Balance:", btnStart:"Start Game", btnTopup:"Top Up", hudBal:"Balance", hudDist:"Distance", aiLoad:"Loading AI advice...", demoTitle:"Demo Mode", demoText:"Top up the minimum amount to activate your account. Earned money will be real. The game is currently in demo mode.", btnGotIt:"Got It", lblDist:"Distance:", msgLocked:"Out of balance! Game locked. Top up to continue.", btnRestart:"RESTART", btnBrake:"BRAKE", topupTitle:"Top Up Balance", topupP1:"link to make a payment.", topupP2:"When balance ends, you can only continue by adding funds. (Bonus on first check)", topupP3:"Minimum amount is equivalent to 3 AZN. If you continue without topping up, the game is DEMO and no payouts are made. Only after the payment your account becomes active to earn and withdraw real money.", btnPay:"Pay Now", btnVerify:"Verify Payment", btnClose:"Close", withTitle:"Withdraw", lblCurBal:"Current Balance", phWName:"Your Full Name", phWCard:"Card or Account Number", warnWith:"Insufficient balance.", btnSubmit:"Submit Request", btnBack:"Back", garageTitle:"GARAGE", btnSel:"Select", btnSelected:"Selected", btnBuy:"Buy", 
                     msgFine:"Red light fine!", msgStop:"Ignored the police!", msgCrash:"Crash!", msgDanger:"Near miss!", msgWait:"Wait, inspecting...", msgGo:"Proceed!", msgLock:"Game Locked!", msgPause:"Game Paused.", msgNoBal:"Out of balance, top up!", msgGas:"Hit the gas!", msgNewCar:"New car!", msgPaySuccess:"Payment successful! Continue!" }
                 },
-                uk: { code: 'uk', name: 'Українська', flag: '🇺🇦', currency: 'UAH', rate: 23.0, dir: 'ltr', tts: 'uk-UA',
-                    t: { regTitle:"РЕЄСТРАЦІЯ", rulesTitle:"ПРАВИЛА:", rule1:"• Лише 1 акаунт на користувача.", rule2:"• Кілька акаунтів = Бан.", rule3:"• Старт з нульовим балансом заборонено.", phName:"Ім'я та Прізвище", phUser:"Ім'я користувача", phAge:"Вік", phPass:"Пароль (Мін. 6 симв.)", btnReg:"ЗАРЕЄСТРУВАТИСЯ", hasAcc:"Є акаунт?", btnLoginNav:"Увійти", logTitle:"ВХІД", phPass2:"Пароль", errLogin:"Невірні дані!", btnLog:"УВІЙТИ", noAcc:"Немає акаунту?", btnRegNav:"Реєстрація", banTitle:"ЗАБЛОКОВАНО", banText:"Ваш пристрій заблоковано через спроби створення кількох акаунтів.", lblBal:"Баланс:", btnStart:"Почати Гру", btnTopup:"Поповнити", hudBal:"Баланс", hudDist:"Дистанція", aiLoad:"Завантаження поради ШІ...", demoTitle:"Демо-режим", demoText:"Поповніть баланс, щоб активувати акаунт. Зароблені гроші стануть реальними. Зараз демо-режим.", btnGotIt:"Зрозуміло", lblDist:"Дистанція:", msgLocked:"Баланс вичерпано! Заблоковано. Поповніть баланс.", btnRestart:"РЕСТАРТ", btnBrake:"ГАЛЬМО", topupTitle:"Поповнити баланс", topupP1:"посилання для оплати.", topupP2:"Якщо баланс закінчиться, поповніть його для продовження.", topupP3:"Без поповнення гра вважається ДЕМО. Після поповнення акаунт активується для заробітку.", btnPay:"Оплатити", btnVerify:"Перевірити оплату", btnClose:"Закрити", withTitle:"Виведення", lblCurBal:"Поточний баланс", phWName:"Ваше Ім'я", phWCard:"Номер картки або рахунку", warnWith:"Недостатньо коштів.", btnSubmit:"Надіслати запит", btnBack:"Назад", garageTitle:"ГАРАЖ", btnSel:"Обрати", btnSelected:"Обрано", btnBuy:"Купити", 
-                    msgFine:"Штраф за червоне світло!", msgStop:"Ігнорування поліції!", msgCrash:"Аварія!", msgDanger:"Небезпечно!", msgWait:"Чекай, перевірка...", msgGo:"Продовжуй!", msgLock:"Гра заблокована!", msgPause:"Гру зупинено.", msgNoBal:"Немає балансу, поповни!", msgGas:"Тисни на газ!", msgNewCar:"Нова машина!", msgPaySuccess:"Оплата успішна! Продовжуй!" }
-                },
                 ru: { code: 'ru', name: 'Русский', flag: '🇷🇺', currency: 'RUB', rate: 55.0, dir: 'ltr', tts: 'ru-RU',
                     t: { regTitle:"РЕГИСТРАЦИЯ", rulesTitle:"ПРАВИЛА:", rule1:"• Каждый пользователь может зарегистрироваться только 1 раз.", rule2:"• Создание нескольких аккаунтов приведет к бану.", rule3:"• Начинать с нулевым балансом запрещено.", phName:"Имя и Фамилия", phUser:"Имя пользователя", phAge:"Возраст", phPass:"Пароль (Мин. 6 симв.)", btnReg:"ЗАРЕГИСТРИРОВАТЬСЯ", hasAcc:"Есть аккаунт?", btnLoginNav:"Войти", logTitle:"ВХОД", phPass2:"Пароль", errLogin:"Неверные данные!", btnLog:"ВОЙТИ", noAcc:"Нет аккаунта?", btnRegNav:"Регистрация", banTitle:"АККАУНТ ЗАБЛОКИРОВАН", banText:"Ваше устройство заблокировано из-за попыток создания нескольких аккаунтов.", lblBal:"Баланс:", btnStart:"Начать Игру", btnTopup:"Пополнить", hudBal:"Баланс", hudDist:"Дистанция", aiLoad:"Загрузка ИИ-совета...", demoTitle:"Демо-режим", demoText:"Пополните минимальную сумму, чтобы активировать аккаунт. Заработанные деньги станут реальными. Сейчас игра в демо-режиме.", btnGotIt:"Понятно", lblDist:"Дистанция:", msgLocked:"Баланс исчерпан! Игра заблокирована. Пополните баланс.", btnRestart:"ЗАНОВО", btnBrake:"ТОРМОЗ", topupTitle:"Пополнить баланс", topupP1:"чтобы произвести оплату.", topupP2:"Если баланс закончится, продолжайте, добавив средства.", topupP3:"При продолжении без пополнения игра считается ДЕМО. После пополнения аккаунт активируется для заработка и вывода.", btnPay:"Оплатить", btnVerify:"Проверить оплату", btnClose:"Закрыть", withTitle:"Вывод средств", lblCurBal:"Текущий баланс", phWName:"Ваше Имя", phWCard:"Номер карты или счета", warnWith:"Недостаточно средств.", btnSubmit:"Отправить запрос", btnBack:"Назад", garageTitle:"ГАРАЖ", btnSel:"Выбрать", btnSelected:"Выбрано", btnBuy:"Купить", 
                     msgFine:"Штраф за красный свет!", msgStop:"Не подчинился полиции!", msgCrash:"Авария!", msgDanger:"Опасно!", msgWait:"Жди, проверка...", msgGo:"Продолжай!", msgLock:"Игра заблокирована!", msgPause:"Игра остановлена.", msgNoBal:"Нет баланса, пополни!", msgGas:"Жми на газ!", msgNewCar:"Новая машина!", msgPaySuccess:"Оплата прошла! Продолжай!" }
@@ -258,12 +245,22 @@
                 }
             };
 
-            let currentLang = null;
-            try { currentLang = localStorage.getItem('premiumDriveLang') || null; } catch(e) {}
+            // Yaddaşı (LocalStorage) etibarlı şəkildə oxuyan qoruyucu funksiya
+            function safeGetLS(key) {
+                try {
+                    let val = localStorage.getItem(key);
+                    if (val === 'null' || val === 'undefined') return null;
+                    return val;
+                } catch(e) {
+                    return null;
+                }
+            }
+
+            let currentLang = safeGetLS('premiumDriveLang');
 
             function applyTranslations() {
-                if (!currentLang || !LANGUAGES[currentLang]) return;
-                const langObj = LANGUAGES[currentLang];
+                let langCode = (currentLang && LANGUAGES[currentLang]) ? currentLang : 'az';
+                const langObj = LANGUAGES[langCode];
                 
                 document.documentElement.lang = langObj.code;
                 document.documentElement.dir = langObj.dir;
@@ -355,7 +352,8 @@
                 if ('speechSynthesis' in window && currentLang) {
                     window.speechSynthesis.cancel(); 
                     const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = LANGUAGES[currentLang].tts; utterance.rate = 1.1; 
+                    utterance.lang = LANGUAGES[currentLang] ? LANGUAGES[currentLang].tts : 'tr-TR'; 
+                    utterance.rate = 1.1; 
                     const aiIcon = document.getElementById("aiIcon");
                     utterance.onstart = () => { if(aiIcon) aiIcon.innerText = "🔊"; };
                     utterance.onend = () => { if(aiIcon) aiIcon.innerText = "🤖"; };
@@ -363,12 +361,12 @@
                 }
             }
 
-            // DİQQƏT: SÜNİ İNTELLEKT BİRBAŞA "FETCH" İLƏ İŞLƏYİR (SDK YOXDUR)
+            // DİQQƏT: SÜNİ İNTELLEKT BİRBAŞA "FETCH" İLƏ İŞLƏYİR (HEÇ BİR IMPORT YOXDUR)
             async function getDrivingAdvice(scenario) {
                 const aiTipEl = document.getElementById("aiTipText");
                 if (!aiTipEl) return;
                 
-                const langName = currentLang ? LANGUAGES[currentLang].name : 'Azərbaycanca';
+                const langName = (currentLang && LANGUAGES[currentLang]) ? LANGUAGES[currentLang].name : 'Azərbaycanca';
                 const promptText = `Sən oyunda səsli köməkçisən. Ssenari: ${scenario}. Çox həyəcanlı və maksimum 4 sözlük cavab ver. Dil: ${langName}.`;
 
                 if (API_KEY === "SİZİN_API_AÇARINIZI_BURAYA_YAPIŞDIRIN" || !API_KEY) {
@@ -382,9 +380,7 @@
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: promptText }] }]
-                        })
+                        body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
                     });
                     const data = await response.json();
                     
@@ -413,25 +409,18 @@
             }
 
             let balance = 0.00;
-            try {
-                let savedBalance = localStorage.getItem('premiumDriveBalance');
-                if (savedBalance !== null && !isNaN(parseFloat(savedBalance))) {
-                    balance = parseFloat(savedBalance);
-                }
-            } catch(e){}
+            let savedBalance = safeGetLS('premiumDriveBalance');
+            if (savedBalance && !isNaN(parseFloat(savedBalance))) {
+                balance = parseFloat(savedBalance);
+            }
 
             let currentUser = null;
-            try {
-                let storedUser = localStorage.getItem('premiumDriveUser');
-                if(storedUser && storedUser.includes("{")) {
-                    currentUser = JSON.parse(storedUser);
-                }
-            } catch(e) {
-                try { localStorage.removeItem('premiumDriveUser'); } catch(ex){} 
+            let storedUser = safeGetLS('premiumDriveUser');
+            if(storedUser && storedUser.includes("{")) {
+                try { currentUser = JSON.parse(storedUser); } catch(e) {}
             }
             
-            let isBanned = false;
-            try { isBanned = localStorage.getItem('premiumDriveBan') === 'true'; } catch(e){}
+            let isBanned = safeGetLS('premiumDriveBan') === 'true';
 
             function hideAllScreens() {
                 ['langSelectModal', 'authScreen', 'loginFormScreen', 'loginScreen', 'banScreen', 'gameScreen'].forEach(id => {
@@ -467,8 +456,14 @@
                 }
             }
 
-            if(currentLang) applyTranslations();
-            checkAuthState(); 
+            // Proqramın başlama anı
+            try {
+                if(currentLang) applyTranslations();
+                checkAuthState();
+            } catch(error) {
+                console.error("Critical Startup Error: ", error);
+                document.getElementById('authScreen').classList.remove('hidden'); // Son çarə ehtiyat ekran
+            }
 
             addEvt('showLoginBtn', 'click', () => {
                 document.getElementById('authScreen').classList.add('hidden'); 
@@ -482,8 +477,7 @@
 
             addEvt('registerForm', 'submit', (e) => {
                 e.preventDefault();
-                let checkUser = null;
-                try { checkUser = localStorage.getItem('premiumDriveUser'); } catch(e){}
+                let checkUser = safeGetLS('premiumDriveUser');
 
                 if (checkUser !== null) {
                     try { localStorage.setItem('premiumDriveBan', 'true'); } catch(e){}
@@ -524,7 +518,10 @@
                 const passVal = logPass ? logPass.value : "";
                 
                 let savedUser = null;
-                try { savedUser = JSON.parse(localStorage.getItem('premiumDriveUser')); } catch(e){}
+                let sUserStr = safeGetLS('premiumDriveUser');
+                if (sUserStr) {
+                    try { savedUser = JSON.parse(sUserStr); } catch(e){}
+                }
                 
                 if (savedUser && savedUser.username === userVal && savedUser.password === passVal) {
                     currentUser = savedUser;
@@ -550,13 +547,14 @@
             const ctx = canvas ? canvas.getContext('2d') : null;
 
             function formatCurrency(baseAznValue) {
-                const lang = LANGUAGES[currentLang] || LANGUAGES['az'];
-                return (baseAznValue * lang.rate).toFixed(2) + ' ' + lang.currency;
+                let langCode = (currentLang && LANGUAGES[currentLang]) ? currentLang : 'az';
+                const lang = LANGUAGES[langCode];
+                return (parseFloat(baseAznValue) * lang.rate).toFixed(2) + ' ' + lang.currency;
             }
 
             function getT(key) {
-                if(!currentLang || !LANGUAGES[currentLang]) return key;
-                return LANGUAGES[currentLang].t[key] || key;
+                let langCode = (currentLang && LANGUAGES[currentLang]) ? currentLang : 'az';
+                return LANGUAGES[langCode].t[key] || key;
             }
 
             function safeSetText(id, text) {
@@ -622,12 +620,14 @@
             }
 
             addEvt('closeDemoReminder', 'click', () => {
-                document.getElementById('demoReminder').classList.add('hidden');
+                const remEl = document.getElementById('demoReminder');
+                if(remEl) remEl.classList.add('hidden');
             });
 
             function startGame() {
                 if (balance <= 0) {
-                    document.getElementById('topUpModal').classList.remove('hidden');
+                    const tModal = document.getElementById('topUpModal');
+                    if(tModal) tModal.classList.remove('hidden');
                     getDrivingAdvice(getT("msgNoBal"));
                     return;
                 }
@@ -643,11 +643,13 @@
                 trafficLight.active = false; policeEvent.active = false; policeEvent.isWaiting = false;
                 
                 clearTimeout(demoReminderTimeout); 
-                document.getElementById('demoReminder').classList.add('hidden');
+                const dRem = document.getElementById('demoReminder');
+                if(dRem) dRem.classList.add('hidden');
                 
                 demoReminderTimeout = setTimeout(() => {
                     if (isGameRunning && !isGameOver) {
-                        document.getElementById('demoReminder').classList.remove('hidden');
+                        const dRem2 = document.getElementById('demoReminder');
+                        if(dRem2) dRem2.classList.remove('hidden');
                         playTone(600, 'square', 0.2, 0.2); 
                         getDrivingAdvice("Hesabı aktivləşdir!");
                     }
@@ -660,7 +662,8 @@
             function gameOver() {
                 isGameOver = true; 
                 clearTimeout(demoReminderTimeout); 
-                document.getElementById('demoReminder').classList.add('hidden'); 
+                const dRem = document.getElementById('demoReminder');
+                if(dRem) dRem.classList.add('hidden'); 
                 
                 document.getElementById('gameOverScreen').classList.remove('hidden'); 
                 document.getElementById('finalScore').innerText = Math.floor(score);
@@ -824,14 +827,18 @@
 
             addEvt('loginBtn', 'click', startGame); 
             addEvt('restartBtn', 'click', startGame);
-            addEvt('gameOverTopupBtn', 'click', () => { document.getElementById('topUpModal').classList.remove('hidden'); });
+            addEvt('gameOverTopupBtn', 'click', () => { 
+                const tModal = document.getElementById('topUpModal');
+                if(tModal) tModal.classList.remove('hidden'); 
+            });
             addEvt('buyMeCoffeeBtn', 'click', () => { window.open('https://buymeacoffee.com/surwin', '_blank'); });
             
             addEvt('verifyPaymentBtn', 'click', (e) => {
                 const btn = e.currentTarget; const originalText = btn.innerHTML; btn.innerHTML = `⏳ ...`; btn.disabled = true;
                 setTimeout(() => {
                     let user = null;
-                    try { user = JSON.parse(localStorage.getItem('premiumDriveUser')); } catch(e){}
+                    let uStr = safeGetLS('premiumDriveUser');
+                    if (uStr) { try { user = JSON.parse(uStr); } catch(e){} }
                     
                     if (user && !user.bonusClaimed) { 
                         balance += 0.50; user.bonusClaimed = true; 
@@ -842,7 +849,8 @@
                     btn.classList.replace('text-emerald-400', 'text-white'); btn.classList.replace('bg-emerald-500/10', 'bg-emerald-600');
                     
                     setTimeout(() => { 
-                        document.getElementById('topUpModal').classList.add('hidden'); 
+                        const tModal = document.getElementById('topUpModal');
+                        if(tModal) tModal.classList.add('hidden'); 
                         btn.innerHTML = originalText; btn.disabled = false; btn.classList.replace('text-white', 'text-emerald-400'); btn.classList.replace('bg-emerald-600', 'bg-emerald-500/10'); 
                         if (isGameOver && balance > 0) {
                             const title = document.getElementById('gameOverTitle'); const restartBtn = document.getElementById('restartBtn'); const topupBtn = document.getElementById('gameOverTopupBtn'); const msg = document.getElementById('gameOverMessage');
@@ -886,7 +894,7 @@
             const lRight = document.getElementById('laneRight');
             if(lRight) { lRight.addEventListener('mousedown', goRight); lRight.addEventListener('touchstart', goRight, {passive: false}); }
 
-        }); // DOMContentLoaded BITİŞİ
+        })(); // SELF-EXECUTING FUNCTION SONU
     </script>
 </body>
 </html>

@@ -9,7 +9,7 @@
     <style>
         body { 
             user-select: none; -webkit-user-select: none; touch-action: none; overflow: hidden; background-color: #020617; 
-            height: 100vh; height: 100dvh; /* Telefonlar üçün dinamik hündürlük */
+            height: 100vh; height: 100dvh; 
         } 
         .hidden { display: none !important; }
         
@@ -341,14 +341,16 @@
             const TRAFFIC_COLORS = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#cbd5e1', '#ea580c'];
             let activeSkinId = 'default';
 
+            // DƏYİŞDİRİLMİŞ: SƏS SİSTEMİ DAHA MÜLAYİM (TRIANGLE) VƏ DAHA AŞAĞI SƏS SƏVİYYƏSİNDƏDİR
             let audioCtx = null; let engineOsc = null; let engineGain = null;
             function initAudio() {
                 if (audioCtx) return;
                 try {
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                     engineOsc = audioCtx.createOscillator(); engineGain = audioCtx.createGain();
-                    engineOsc.type = 'sawtooth'; engineOsc.frequency.setValueAtTime(40, audioCtx.currentTime);
-                    engineGain.gain.setValueAtTime(0.08, audioCtx.currentTime); 
+                    engineOsc.type = 'triangle'; // Sawtooth əvəzinə Triangle - yumşaq səs
+                    engineOsc.frequency.setValueAtTime(50, audioCtx.currentTime); // Bir az yüksək tezlik, daha sakit səslənmə
+                    engineGain.gain.setValueAtTime(0.05, audioCtx.currentTime); // Səs gücü azaldıldı (0.08 -> 0.05)
                     engineOsc.connect(engineGain); engineGain.connect(audioCtx.destination); engineOsc.start();
                 } catch(e){}
             }
@@ -362,12 +364,12 @@
                     osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
                 } catch(e){}
             }
-            function playCrashSound() { playTone(150, 'sawtooth', 0.5, 0.4); setTimeout(() => playTone(50, 'square', 0.8, 0.4), 100); }
-            function playSuccessSound() { playTone(660, 'sine', 0.1, 0.2); setTimeout(() => playTone(880, 'sine', 0.3, 0.2), 100); }
-            function playFineSound() { playTone(200, 'square', 0.3, 0.3); setTimeout(() => playTone(150, 'square', 0.4, 0.3), 150); }
-            function playBuySound() { playTone(523.25, 'sine', 0.1, 0.2); setTimeout(() => playTone(659.25, 'sine', 0.2, 0.2), 100); setTimeout(() => playTone(783.99, 'sine', 0.3, 0.2), 200); }
-            function playNitroSound() { playTone(300, 'square', 0.1, 0.1); setTimeout(() => playTone(500, 'sawtooth', 0.5, 0.2), 100); }
-            function playPoliceSiren() { playTone(800, 'sine', 0.3, 0.2); setTimeout(() => playTone(600, 'sine', 0.3, 0.2), 300); }
+            function playCrashSound() { playTone(150, 'triangle', 0.5, 0.3); setTimeout(() => playTone(50, 'sine', 0.8, 0.3), 100); }
+            function playSuccessSound() { playTone(660, 'sine', 0.1, 0.15); setTimeout(() => playTone(880, 'sine', 0.3, 0.15), 100); }
+            function playFineSound() { playTone(200, 'square', 0.3, 0.2); setTimeout(() => playTone(150, 'square', 0.4, 0.2), 150); }
+            function playBuySound() { playTone(523.25, 'sine', 0.1, 0.15); setTimeout(() => playTone(659.25, 'sine', 0.2, 0.15), 100); setTimeout(() => playTone(783.99, 'sine', 0.3, 0.15), 200); }
+            function playNitroSound() { playTone(300, 'sine', 0.1, 0.1); setTimeout(() => playTone(500, 'triangle', 0.5, 0.15), 100); }
+            function playPoliceSiren() { playTone(800, 'sine', 0.3, 0.15); setTimeout(() => playTone(600, 'sine', 0.3, 0.15), 300); }
 
             function getSpeechData(text) {
                 if ('speechSynthesis' in window && currentLang) {
@@ -565,7 +567,7 @@
                 
                 clearTimeout(demoReminderTimeout); const dRem = document.getElementById('demoReminder'); if(dRem) dRem.classList.add('hidden');
                 demoReminderTimeout = setTimeout(() => {
-                    if (isGameRunning && !isGameOver) { const dRem2 = document.getElementById('demoReminder'); if(dRem2) dRem2.classList.remove('hidden'); playTone(600, 'square', 0.2, 0.2); getDrivingAdvice("Hesabı aktivləşdir!"); }
+                    if (isGameRunning && !isGameOver) { const dRem2 = document.getElementById('demoReminder'); if(dRem2) dRem2.classList.remove('hidden'); playTone(600, 'sine', 0.2, 0.15); getDrivingAdvice("Hesabı aktivləşdir!"); }
                 }, 15000);
 
                 updateUI(); getDrivingAdvice(getT("msgGas")); if(ctx) requestAnimationFrame(gameLoop);
@@ -687,10 +689,14 @@
                 }
 
                 animatedPopups.forEach(p => { p.y -= (nitroTimer > 0 ? 3 : 1.5); p.alpha -= 0.015; p.life--; }); animatedPopups = animatedPopups.filter(p => p.life > 0);
+                
+                // MÜLAYİM SƏS TƏNZİMLƏNMƏSİ
                 if (engineGain && audioCtx) { 
-                    let freq = (isBraking || policeEvent.isWaiting) ? 30 : 40 * speedMultiplier;
-                    if (nitroTimer > 0) freq = 80; engineOsc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.1); 
-                    engineGain.gain.setTargetAtTime((isBraking || policeEvent.isWaiting) ? 0.02 : Math.min(0.15, 0.08 * speedMultiplier), audioCtx.currentTime, 0.1); 
+                    let freq = (isBraking || policeEvent.isWaiting) ? 40 : 55 * speedMultiplier;
+                    if (nitroTimer > 0) freq = 90; 
+                    engineOsc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.1); 
+                    // Səs səviyyəsini xeyli azaltmaq (0.05-ə qədər)
+                    engineGain.gain.setTargetAtTime((isBraking || policeEvent.isWaiting) ? 0.01 : Math.min(0.1, 0.05 * speedMultiplier), audioCtx.currentTime, 0.1); 
                 }
             }
 
